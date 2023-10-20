@@ -1,8 +1,9 @@
-import easygui, calendar, os, docx, re
+import easygui, calendar, os, docx, re, csv
 from datetime import datetime, timedelta
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
-
+mode_dict={'u':'Юл',
+           'g':'Гр'}
 
 #select month
 #month_no = easygui.enterbox("Введіть номер місяця", "Місяць")
@@ -36,7 +37,7 @@ day_dic = {"Понеділок":1,
 day_dic_reversed = {v:k for k,v in day_dic.items()}
 day_dic_string='('+'|'.join(day_dic.keys())+')'
 
-doc = docx.Document("Літургія - Мінея\\10-Літургія-шаблони.docx") 
+#doc = docx.Document("Літургія - Мінея\\10-Літургія-шаблони.docx") 
 
 def get_echos(date,mode):
     if mode=='u':
@@ -59,6 +60,16 @@ def copy_paragraph(target_doc,source_paragraph):
 def copy_paragraph_list(target_doc,paragraph_list):
     for p in paragraph_list:
         copy_paragraph(target_doc,p)
+
+def get_dismissal_matrix(dismissal_csv_filename,cur_month):
+    matrix={}
+    with open(dismissal_csv_filename, newline='', encoding='utf-8') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in spamreader:
+            if row[0]==month_dic_reversed[cur_month]:
+                matrix[int(row[1].split('.')[0])]=row[2:]
+    return matrix
+
         
 path = "Літургія - змінні частини - шаблони.docx"
 def get_resurrection_template_texts(path):
@@ -112,29 +123,30 @@ def get_everyday_template_texts(path):
         if cur_glas:
             template_dic[cur_glas].append(p)
     return template_dic
-
-
-           
+        
         
 def get_menaion_template_texts():
     directory_path ="Літургія - Мінея"
     all_files = os.listdir(directory_path)
     docx_file = [file for file in all_files if file.endswith(".docx") and file[:2]==f'{month_no:02}' and len(file) >= 4][0]
     print(docx_file)
-    doc = docx.Document("Літургія - Мінея\\10-Літургія-шаблони.docx"+docx_file)
+    doc = docx.Document("Літургія - Мінея\\"+docx_file)
     template_found=False
+    starting_tag_found=False
     template_dic={}
     for p in doc.paragraphs:
+        
         re_result=re.search(f'^{month_dic_string} (\d+)',p.text)
         if re_result:
             cur_date = int(re_result.group(2))
             template_dic[cur_date]=[]
             template_found = True
+        
+        re_result=re.search(f'<ustav',p.text)
+        if re_result:
+            starting_tag_found=True
             
-        #re_result=re.search(f'<ustav',p.text)
-        #if re_result:
-        #    template_found=True
-        if template_found:
+        if template_found and starting_tag_found:
             template_dic[cur_date].append(p)
 
         re_result=re.search(f'</vidpust',p.text)
@@ -147,9 +159,12 @@ def get_menaion_template_texts():
     #print(template_dic)
     return template_dic
 
+#init data
 templates_menaion = get_menaion_template_texts()
 templates_resurrection = get_resurrection_template_texts(path)
 templates_everyday = get_everyday_template_texts(path)
+
+dismissal_matrix = get_dismissal_matrix(f'Читання{mode_dict[mode]}.csv',month_no)
 
 new_doc = docx.Document()
 '''
@@ -159,6 +174,7 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     print(d)
     heading_text =' '.join([month_dic_reversed[month_no],str(d)+',',day_dic_reversed[datetime(year_no, month_no, d).weekday()+1]])
     new_doc.add_heading(heading_text, level=2)
+    new_doc.add_paragraph(dismissal_matrix[d][2])
     if datetime(year_no, month_no, d).weekday()+1==7:
         #print(d, "copied sunday ", get_echos(datetime(year_no,month_no,d)))
         copy_paragraph_list(new_doc,templates_resurrection[get_echos(datetime(year_no,month_no,d),mode)])
