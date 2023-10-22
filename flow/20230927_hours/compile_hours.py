@@ -6,6 +6,22 @@ mode = 'u'
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
+month_dic = {'Січень':1,
+              'Лютий':2,
+              'Березень':3,
+              'Квітень':4,
+              'Травень':5,
+              'Червень':6,
+              'Липень':7,
+              'Серпень':8,
+              'Вересень':9,
+              'Жовтень':10,
+              'Листопад':11,
+              'Грудень':12}
+month_dic_reversed = {v:k for k,v in month_dic.items()}
+month_dic_string='('+'|'.join(month_dic.keys())+')'
+
+
 
 def get_echos(date,mode):
     if mode=='u':
@@ -19,53 +35,53 @@ def get_matrix(csv_filename):
     with open(csv_filename, newline='', encoding='utf-8') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in spamreader:
-            print(row)
-            print(row[0],str(month_no))
+            #print(row)
+            #print(row[0],str(month_no))
             if row[0]==str(month_no):
                 matrix[int(row[1].split('.')[2])]=row[2:]
     return matrix
 
 
 
-def get_resurrection_template_texts(path):
+def get_resurrection_troparia_texts(path):
     template_dic={}
     doc = docx.Document(path)
-    #rubric_found = cur_glas = None
+    echos = None
     #i=0
     for p in doc.paragraphs:
-        re_result = re.search("Глас (\d)")
+        re_result = re.search("Глас (\d)",p.text)
         if re_result:
+            #print("found")
             echos=int(re_result.group(1))
-        
-        if p
-        
-
-
-
-
-
-        
+            template_dic[echos]=[]
         #print(p.text)
-        if not rubric_found and not p.text.startswith("Воскресна служба"):
-            pass
-        elif p.text.startswith("Воскресна служба"):
-            rubric_found=True
-        if rubric_found:
-            re_result = re.search("Неділя – глас (\d)",p.text)
-            if re_result:
-                cur_glas = int(re_result.group(1))
-                template_dic[cur_glas]=[]
-                continue
 
-        if cur_glas and p.text.startswith("</vidpust>"):
-            template_dic[cur_glas].append(p)
-            cur_glas=None
-
-        if cur_glas:
-            template_dic[cur_glas].append(p)
+        re_result = re.search("((Тропар|Кондак).*?\(г\. \d\)): (.*)",p.text)
+        if echos and re_result:
+            template_dic[echos].append([re_result.group(1),re_result.group(3)])
     return template_dic
 
+def get_menaion_troparia_texts(path):
+    print("in")
+    template_dic={}
+    doc = docx.Document(path)
+    cur_day = None
+    #i=0
+    for p in doc.paragraphs:
+        print(p.text[:10])
+        re_result = re.search(f"^(\d+) (.*)",p.text)
+        if re_result:
+            print("found")
+            cur_day=int(re_result.group(1))
+            cur_day_heading = re_result.group(2)
+            template_dic[cur_day]=[]
+            print(cur_day)
+        #print(p.text)
 
+        #re_result = re.search("((Тропар|Кондак).*?\(г\. \d\)): (.*)",p.text)
+        #if echos and re_result:
+        #    template_dic[echos].append([re_result.group(1),re_result.group(3)])
+    return template_dic
             
 #import troparia - resurrection
 #import troparia - mineion
@@ -77,7 +93,8 @@ def get_resurrection_template_texts(path):
 #   insert troparia
 #   insert kondakion
 
-ordo_matrix = get_matrix("ЧасиЮл.csv")
-templates_resurrection = get_resurrection_template_texts('воскресні.docx')
+ordo_matrix = get_matrix("Часи.csv")
+templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
+templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no}.docx')
 
 
