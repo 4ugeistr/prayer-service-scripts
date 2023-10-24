@@ -65,21 +65,30 @@ def get_menaion_troparia_texts(path):
     print("in")
     template_dic={}
     doc = docx.Document(path)
-    cur_day = None
+    key = None #cur_day
     #i=0
     for p in doc.paragraphs:
         print(p.text[:10])
         re_result = re.search(f"^(\d+) (.*)",p.text)
         if re_result:
             print("found")
-            cur_day=int(re_result.group(1))
+            key=int(re_result.group(1))
             cur_day_heading = re_result.group(2)
             template_dic[cur_day]=[]
             print(cur_day)
+            
         #print(p.text)
-
-        #re_result = re.search("((Тропар|Кондак).*?\(г\. \d\)): (.*)",p.text)
-        #if echos and re_result:
+        
+        re_result_troparion = re.search("(Тропар.*?\(г\. \d\)): (.*)",p.text)
+        re_result_kondakion = re.search("(Кондак.*?\(г\. \d\)): (.*)",p.text)
+        if key:
+            if re_result_troparion:
+                pass
+            elif re_result_kondakion:
+                pass
+            else:
+                pass
+            
         #    template_dic[echos].append([re_result.group(1),re_result.group(3)])
     return template_dic
             
