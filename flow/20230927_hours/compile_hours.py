@@ -61,34 +61,55 @@ def get_resurrection_troparia_texts(path):
             template_dic[echos].append([re_result.group(1),re_result.group(3)])
     return template_dic
 
+'''
+{
+    1:
+        [
+            {
+                saint:
+                troparion
+                kondakion
+            },
+            {
+                saint:
+                troparion
+                kondakion
+            }
+        ]
+}
+'''
 def get_menaion_troparia_texts(path):
-    print("in")
+    #print("in")
     template_dic={}
     doc = docx.Document(path)
     key = None #cur_day
-    #i=0
+    saint={}
     for p in doc.paragraphs:
-        print(p.text[:10])
         re_result = re.search(f"^(\d+) (.*)",p.text)
         if re_result:
             print("found")
             key=int(re_result.group(1))
             cur_day_heading = re_result.group(2)
-            template_dic[cur_day]=[]
-            print(cur_day)
-            
-        #print(p.text)
-        
-        re_result_troparion = re.search("(Тропар.*?\(г\. \d\)): (.*)",p.text)
-        re_result_kondakion = re.search("(Кондак.*?\(г\. \d\)): (.*)",p.text)
+            template_dic[key]=[]
+
         if key:
-            if re_result_troparion:
-                pass
-            elif re_result_kondakion:
-                pass
+            if re.search("^Тропар",p.text):
+                re_result = re.search("(Тропар.*?\(г\. \d\): )(.*)",p.text)
+                try:
+                    saint["troparion"]=[re_result.group(1), re_result.group(2)]
+                except IndexError as e:
+                    print(p.text, re_result)
+                    raise e
+            elif re.search("^Кондак",p.text):
+                re_result = re.search("(Кондак.*?\(г\. \d\): )(.*)",p.text)
+                saint["kondakion"]=[re_result.group(1), re_result.group(2)]
             else:
-                pass
-            
+                #found saint header
+                saint["header"]=p.text    
+
+        if "header" in saint.keys() and "troparion" in saint.keys() and "kondakion" in saint.keys():
+            template_dic[key].append(saint)
+            saint={}
         #    template_dic[echos].append([re_result.group(1),re_result.group(3)])
     return template_dic
             
