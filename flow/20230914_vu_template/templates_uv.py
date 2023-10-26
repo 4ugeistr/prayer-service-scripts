@@ -148,6 +148,7 @@ if not os.path.exists(folder_name):
     os.makedirs(folder_name)
 
 print(year_no, month_no)
+
 for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     print(d,datetime(year_no, month_no, d).weekday()+1)
     dest_filename=f'{folder_name}\\{d:02}-{day_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
@@ -159,5 +160,7 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         src_filename=templates_menaion_dic[d]
     else:        
         src_filename=templates_octoechos_dic[get_echos(datetime(year_no,month_no,d),mode)][datetime(year_no, month_no, d).weekday()+1]
-    shutil.copy(src_filename,dest_filename)        
+    shutil.copy(src_filename,dest_filename)
+
+drafts = glob.glob(f'{folder_name}\\*.docx')
 
