@@ -290,12 +290,20 @@ def get_matrix(csv_filename):
                 matrix[int(row[1].split('.')[2])]=row[2:]
     return matrix
 
+
+def get_thotokion_troparia_texts(path)
+    template_dic={}
+    doc = docx.Document(path)
+
+
+
 ordo_matrix = get_matrix("тропарі.csv")
 templates_octoechos_dic = get_octoechos_template_files()
 templates_menaion_dic = get_menaion_template_files()
 templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
 templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no}.docx')
 vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
+templates_theotokion_dic = get_thotokion_troparia_texts('богородичні-тропарі.docx')
 
 
 
@@ -377,6 +385,8 @@ def insert_prefix_to_paragraph(p,text="Слава: ",formatting='b'):
     new_run = p.add_run(text)
     if 'b' in formatting:
         new_run.font.bold = True
+    new_run.font.name='Times New Roman'
+    new_run.font.size=152400
     
     bkp=p.runs[:-1]
     for r in p.runs:
@@ -409,8 +419,11 @@ def get_troparia_block(date,service):
         if ordo_matrix[date.day][2:][i] == 'resurrection':
             troparia = templates_resurrection[get_echos(date,mode)][0]
         if ordo_matrix[date.day][2:][i] == 'saint':
-            if i==3:
+            #print(date.day, i)
+            if i==2:
+                #print("adding Slava")
                 troparia=insert_prefix_to_paragraph(templates_menaion[date.day][saint_counter]["troparion"],text="Слава: ")
+                #print(troparia.text)
             else:
                 troparia=templates_menaion[date.day][saint_counter]["troparion"]
             #troparia_block.append(troparia)
@@ -434,20 +447,31 @@ def get_troparia_block(date,service):
             #print(ordo_matrix[date.day][2:][i])
             #print(troparia.text)        
         troparia_block.append(troparia)
+    troparia_block.append(troparia_block[-1].insert_paragraph_before())        
     return troparia_block
 
 def insert_troparia(path,date):
     print(date.day)
     doc = docx.Document(path)
+    troparia_block=get_troparia_block(date,'orthos')
     troparion_found = False
+    troparion_end_found = False
     for p in doc.paragraphs:
         re_result = re.search("Тропарі",p.text)
         if re_result:
             troparion_found = True
+            troparion_end_found = False
+            continue
+        
         re_result = re.search("(Великий відпуст|Єктенія усильного благання|Мала єктенія)",p.text)
         if re_result and troparion_found:
-            copy_paragraph_list_before(p,get_troparia_block(date,'orthos'))
+            troparion_end_found=True
+            copy_paragraph_list_before(p,troparia_block)
             troparion_found=False
+        elif  troparion_found and not troparion_end_found:
+            delete_paragraph(p)
+            #continue
+
     doc.save(path)            
 
 
