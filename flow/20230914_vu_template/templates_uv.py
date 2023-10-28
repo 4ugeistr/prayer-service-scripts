@@ -108,7 +108,10 @@ def copy_run(target_paragraph,run):
 
 def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
     target_paragraph = paragraph_to_insert_before.insert_paragraph_before()
-    target_paragraph.style = source_paragraph.style.name
+    try:
+        target_paragraph.style = source_paragraph.style
+    except KeyError:
+        print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
     for run in source_paragraph.runs:
         copy_run(target_paragraph,run)
         '''
@@ -122,6 +125,8 @@ def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
         new_run.font.color.rgb = run.font.color.rgb
         new_run.font.highlight_color = run.font.highlight_color
         '''
+    return target_paragraph
+
 def copy_paragraph_list_before(p_to_insert_before,paragraph_list):
     #print("qty of p to insert:",len(paragraph_list))
     for p in paragraph_list:
@@ -132,7 +137,10 @@ def copy_paragraph_list_before(p_to_insert_before,paragraph_list):
 
 def copy_paragraph(target_doc,source_paragraph):
     target_paragraph = target_doc.add_paragraph()
-    target_paragraph.style = source_paragraph.style
+    try:
+        target_paragraph.style = source_paragraph.style
+    except KeyError:
+        print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
     target_paragraph.alignment = source_paragraph.alignment
     for run in source_paragraph.runs:
         new_run = target_paragraph.add_run(run.text)
@@ -291,10 +299,34 @@ def get_matrix(csv_filename):
     return matrix
 
 
-def get_thotokion_troparia_texts(path)
+def get_theotokion_troparia_texts(path):
+    service_dic = {'Вечірня':'vespers',
+                   'Утреня':'orthros'}
     template_dic={}
     doc = docx.Document(path)
+    for p in doc.paragraphs:
+        re_result = re.search("Глас (\d)",p.text)
+        if re_result:
+            #print("found")
+            echos=int(re_result.group(1))
+            template_dic[echos]=[]
+        #print(p.text)
 
+        re_result = re.search(f"(Вечірня|Утреня) Відпуст",p.text)
+        if re_result:
+            #print(echos,re_result.group(1))
+            service=service_dic[re_result.group(1)]
+
+        re_result = re.search(f"^{day_dic_string}",p.text)
+        if re_result:
+            day = re_result.group(1)
+            weekday_no = day_dic[day]
+
+        re_result = re.search(f"Богородичний",p.text)
+        if re_result:
+            template_dic[echos].append({'service':service, 'weekday':weekday_no,'p':p})
+            
+    return template_dic
 
 
 ordo_matrix = get_matrix("тропарі.csv")
@@ -303,7 +335,7 @@ templates_menaion_dic = get_menaion_template_files()
 templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
 templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no}.docx')
 vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
-templates_theotokion_dic = get_thotokion_troparia_texts('богородичні-тропарі.docx')
+templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
 
 
 
@@ -382,26 +414,32 @@ def insert_boh_hospod_echos(path,date):
     doc.save(path)
 
 def insert_prefix_to_paragraph(p,text="Слава: ",formatting='b'):
-    new_run = p.add_run(text)
+    p_new = copy_paragraph_before(p,p)
+    new_run = p_new.add_run(text)
     if 'b' in formatting:
         new_run.font.bold = True
     new_run.font.name='Times New Roman'
     new_run.font.size=152400
     
-    bkp=p.runs[:-1]
-    for r in p.runs:
+    bkp=p_new.runs[:-1]
+    for r in p_new.runs:
         delete_run(r)
         
-    copy_run(p,new_run)
+    copy_run(p_new,new_run)
     for r in bkp:
-        copy_run(p,r)
-    return p
+        copy_run(p_new,r)
+    return p_new
+
+
+
 
 def get_troparia_theotokion(echos, date, service):
-    #p=docx.Paragraph(f"{echos}theotokion")
-    p=templates_resurrection[1][1]
-    p.text="богородичний"
+    #print(echos, date, service)
+    res = filter(lambda t: t['service'] == service and t['weekday'] == date.weekday()+1, templates_theotokion_dic[echos])
+    l = list(res)
+    p = l[0]["p"]
     return p
+    #return list(filter(lambda t: t['service'] == service and t['weekday'] == date.weekday()+1, templates_theotokion_dic[echos]))[0]["p"]
 
 def get_troparia_block(date,service):
     troparia_block=[]
@@ -453,10 +491,18 @@ def get_troparia_block(date,service):
 def insert_troparia(path,date):
     print(date.day)
     doc = docx.Document(path)
-    troparia_block=get_troparia_block(date,'orthos')
+    troparia_block = {"orthros": get_troparia_block(date,'orthros'),
+                      "vespers": get_troparia_block(date,'vespers')}
+    #troparia_block=get_troparia_block(date,'orthros')
     troparion_found = False
     troparion_end_found = False
+    service = False
     for p in doc.paragraphs:
+        if re.search("ВЕЧІРНЯ",p.text):
+            service = 'vespers'
+        if re.search("УТРЕНЯ",p.text):
+            service = 'orthros'
+        
         re_result = re.search("Тропарі",p.text)
         if re_result:
             troparion_found = True
@@ -466,7 +512,7 @@ def insert_troparia(path,date):
         re_result = re.search("(Великий відпуст|Єктенія усильного благання|Мала єктенія)",p.text)
         if re_result and troparion_found:
             troparion_end_found=True
-            copy_paragraph_list_before(p,troparia_block)
+            copy_paragraph_list_before(p,troparia_block[service])
             troparion_found=False
         elif  troparion_found and not troparion_end_found:
             delete_paragraph(p)
