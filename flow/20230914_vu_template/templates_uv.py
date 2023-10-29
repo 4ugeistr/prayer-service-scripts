@@ -329,6 +329,56 @@ def get_theotokion_troparia_texts(path):
     return template_dic
 
 
+def get_kanon_litany(path):
+    template_dic={}
+    doc = docx.Document(path)
+    litany_no = None
+    for p in doc.paragraphs:
+        re_result = re.search("Мала єктенія (\d)",p.text)
+        if re_result:
+            litany_no=int(re_result.group(1))
+            template_dic[litany_no]=[]
+            continue
+        elif litany_no:
+            template_dic[litany_no].append(p)
+    return template_dic
+        
+
+def get_kanon_texts(path):
+    template_dic={}
+    doc = docx.Document(path)
+    
+    kanon_found=False
+    kanon_end_found=False
+    for p in doc.paragraphs:
+        re_result = re.search("Глас (\d)",p.text)
+        if re_result:
+            #print("found")
+            echos=int(re_result.group(1))
+            template_dic[echos]={}
+        #print(p.text)
+        re_result = re.search(f"^{day_dic_string}",p.text)
+        if re_result:
+            day = re_result.group(1)
+            weekday_no = day_dic[day]
+            template_dic[echos][weekday_no]=[]
+
+        re_result = re.search(f"Канон*(П)",p.text)
+        if re_result:
+            kanon_found=True
+            kanon_end_found=False
+            template_doc[echos]=[]
+            
+        re_result = re.search(f"Пісня 9",p.text)
+        if re_result:
+            kanon_found = False
+            kanon_end_found = True
+            
+        if kanon_found and not kanon_end_found:
+            template_doc[echos].append(p)
+            
+    return template_dic
+
 ordo_matrix = get_matrix("тропарі.csv")
 templates_octoechos_dic = get_octoechos_template_files()
 templates_menaion_dic = get_menaion_template_files()
@@ -336,8 +386,8 @@ templates_resurrection = get_resurrection_troparia_texts('воскресні.doc
 templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no}.docx')
 vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
 templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
-
-
+templates_kanon_dic = get_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
+litany_list = get_kanon_litany("Канон - Мала єтенія.docx")
 
 
 folder_name=f'drafts\\{year_no}-{month_no}-{mode}'
@@ -489,7 +539,7 @@ def get_troparia_block(date,service):
     return troparia_block
 
 def insert_troparia(path,date):
-    print(date.day)
+    #print(date.day)
     doc = docx.Document(path)
     troparia_block = {"orthros": get_troparia_block(date,'orthros'),
                       "vespers": get_troparia_block(date,'vespers')}
