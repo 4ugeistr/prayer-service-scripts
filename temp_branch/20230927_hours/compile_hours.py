@@ -90,6 +90,23 @@ def get_menaion_template_texts(path):
             template_dic[key].append(p)
     return template_dic
 
+def get_feast_template_texts(path):
+    template_dic={}
+    doc = docx.Document(path)
+    key = None
+    for p in doc.paragraphs:
+        re_result = re.search("^(\d{1,2})",p.text)
+        if re_result:
+            key = int(re_result.group(1))
+            if not key in template_dic:
+                template_dic[key]=[]
+        if key and p.text.find("Тропар")!=-1:
+            template_dic[key].append(p)
+        if key and p.text.find("Кондак")!=-1:
+            template_dic[key].append(p)
+    return template_dic
+
+
 def get_template_files(path):
     files = glob.glob(path)
     print(files)
@@ -109,9 +126,10 @@ def get_template_files(path):
 #   insert troparia
 #   insert kondakion
 
-ordo_matrix = get_matrix("ЧасиЮл.csv")
+ordo_matrix = get_matrix("Часи.csv")
 templates_resurrection = get_resurrection_template_texts('воскресні.docx')
-templates_menaion = get_menaion_template_texts('тропарі-10.docx')
+templates_menaion = get_menaion_template_texts('тропарі-11.docx')
+templates_feast = get_feast_template_texts('свято-11.docx')
 template_file_list = get_template_files('docx_templates/hours-template-*.docx')
 
 
@@ -157,6 +175,11 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
                 hours_matrix[d].append(templates_resurrection[get_echos(datetime(year_no,month_no,d),mode)][0])
             elif o =='resurrection' and (i+1)%3==0:
                 hours_matrix[d].append(templates_resurrection[get_echos(datetime(year_no,month_no,d),mode)][1])
+            elif o =='feast' and (i+1)%3!=0:
+                hours_matrix[d].append(templates_feast[d][0])
+            elif o =='feast' and (i+1)%3==0:
+                hours_matrix[d].append(templates_feast[d][1])
+            
             elif o =='saint' and (i+1)%3!=0:
                 hours_matrix[d].append(templates_menaion[d][0])
             elif o =='saint' and (i+1)%3==0:
@@ -186,6 +209,7 @@ hours_translate = {1:1,
 
 
 for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
+    #print(d)
 #for d in range(1,2):
     dest_filename=f'{folder_name}\\{d:02}.{month_no}.docx'
     doc = docx.Document(dest_filename)
@@ -194,27 +218,30 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         
         re_result = re.search(f"^ЧАС {hours_dic_reversed_string}",p.text)
         if re_result:
-            print("found hour")
+            
             hour = int(hours_dic_reversed[re_result.group(1)])
+            #print(d, "found hour", hour)
         re_result = re.search("^Слава Отцю, і Сину, і Святому Духові\.",p.text)
         if re_result and hour:
-            print("found СН")
+            #print("found СН")
             value=hours_matrix[d][3*hours_translate[hour]-3]
             if not type(value)==str:
                 copy_paragraph_before(p,value)
 
         re_result = re.search("^Тропар(\s)?$",p.text)
         if re_result and hour:
-            print("found тропар")
+            #print("found тропар")
             value=hours_matrix[d][3*hours_translate[hour]-2]
             copy_paragraph_before(p,value)
             delete_paragraph(p)
 
         re_result = re.search("^Кондак(\s)?$",p.text)
         if re_result and hour:
-            print("found кондак")
+            #print("found кондак")
             value=hours_matrix[d][3*hours_translate[hour]-1]
             copy_paragraph_before(p,value)
             delete_paragraph(p)
     doc.save(dest_filename)
         
+for k,v in hours_matrix.items():
+    print(k,len(v))
