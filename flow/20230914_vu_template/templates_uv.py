@@ -582,6 +582,7 @@ def insert_troparia(path,date):
 
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
+    insert_header(datetime(year_no, month_no, d))
     if desc[0]=='неділя' or desc[0]=='октоїх':
         pass
         #вставити стихири ГВ
