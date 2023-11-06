@@ -292,11 +292,19 @@ def get_matrix(csv_filename):
     with open(csv_filename, newline='', encoding='utf-8') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in spamreader:
-            #print(row)
-            #print(row[0],str(month_no))
             if row[0]==str(month_no):
                 matrix[int(row[1].split('.')[2])]=row[2:]
     return matrix
+#need to merge with previous one
+def get_dismissal_matrix(dismissal_csv_filename,cur_month):
+    matrix={}
+    with open(dismissal_csv_filename, newline='', encoding='utf-8') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in spamreader:
+            if row[0]==month_dic_reversed[cur_month]:
+                matrix[int(row[1].split('.')[0])]=row[2:]
+    return matrix
+
 
 
 def get_theotokion_troparia_texts(path):
@@ -380,6 +388,7 @@ def get_kanon_texts(path):
     return template_dic
 
 ordo_matrix = get_matrix("тропарі.csv")
+dismissal_matrix = get_dismissal_matrix(f'Читання{mode_dict[mode]}.csv',month_no)
 templates_octoechos_dic = get_octoechos_template_files()
 templates_menaion_dic = get_menaion_template_files()
 templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
