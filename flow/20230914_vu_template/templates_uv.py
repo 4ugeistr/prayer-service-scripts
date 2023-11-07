@@ -580,6 +580,18 @@ def insert_troparia(path,date):
     doc.save(path)            
 
 
+def insert_header(path,date):
+    doc = docx.Document(path)
+    for p in doc.paragraphs:
+        re_result = re.search("ВЕЧІРНЯ",p.text)
+        if not re_result:
+            #delete paragraph
+        else:
+            #insert
+            break
+    doc.save(path)
+
+
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
     insert_header(datetime(year_no, month_no, d))
