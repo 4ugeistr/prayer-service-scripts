@@ -10,6 +10,7 @@ filenames={}
 
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
+month_no=11
 
 day_short_dic={"ПН":1,
         "ВТ":2,
@@ -30,6 +31,27 @@ day_dic = {"Понеділок":1,
             "Неділя":7}
 day_dic_reversed = {v:k for k,v in day_dic.items()}
 day_dic_string='('+'|'.join(day_dic.keys())+')'
+
+month_dic= {'Січень':1,
+              'Лютий':2,
+              'Березень':3,
+              'Квітень':4,
+              'Травень':5,
+              'Червень':6,
+              'Липень':7,
+              'Серпень':8,
+              'Вересень':9,
+              'Жовтень':10,
+              'Листопад':11,
+              'Грудень':12}
+month_dic_reversed = {v:k for k,v in month_dic.items()}
+month_dic_string='('+'|'.join([x.lower() for x in month_dic.keys()])+')'
+
+
+if mode == 'u':
+    mode_suffix='Юл'
+elif mode == 'g':
+    mode_suffix='Гр'
 
 i=0
 for f in old_files:
@@ -287,14 +309,24 @@ def get_vespers_prokimenon(path):
             template_dic[day_dic[day]].append(p)
     return template_dic
 
+def get_matrix_full(csv_filename):
+    matrix=[]
+    with open(csv_filename, newline='', encoding='utf-8') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in spamreader:
+            matrix.append(row)
+    return matrix
+
 def get_matrix(csv_filename):
     matrix={}
     with open(csv_filename, newline='', encoding='utf-8') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in spamreader:
+
             if row[0]==str(month_no):
                 matrix[int(row[1].split('.')[2])]=row[2:]
     return matrix
+
 #need to merge with previous one
 def get_dismissal_matrix(dismissal_csv_filename,cur_month):
     matrix={}
@@ -388,7 +420,8 @@ def get_kanon_texts(path):
     return template_dic
 
 ordo_matrix = get_matrix("тропарі.csv")
-dismissal_matrix = get_dismissal_matrix(f'Читання{mode_dict[mode]}.csv',month_no)
+dismissal_matrix = get_matrix(f'Відпусти{mode_suffix}.csv')
+saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
 templates_octoechos_dic = get_octoechos_template_files()
 templates_menaion_dic = get_menaion_template_files()
 templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
@@ -397,6 +430,7 @@ vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
 templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
 templates_kanon_dic = get_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
 litany_list = get_kanon_litany("Канон - Мала єтенія.docx")
+
 
 
 folder_name=f'drafts\\{year_no}-{month_no}-{mode}'
@@ -576,25 +610,45 @@ def insert_troparia(path,date):
         elif  troparion_found and not troparion_end_found:
             delete_paragraph(p)
             #continue
-
-    doc.save(path)            
-
+    doc.save(path)          
 
 def insert_header(path,date):
+    print(date)
     doc = docx.Document(path)
     for p in doc.paragraphs:
         re_result = re.search("ВЕЧІРНЯ",p.text)
         if not re_result:
-            #delete paragraph
+            delete_paragraph(p)
         else:
-            #insert
+            #Шапка в форматі "Травень 10 Середа"
+            day_name = day_dic_reversed[date.weekday()+1]
+            month_name = month_dic_reversed[month_no]
+            txt =" ".join([month_name,str(date.day),day_name])
+            p.insert_paragraph_before(txt)
+
+            #TODO: Субота, Неділя, Тиждень etc...
+            if date.weekday()+1 in [6,7]:
+                p.insert_paragraph_before(day_name+" ЯКАСЬ ТАМ")    
+
+            #TODO: перелік святих
+            lst = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,saint_matrix[1:])
+            for l in lst:
+                p.insert_paragraph_before(l[9])
             break
+
+            '''
+            if 'b' in formatting:
+                new_run.font.bold = True
+            new_run.font.name='Times New Roman'
+            new_run.font.size=152400
+            '''
+            
     doc.save(path)
 
 
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
-    insert_header(datetime(year_no, month_no, d))
+    insert_header(desc[1],datetime(year_no, month_no, d))
     if desc[0]=='неділя' or desc[0]=='октоїх':
         pass
         #вставити стихири ГВ
