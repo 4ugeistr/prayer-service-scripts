@@ -1,5 +1,6 @@
 import re,glob,calendar,docx,os,easygui, shutil, csv
 from datetime import datetime
+from docx.shared import RGBColor
 
 #filenames= glob.glob('*/*/*.txt')
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
@@ -611,9 +612,19 @@ def insert_troparia(path,date):
             delete_paragraph(p)
             #continue
     doc.save(path)          
+def format_line(p, handle=''):
+    #handle = "bir"
+    if 'b' in handle:
+        p.runs[0].font.bold = True
+    if 'i' in handle:
+        p.runs[0].font.italic = True
+    if 'r' in handle:
+        p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
+    p.runs[0].font.name='Times New Roman'
+    p.runs[0].font.size=152400
 
 def insert_header(path,date):
-    print(date)
+    #print(date)
     doc = docx.Document(path)
     for p in doc.paragraphs:
         re_result = re.search("ВЕЧІРНЯ",p.text)
@@ -624,24 +635,22 @@ def insert_header(path,date):
             day_name = day_dic_reversed[date.weekday()+1]
             month_name = month_dic_reversed[month_no]
             txt =" ".join([month_name,str(date.day),day_name])
-            p.insert_paragraph_before(txt)
+            p_new = p.insert_paragraph_before(txt)
+            format_line(p_new, '')
 
             #TODO: Субота, Неділя, Тиждень etc...
             if date.weekday()+1 in [6,7]:
-                p.insert_paragraph_before(day_name+" ЯКАСЬ ТАМ")    
+                p_new = p.insert_paragraph_before(day_name+" ЯКАСЬ ТАМ")
+                format_line(p_new, '')
 
             #TODO: перелік святих
             lst = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,saint_matrix[1:])
             for l in lst:
-                p.insert_paragraph_before(l[9])
+                p_new=p.insert_paragraph_before(l[9])
+                format_line(p_new, ''.join(l[2:5]))
             break
 
-            '''
-            if 'b' in formatting:
-                new_run.font.bold = True
-            new_run.font.name='Times New Roman'
-            new_run.font.size=152400
-            '''
+
             
     doc.save(path)
 
