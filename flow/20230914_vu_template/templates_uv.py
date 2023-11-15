@@ -1,6 +1,7 @@
 import re,glob,calendar,docx,os,easygui, shutil, csv
 from datetime import datetime
 from docx.shared import RGBColor
+import paschalia
 
 #filenames= glob.glob('*/*/*.txt')
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
@@ -56,7 +57,7 @@ elif mode == 'g':
 
 i=0
 for f in old_files:
-    re_result=re.search('2022\\\\2022.(\d{2})\\\\(\d{1,2})(?:-|_)(?:.*?)(?:-|_)(.*).docx?',f)
+    re_result=re.search(r'2022\\2022.(\d{2})\\(\d{1,2})(?:-|_)(?:.*?)(?:-|_)(.*).docx?',f)
     if re_result:
         i+=1
         #print(i,re_result.group(1),re_result.group(2),re_result.group(3))
@@ -84,7 +85,7 @@ for m in range(1,13):
     for d, data in filenames[m].items():
         if re.search('Гл', data):
             #print(m,d,data)
-            filenames[m][d]=re.sub('Гл.\s?\d\s?-\s?','',data)
+            filenames[m][d]=re.sub(r'Гл.\s?\d\s?-\s?','',data)
             #print(m,d,filenames[m][d])
 
 def get_echos(date,mode):
@@ -181,9 +182,9 @@ def copy_paragraph_list(target_doc,paragraph_list):
 
 def get_octoechos_template_files():
     template_dic = {}
-    all_files = glob.glob('01-Октоїх/*/*.docx')
+    all_files = glob.glob(r'01-Октоїх/*/*.docx')
     for f in all_files:
-        re_result=re.search('01-Октоїх\\\\Глас_(\d)\\\\(\d)-(\w{2})-?.docx',f)
+        re_result=re.search(r'01-Октоїх\\Глас_(\d)\\(\d)-(\w{2})-?.docx',f)
         if re_result:
             #print(re_result.group(2), re_result.group(3))
             doc = docx.Document(f)
@@ -202,7 +203,7 @@ def get_octoechos_templates():
     template_dic = {}
     all_files = glob.glob('01-Октоїх/*/*.docx')
     for f in all_files:
-        re_result=re.search('01-Октоїх\\\\Глас_(\d)\\\\(\d)-(\w{2})-?.docx',f)
+        re_result=re.search(r'01-Октоїх\\Глас_(\d)\\(\d)-(\w{2})-?.docx',f)
         if re_result:
             #print(re_result.group(2), re_result.group(3))
             doc = docx.Document(f)
@@ -221,7 +222,7 @@ def get_menaion_template_files():
     template_dic={}
     for f in filenames:
         #print("Checking",f)
-        pattern='(\d{2})-__-(.*?).docx'
+        pattern=r'(\d{2})-__-(.*?).docx'
         #print(pattern)
         re_result = re.search(pattern,f)
         doc = docx.Document(f)
@@ -234,7 +235,7 @@ def get_menaion_templates():
     template_dic={}
     for f in filenames:
         print("Checking",f)
-        pattern='(\d{2})-__-(.*?).docx'
+        pattern=r'(\d{2})-__-(.*?).docx'
         print(pattern)
         re_result = re.search(pattern,f)
         doc = docx.Document(f)
@@ -247,14 +248,14 @@ def get_resurrection_troparia_texts(path):
     echos = None
     #i=0
     for p in doc.paragraphs:
-        re_result = re.search("Глас (\d)",p.text)
+        re_result = re.search(r"Глас (\d)",p.text)
         if re_result:
             #print("found")
             echos=int(re_result.group(1))
             template_dic[echos]=[]
         #print(p.text)
 
-        re_result = re.search("((Тропар|Кондак).*?\(г\. \d\)): (.*)",p.text)
+        re_result = re.search(r"((Тропар|Кондак).*?\(г\. \d\)): (.*)",p.text)
         if echos and re_result:
             #template_dic[echos].append([re_result.group(1),re_result.group(3)])
             template_dic[echos].append(p)
@@ -267,7 +268,7 @@ def get_menaion_troparia_texts(path):
     key = None #cur_day
     saint={}
     for p in doc.paragraphs:
-        re_result = re.search(f"^(\d+) (.*)",p.text)
+        re_result = re.search(r"^(\d+) (.*)",p.text)
         if re_result:
             #print("found")
             key=int(re_result.group(1))
@@ -276,7 +277,7 @@ def get_menaion_troparia_texts(path):
 
         if key:
             if re.search("^Тропар",p.text):
-                re_result = re.search("(Тропар.*?\(г\. \d\): )(.*)",p.text)
+                re_result = re.search(r"(Тропар.*?\(г\. \d\): )(.*)",p.text)
                 try:
                     #saint["troparion"]=[re_result.group(1), re_result.group(2)]
                     saint["troparion"]=p
@@ -284,7 +285,7 @@ def get_menaion_troparia_texts(path):
                     print(p.text, re_result)
                     raise e
             elif re.search("^Кондак",p.text):
-                re_result = re.search("(Кондак.*?\(г\. \d\): )(.*)",p.text)
+                re_result = re.search(r"(Кондак.*?\(г\. \d\): )(.*)",p.text)
                 #saint["kondakion"]=[re_result.group(1), re_result.group(2)]
                 saint["kondakion"]=p
             else:
@@ -346,14 +347,14 @@ def get_theotokion_troparia_texts(path):
     template_dic={}
     doc = docx.Document(path)
     for p in doc.paragraphs:
-        re_result = re.search("Глас (\d)",p.text)
+        re_result = re.search(r"Глас (\d)",p.text)
         if re_result:
             #print("found")
             echos=int(re_result.group(1))
             template_dic[echos]=[]
         #print(p.text)
 
-        re_result = re.search(f"(Вечірня|Утреня) Відпуст",p.text)
+        re_result = re.search(r"(Вечірня|Утреня) Відпуст",p.text)
         if re_result:
             #print(echos,re_result.group(1))
             service=service_dic[re_result.group(1)]
@@ -375,7 +376,7 @@ def get_kanon_litany(path):
     doc = docx.Document(path)
     litany_no = None
     for p in doc.paragraphs:
-        re_result = re.search("Мала єктенія (\d)",p.text)
+        re_result = re.search(r"Мала єктенія (\d)",p.text)
         if re_result:
             litany_no=int(re_result.group(1))
             template_dic[litany_no]=[]
@@ -392,7 +393,7 @@ def get_kanon_texts(path):
     kanon_found=False
     kanon_end_found=False
     for p in doc.paragraphs:
-        re_result = re.search("Глас (\d)",p.text)
+        re_result = re.search(r"Глас (\d)",p.text)
         if re_result:
             #print("found")
             echos=int(re_result.group(1))
@@ -404,13 +405,13 @@ def get_kanon_texts(path):
             weekday_no = day_dic[day]
             template_dic[echos][weekday_no]=[]
 
-        re_result = re.search(f"Канон*(П)",p.text)
+        re_result = re.search(r"Канон*(П)",p.text)
         if re_result:
             kanon_found=True
             kanon_end_found=False
             template_doc[echos]=[]
             
-        re_result = re.search(f"Пісня 9",p.text)
+        re_result = re.search(r"Пісня 9",p.text)
         if re_result:
             kanon_found = False
             kanon_end_found = True
@@ -496,7 +497,7 @@ def insert_boh_hospod_echos(path,date):
                 echos = get_echos(date,mode)
             else:
                 #echos = int(re.search("(\d)",templates_menaion[date.day][0]['troparion'][0]).group(1))
-                echos = int(re.search("(\d)",templates_menaion[date.day][0]['troparion'].text).group(1))
+                echos = int(re.search(r"(\d)",templates_menaion[date.day][0]['troparion'].text).group(1))
 
             for r in p.runs:
                 if '???' in r.text:
@@ -565,7 +566,7 @@ def get_troparia_block(date,service):
         if ordo_matrix[date.day][2:][i] == 'theotokos':
             #echos = int(re.search("(\d)",templates_resurrection[date.day][saint_counter]["troparion"]).group(1))
             #print(troparia_block[-1], troparia_block[-1].text)
-            echos = int(re.search("(\d)",troparia_block[-1].text).group(1))
+            echos = int(re.search(r"(\d)",troparia_block[-1].text).group(1))
             if ordo_matrix[date.day][2:][2]:
                 #print("І нині")
                 troparia=insert_prefix_to_paragraph(get_troparia_theotokion(echos,date,service),text="І нині: ")
@@ -634,13 +635,36 @@ def insert_header(path,date):
             #Шапка в форматі "Травень 10 Середа"
             day_name = day_dic_reversed[date.weekday()+1]
             month_name = month_dic_reversed[month_no]
+            week_no=paschalia.get_week(date,"","")[:2]
+            
             txt =" ".join([month_name,str(date.day),day_name])
             p_new = p.insert_paragraph_before(txt)
             format_line(p_new, '')
 
             #TODO: Субота, Неділя, Тиждень etc...
+
+            special_dates=[{"date":datetime(year_no,12,25),
+                             "holiday":"Різдво",
+                             "holiday_locative":"Різдві",
+                             "holiday_instrumental":"Різдвом"},
+                            {"date":datetime(year_no+1,1,6),
+                             "holiday":"Богоявленні",
+                             "holiday_locative":"Богоявленні",
+                             "holiday_instrumental":"Богоявленням"}]
+            for sd in special_dates:
+                diff = (sd["date"]-date).days
+                if abs(diff)<=7 and date.weekday()+1 in [6,7]:
+                    if diff>0:
+                        p_new = p.insert_paragraph_before(f"{day_name} перед {sd['holiday_instrumental']}")
+                    else:
+                        p_new = p.insert_paragraph_before(f"{day_name} по {sd['holiday_locative']}")
+            
             if date.weekday()+1 in [6,7]:
-                p_new = p.insert_paragraph_before(day_name+" ЯКАСЬ ТАМ")
+                p_new = p.insert_paragraph_before(f"{day_name} {week_no} по П'ятидесятниці")
+                format_line(p_new, '')
+
+            if date.weekday()+1 in [1]:
+                p_new = p.insert_paragraph_before(f"Тиждень {week_no} по П'ятидесятниці")
                 format_line(p_new, '')
 
             #TODO: перелік святих
