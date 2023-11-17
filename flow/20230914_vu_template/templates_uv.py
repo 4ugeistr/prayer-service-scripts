@@ -12,7 +12,7 @@ filenames={}
 
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
-month_no=11
+#month_no=11
 
 day_short_dic={"ПН":1,
         "ВТ":2,
@@ -125,8 +125,10 @@ def copy_run(target_paragraph,run):
     new_run.bold = run.bold
     new_run.italic = run.italic
     new_run.underline = run.underline
-    new_run.font.size = run.font.size
-    new_run.font.name = run.font.name
+    #new_run.font.size = run.font.size
+    #new_run.font.name = run.font.name
+    new_run.font.name='Times New Roman'
+    new_run.font.size=152400
     new_run.font.color.rgb = run.font.color.rgb
     new_run.font.highlight_color = run.font.highlight_color
 
@@ -134,21 +136,11 @@ def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
     target_paragraph = paragraph_to_insert_before.insert_paragraph_before()
     try:
         target_paragraph.style = source_paragraph.style
+        #target_paragraph.style.font = source_paragraph.style.font.name
     except KeyError:
         print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
     for run in source_paragraph.runs:
         copy_run(target_paragraph,run)
-        '''
-        new_run = target_paragraph.add_run(run.text)
-        new_run.style = run.style.name
-        new_run.bold = run.bold
-        new_run.italic = run.italic
-        new_run.underline = run.underline
-        new_run.font.size = run.font.size
-        new_run.font.name = run.font.name
-        new_run.font.color.rgb = run.font.color.rgb
-        new_run.font.highlight_color = run.font.highlight_color
-        '''
     return target_paragraph
 
 def copy_paragraph_list_before(p_to_insert_before,paragraph_list):
@@ -422,7 +414,7 @@ def get_kanon_texts(path):
     return template_dic
 
 ordo_matrix = get_matrix("тропарі.csv")
-dismissal_matrix = get_matrix(f'Відпусти{mode_suffix}.csv')
+dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
 saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
 templates_octoechos_dic = get_octoechos_template_files()
 templates_menaion_dic = get_menaion_template_files()
@@ -510,6 +502,7 @@ def insert_boh_hospod_echos(path,date):
 
 def insert_prefix_to_paragraph(p,text="Слава: ",formatting='b'):
     p_new = copy_paragraph_before(p,p)
+    #print("iptp:    ",p_new.text)
     new_run = p_new.add_run(text)
     if 'b' in formatting:
         new_run.font.bold = True
@@ -537,6 +530,9 @@ def get_troparia_theotokion(echos, date, service):
     #return list(filter(lambda t: t['service'] == service and t['weekday'] == date.weekday()+1, templates_theotokion_dic[echos]))[0]["p"]
 
 def get_troparia_block(date,service):
+    #if date.day!=1:
+    #    return 0
+    
     troparia_block=[]
     
     if ordo_matrix[date.day][1]=='y':
@@ -555,6 +551,7 @@ def get_troparia_block(date,service):
             #print(date.day, i)
             if i==2:
                 #print("adding Slava")
+                #print(templates_menaion[date.day][saint_counter]["troparion"].text)
                 troparia=insert_prefix_to_paragraph(templates_menaion[date.day][saint_counter]["troparion"],text="Слава: ")
                 #print(troparia.text)
             else:
@@ -575,7 +572,7 @@ def get_troparia_block(date,service):
                 #print("Слава і нині")
                 troparia=insert_prefix_to_paragraph(get_troparia_theotokion(echos,date,service),text="Слава, і нині: ")
                 #print("to insert",troparia.text)
-        #if date.day==5:
+        #if date.day==1:
             #print("inserting",i,ordo_matrix[date.day])
             #print(ordo_matrix[date.day][2:][i])
             #print(troparia.text)        
@@ -611,8 +608,8 @@ def insert_troparia(path,date):
             troparion_found=False
         elif  troparion_found and not troparion_end_found:
             delete_paragraph(p)
-            #continue
-    doc.save(path)          
+    doc.save(path)
+    
 def format_line(p, handle=''):
     #handle = "bir"
     if 'b' in handle:
@@ -658,6 +655,7 @@ def insert_header(path,date):
                         p_new = p.insert_paragraph_before(f"{day_name} перед {sd['holiday_instrumental']}")
                     else:
                         p_new = p.insert_paragraph_before(f"{day_name} по {sd['holiday_locative']}")
+                    format_line(p_new, '')
             
             if date.weekday()+1 in [6,7]:
                 p_new = p.insert_paragraph_before(f"{day_name} {week_no} по П'ятидесятниці")
@@ -673,15 +671,31 @@ def insert_header(path,date):
                 p_new=p.insert_paragraph_before(l[9])
                 format_line(p_new, ''.join(l[2:5]))
             break
-
-
-            
     doc.save(path)
 
+def insert_dismissal(path,date):
+    doc = docx.Document(path)
+    shoutout_found = None
+    for p in doc.paragraphs:
+        re_result=re.search(r"\. Благослови\.",p.text)
+        if re_result:
+            shoutout_found = True
+            #print(date.day, "found!")
+            continue
+
+        if shoutout_found:
+            #print(date.day, "inserting")
+            p_new=p.insert_paragraph_before(dismissal_matrix[date.day][-1])
+            #print(date.day,p_new.text)
+            format_line(p_new, '')
+            delete_paragraph(p)
+            shoutout_found = False
+    doc.save(path)    
 
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
     insert_header(desc[1],datetime(year_no, month_no, d))
+    insert_dismissal(desc[1],datetime(year_no, month_no, d))
     if desc[0]=='неділя' or desc[0]=='октоїх':
         pass
         #вставити стихири ГВ
@@ -696,6 +710,7 @@ for d,desc in draft_dic.items():
         #вставити прокімен
         insert_prokimenon(desc[1], datetime(year_no, month_no, d).weekday()+1)
         pass
+    
 
     
 
