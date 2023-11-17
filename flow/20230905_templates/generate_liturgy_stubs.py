@@ -84,7 +84,7 @@ def get_resurrection_template_texts(path):
         elif p.text.startswith("Воскресна служба"):
             rubric_found=True
         if rubric_found:
-            re_result = re.search("Неділя – глас (\d)",p.text)
+            re_result = re.search(r"Неділя – глас (\d)",p.text)
             if re_result:
                 cur_glas = int(re_result.group(1))
                 template_dic[cur_glas]=[]
@@ -136,7 +136,7 @@ def get_menaion_template_texts():
     template_dic={}
     for p in doc.paragraphs:
         
-        re_result=re.search(f'^{month_dic_string} (\d+)',p.text)
+        re_result=re.search(f'^{month_dic_string} '+r'(\d+)',p.text)
         if re_result:
             cur_date = int(re_result.group(2))
             template_dic[cur_date]=[]
