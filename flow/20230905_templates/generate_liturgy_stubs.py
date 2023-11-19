@@ -151,9 +151,10 @@ def get_menaion_template_texts():
 
         re_result=re.search(f'</vidpust',p.text)
         if re_result:
-            template_dic[cur_date]=template_dic[cur_date][1:]
+            #template_dic[cur_date]=template_dic[cur_date][1:]
             template_found=False
             cur_date=None
+            starting_tag_found=False
             
     
     #print(template_dic)
@@ -171,10 +172,13 @@ new_doc = docx.Document()
 Get all days in the month
 '''
 for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
+#for d in range (5,6):
     print(d)
     heading_text =' '.join([month_dic_reversed[month_no],str(d)+',',day_dic_reversed[datetime(year_no, month_no, d).weekday()+1]])
     new_doc.add_heading(heading_text, level=2)
+    #print(heading_text)
     new_doc.add_paragraph(dismissal_matrix[d][2])
+    #print(dismissal_matrix[d][2])
     if datetime(year_no, month_no, d).weekday()+1==7:
         #print(d, "copied sunday ", get_echos(datetime(year_no,month_no,d)))
         copy_paragraph_list(new_doc,templates_resurrection[get_echos(datetime(year_no,month_no,d),mode)])

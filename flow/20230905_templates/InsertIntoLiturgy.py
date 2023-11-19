@@ -50,7 +50,7 @@ month_list_reversed = {v:k for k,v in month_list.items()}
 #cur_month_no = int(re.search('\d{4}.(\d{2})',dirs).group(1))
 #cur_month= month_list_reversed[int(re.search('\d{4}.(\d{2})',dirs).group(1))]
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
-month_no -=1
+#month_no -=1
 cur_month= month_list_reversed[month_no]
 
 month_list_string='('+'|'.join(month_list.keys())+')'
@@ -81,6 +81,7 @@ with open(csv_filename, newline='', encoding='utf-8') as csvfile:
     for row in spamreader:
         if row[0]==cur_month:
             reading_matrix[int(row[1].split('.')[0])]=row[2:]
+            print(int(row[1].split('.')[0]), row[2:])
 
 dismissal_matrix={}
 with open(dismissal_csv_filename, newline='', encoding='utf-8') as csvfile:
