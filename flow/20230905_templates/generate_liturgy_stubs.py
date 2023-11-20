@@ -1,4 +1,6 @@
 import easygui, calendar, os, docx, re, csv
+from docx.shared import RGBColor
+import paschalia
 from datetime import datetime, timedelta
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
@@ -61,6 +63,18 @@ def copy_paragraph_list(target_doc,paragraph_list):
     for p in paragraph_list:
         copy_paragraph(target_doc,p)
 
+def format_line(p, handle=''):
+    #handle = "bir"
+    if 'b' in handle:
+        p.runs[0].font.bold = True
+    if 'i' in handle:
+        p.runs[0].font.italic = True
+    if 'r' in handle:
+        p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
+    p.runs[0].font.name='Times New Roman'
+    p.runs[0].font.size=152400
+
+
 def get_dismissal_matrix(dismissal_csv_filename,cur_month):
     matrix={}
     with open(dismissal_csv_filename, newline='', encoding='utf-8') as csvfile:
@@ -68,6 +82,14 @@ def get_dismissal_matrix(dismissal_csv_filename,cur_month):
         for row in spamreader:
             if row[0]==month_dic_reversed[cur_month]:
                 matrix[int(row[1].split('.')[0])]=row[2:]
+    return matrix
+
+def get_matrix_full(csv_filename):
+    matrix=[]
+    with open(csv_filename, newline='', encoding='utf-8') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in spamreader:
+            matrix.append(row)
     return matrix
 
         
@@ -164,8 +186,47 @@ def get_menaion_template_texts():
 templates_menaion = get_menaion_template_texts()
 templates_resurrection = get_resurrection_template_texts(path)
 templates_everyday = get_everyday_template_texts(path)
+saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
 
 dismissal_matrix = get_dismissal_matrix(f'Читання{mode_dict[mode]}.csv',month_no)
+
+
+def insert_header_liturgy(doc,date):
+    day_name = day_dic_reversed[date.weekday()+1]
+    #month_name = month_dic_reversed[month_no]
+    week_no=paschalia.get_week(date,"","")[:2]
+
+    #Субота, Неділя, Тиждень etc...
+    special_dates=[{"date":datetime(year_no,12,25),
+                     "holiday":"Різдво",
+                     "holiday_locative":"Різдві",
+                     "holiday_instrumental":"Різдвом"},
+                    {"date":datetime(year_no+1,1,6),
+                     "holiday":"Богоявленні",
+                     "holiday_locative":"Богоявленні",
+                     "holiday_instrumental":"Богоявленням"}]
+    for sd in special_dates:
+        diff = (sd["date"]-date).days
+        if abs(diff)<=7 and date.weekday()+1 in [6,7]:
+            if diff>0:
+                p_new = doc.add_paragraph(f"{day_name} перед {sd['holiday_instrumental']}")
+            else:
+                p_new = doc.add_paragraph(f"{day_name} по {sd['holiday_locative']}")
+            format_line(p_new, '')
+    
+    if date.weekday()+1 in [6,7]:
+        p_new = doc.add_paragraph(f"{day_name} {week_no} по П'ятидесятниці")
+        format_line(p_new, '')
+
+    if date.weekday()+1 in [1]:
+        p_new = doc.add_paragraph(f"Тиждень {week_no} по П'ятидесятниці")
+        format_line(p_new, '')
+
+    #перелік святих
+    lst = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,saint_matrix[1:])
+    for l in lst:
+        p_new=doc.add_paragraph(l[9])
+        format_line(p_new, ''.join(l[2:5]))
 
 new_doc = docx.Document()
 '''
@@ -177,7 +238,11 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     heading_text =' '.join([month_dic_reversed[month_no],str(d)+',',day_dic_reversed[datetime(year_no, month_no, d).weekday()+1]])
     new_doc.add_heading(heading_text, level=2)
     #print(heading_text)
-    new_doc.add_paragraph(dismissal_matrix[d][2])
+
+    #REDO! in January =D
+    #new_doc.add_paragraph(dismissal_matrix[d][2])
+    insert_header_liturgy(new_doc,datetime(year_no,month_no,d))
+
     #print(dismissal_matrix[d][2])
     if datetime(year_no, month_no, d).weekday()+1==7:
         #print(d, "copied sunday ", get_echos(datetime(year_no,month_no,d)))

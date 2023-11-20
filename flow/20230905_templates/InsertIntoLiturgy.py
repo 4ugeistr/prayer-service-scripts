@@ -81,7 +81,7 @@ with open(csv_filename, newline='', encoding='utf-8') as csvfile:
     for row in spamreader:
         if row[0]==cur_month:
             reading_matrix[int(row[1].split('.')[0])]=row[2:]
-            print(int(row[1].split('.')[0]), row[2:])
+            #print(int(row[1].split('.')[0]), row[2:])
 
 dismissal_matrix={}
 with open(dismissal_csv_filename, newline='', encoding='utf-8') as csvfile:
@@ -184,8 +184,8 @@ for p in doc.paragraphs:
             if placeholder=='vidpust':
                 insert_dismissal(p,cur_date,reading_type_indices[reading_type])
             elif placeholder in ['apostol','evanhelie']:
-                print(placeholder)
-                print(cur_date)
+                #print(placeholder)
+                #print(cur_date)
                 if not cur_date:
                     raise Exception
                 insert_readings_day(p,cur_date,reading_type_indices[reading_type])
@@ -236,3 +236,4 @@ for p in doc.paragraphs:
             
         
 doc.save(docx_filename)
+print("Finished successfully!")
