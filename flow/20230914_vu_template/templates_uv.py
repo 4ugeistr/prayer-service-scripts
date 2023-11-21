@@ -638,7 +638,7 @@ def insert_header(path,date):
             p_new = p.insert_paragraph_before(txt)
             format_line(p_new, '')
 
-            #TODO: Субота, Неділя, Тиждень etc...
+            #Субота, Неділя, Тиждень etc...
 
             special_dates=[{"date":datetime(year_no,12,25),
                              "holiday":"Різдво",
@@ -665,7 +665,7 @@ def insert_header(path,date):
                 p_new = p.insert_paragraph_before(f"Тиждень {week_no} по П'ятидесятниці")
                 format_line(p_new, '')
 
-            #TODO: перелік святих
+            #перелік святих
             lst = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,saint_matrix[1:])
             for l in lst:
                 p_new=p.insert_paragraph_before(l[9])
