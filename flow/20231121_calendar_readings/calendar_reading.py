@@ -1,6 +1,6 @@
 import docx, re, csv, calendar
 
-docx_filename = "2024NJUL.docx"
+docx_filename = "2024NJUL_orig.docx"
 
 month_list = {'Січень':1,
               'Лютий':2,
@@ -121,8 +121,13 @@ header_found = False
 header = None
 reading_found = False
 reading = None
+reading_first = False
 day = None
+i=0
 for p in doc.paragraphs:
+#for p in doc.paragraphs[:60]:
+    #print(i,p.text[:40])
+    i+=1
     re_result = re.search(month_list_string,p.text.lower())
     if re_result:
         month_no = month_list[re_result.group(1).capitalize()]
@@ -149,11 +154,14 @@ for p in doc.paragraphs:
         reading_found = False
         reading = None
 
-        p.insert_paragraph_before(re_result.group(1)+week_day)
+        p.insert_paragraph_before(re_result.group(1)+" "+week_day)
         delete_paragraph(p)
         
         continue
 
+    if reading_first:
+        reading_first = False
+    
     #знаходимо початок блоку читань
     re_result=re.search(reading_indicator_string,p.text)
     if re_result:
@@ -163,8 +171,9 @@ for p in doc.paragraphs:
             header["reading"]=p.text
         header_found = False
         reading_found = True
+        reading_first = True
         continue
-
+    
     
         
     if header_found and p.text:
@@ -173,14 +182,15 @@ for p in doc.paragraphs:
         continue
         
         
-    elif reading_found and p.text:
+    elif reading_first and p.text:
+        print("!inserting headers!")
         header["reading"]+='\n'+p.text
         saints_string=get_saints(month_no, day_no)
         saints_list = saints_string.split('\n')
         for item in saints_list:
             p.insert_paragraph_before(item)
 
-doc.save(docx_filename)
+doc.save("2024NJUL.docx")
 
 csv_data=[]
 year_no=2024
