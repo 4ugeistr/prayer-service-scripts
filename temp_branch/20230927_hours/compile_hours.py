@@ -44,6 +44,7 @@ def copy_paragraph(target_doc,source_paragraph):
         new_run.font.highlight_color = run.font.highlight_color
 
 def copy_paragraph_before(paragraph,source_paragraph):
+    #print(source_paragraph)
     target_paragraph = paragraph.insert_paragraph_before()
     for run in source_paragraph.runs:
         new_run = target_paragraph.add_run(run.text)
@@ -128,8 +129,8 @@ def get_template_files(path):
 
 ordo_matrix = get_matrix("Часи.csv")
 templates_resurrection = get_resurrection_template_texts('воскресні.docx')
-templates_menaion = get_menaion_template_texts('тропарі-11.docx')
-templates_feast = get_feast_template_texts('свято-11.docx')
+templates_menaion = get_menaion_template_texts(f'тропарі-{month_no:02}.docx')
+templates_feast = get_feast_template_texts(f'свято-{month_no:02}.docx')
 template_file_list = get_template_files('docx_templates/hours-template-*.docx')
 
 
@@ -209,7 +210,7 @@ hours_translate = {1:1,
 
 
 for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-    #print(d)
+    print(d)
 #for d in range(1,2):
     dest_filename=f'{folder_name}\\{d:02}.{month_no}.docx'
     doc = docx.Document(dest_filename)
@@ -218,8 +219,9 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         
         re_result = re.search(f"^ЧАС {hours_dic_reversed_string}",p.text)
         if re_result:
-            
             hour = int(hours_dic_reversed[re_result.group(1)])
+        #if d == 22:
+            #print(hour)
             #print(d, "found hour", hour)
         re_result = re.search("^Слава Отцю, і Сину, і Святому Духові\.",p.text)
         if re_result and hour:
@@ -232,14 +234,20 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         if re_result and hour:
             #print("found тропар")
             value=hours_matrix[d][3*hours_translate[hour]-2]
-            copy_paragraph_before(p,value)
+            if value:
+                copy_paragraph_before(p,value)
+            else:
+                print("warning",d,hour)
             delete_paragraph(p)
 
         re_result = re.search("^Кондак(\s)?$",p.text)
         if re_result and hour:
             #print("found кондак")
             value=hours_matrix[d][3*hours_translate[hour]-1]
-            copy_paragraph_before(p,value)
+            if value:
+                copy_paragraph_before(p,value)
+            else:
+                print("warning",d,hour)
             delete_paragraph(p)
     doc.save(dest_filename)
         
