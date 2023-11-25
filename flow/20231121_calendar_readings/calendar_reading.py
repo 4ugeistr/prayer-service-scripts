@@ -121,7 +121,7 @@ header_found = False
 header = None
 reading_found = False
 reading = None
-reading_first = False
+header_
 day = None
 i=0
 for p in doc.paragraphs:
@@ -139,6 +139,7 @@ for p in doc.paragraphs:
     re_result=re.search('^'+day_list_string+'$',p.text)
     if re_result:
         reading_found = False
+        reading_first = False
         week_day = re_result.group(1)
         delete_paragraph(p)
         continue
@@ -154,13 +155,12 @@ for p in doc.paragraphs:
         reading_found = False
         reading = None
 
-        p.insert_paragraph_before(re_result.group(1)+" "+week_day)
+        p_new = p.insert_paragraph_before(re_result.group(1)+" "+week_day)
+        p_new.style="Heading 2"
         delete_paragraph(p)
         
         continue
 
-    if reading_first:
-        reading_first = False
     
     #знаходимо початок блоку читань
     re_result=re.search(reading_indicator_string,p.text)
@@ -172,9 +172,6 @@ for p in doc.paragraphs:
         header_found = False
         reading_found = True
         reading_first = True
-        continue
-    
-    
         
     if header_found and p.text:
         header["header"] +='\n'+p.text
@@ -189,6 +186,7 @@ for p in doc.paragraphs:
         saints_list = saints_string.split('\n')
         for item in saints_list:
             p.insert_paragraph_before(item)
+            print("!inserted",item)
 
 doc.save("2024NJUL.docx")
 
