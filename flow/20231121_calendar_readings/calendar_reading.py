@@ -1,6 +1,12 @@
-import docx, re, csv, calendar
+import docx, re, csv, calendar, time
+import paschalia
+from docx.shared import RGBColor
+from datetime import datetime
+start_time = datetime.now()
 
 docx_filename = "2024NJUL_orig.docx"
+
+year_no=2024
 
 month_list = {'Січень':1,
               'Лютий':2,
@@ -74,6 +80,15 @@ reading_indicator_string = '^(Єв\. –|'\
 
 month_list_string='('+'|'.join([x.lower() for x in month_list.keys()])+')'
 
+day_dic = {"Понеділок":1,
+            "Вівторок":2,
+            "Середа":3,
+            "Четвер":4,
+            "П'ятниця":5,
+            "Субота":6,
+            "Неділя":7}
+day_dic_reversed = {v:k for k,v in day_dic.items()}
+#day_dic_string='('+'|'.join(day_dic.keys())+')'
 day_list_string="(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)"
 doc = docx.Document(docx_filename)
 
@@ -98,7 +113,17 @@ def get_day_dic(month,day):
             for d in m["days"]:
                 if day == d["day"]:
                     return d
-
+def format_line(p, handle=''):
+    #handle = "bir"
+    if 'b' in handle:
+        p.runs[0].font.bold = True
+    if 'i' in handle:
+        p.runs[0].font.italic = True
+    if 'r' in handle:
+        p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
+    p.runs[0].font.name='Times New Roman'
+    p.runs[0].font.size=152400
+    
 def get_saints(month,day):
     saint_string=""
     for row in saint_matrix[1:]:
@@ -108,6 +133,37 @@ def get_saints(month,day):
             else:
                 saint_string=row[8]
     return saint_string
+
+
+def insert_special_header(p, date):
+    day_name = day_dic_reversed[date.weekday()+1]
+    week_no=paschalia.get_week(date,"","")[:2]
+    special_dates=[{"date":datetime(year_no,12,25),
+                     "holiday":"Різдво",
+                     "holiday_locative":"Різдві",
+                     "holiday_instrumental":"Різдвом"},
+                    {"date":datetime(year_no+1,1,6),
+                     "holiday":"Богоявленні",
+                     "holiday_locative":"Богоявленні",
+                     "holiday_instrumental":"Богоявленням"}]
+    for sd in special_dates:
+        diff = (sd["date"]-date).days
+        if abs(diff)<=7 and date.weekday()+1 in [6,7]:
+            if diff>0:
+                p_new = p.insert_paragraph_before(f"{day_name} перед {sd['holiday_instrumental']}")
+            else:
+                p_new = p.insert_paragraph_before(f"{day_name} по {sd['holiday_locative']}")
+            format_line(p_new, '')
+    
+    if date.weekday()+1 in [6,7]:
+        p_new = p.insert_paragraph_before(f"{day_name} {week_no} по Зісланні Святого Духа.")
+        format_line(p_new, '')
+
+    if date.weekday()+1 in [1]:
+        p_new = p.insert_paragraph_before(f"Тиждень {week_no} по Зісланні Святого Духа.")
+        format_line(p_new, '')
+
+
 
 
 saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
@@ -121,7 +177,7 @@ header_found = False
 header = None
 reading_found = False
 reading = None
-header_
+header_inserted = None
 day = None
 i=0
 for p in doc.paragraphs:
@@ -153,7 +209,7 @@ for p in doc.paragraphs:
         header = month[-1]
         header_found = True
         reading_found = False
-        reading = None
+        header_inserted = None
 
         p_new = p.insert_paragraph_before(re_result.group(1)+" "+week_day)
         p_new.style="Heading 2"
@@ -171,14 +227,37 @@ for p in doc.paragraphs:
             header["reading"]=p.text
         header_found = False
         reading_found = True
-        reading_first = True
         
+    if reading_found and not header_inserted:
+        header_inserted=True
+        #print("!inserting headers!")
+        #header["reading"]+='\n'+p.text
+        insert_special_header(p,datetime(year_no, month_no,day_no))
+
+        lst = filter(lambda l:int(l[0])==month_no and int(l[1])==day_no,saint_matrix[1:])
+        for l in lst:
+            p_new=p.insert_paragraph_before(l[9])
+            format_line(p_new, ''.join(l[2:5]))
+        '''
+        saints_string=get_saints(month_no, day_no)
+        saints_list = saints_string.split('\n')
+        for item in saints_list:
+            p.insert_paragraph_before(item)
+            format_line(p_new, ''.join(l[2:5]))
+            #print("!inserted",item)
+        '''
+
+    
     if header_found and p.text:
         header["header"] +='\n'+p.text
         delete_paragraph(p)
         continue
+    if reading_found and p.text:
+        header["header"] +='\n'+p.text
+        continue
+
         
-        
+    '''    
     elif reading_first and p.text:
         print("!inserting headers!")
         header["reading"]+='\n'+p.text
@@ -187,7 +266,10 @@ for p in doc.paragraphs:
         for item in saints_list:
             p.insert_paragraph_before(item)
             print("!inserted",item)
+'''
 
+
+    
 doc.save("2024NJUL.docx")
 
 csv_data=[]
@@ -204,4 +286,6 @@ spamwriter=csv.writer(csvfile,delimiter='|',quotechar="\"", quoting=csv.QUOTE_MI
 spamwriter.writerows(csv_data)
 csvfile.close()        
 
-    
+end_time = datetime.now()
+elapsed_time = (end_time - start_time).total_seconds()
+print(f"Elapsed time : {elapsed_time}") 
