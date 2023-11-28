@@ -1,6 +1,6 @@
 import docx,re
 
-docx_filename='12-Літургія-НЮ.docx'
+docx_filename='12-Літургія-ГР.docx'
 mode='u'
 cur_month='Грудень'
 
