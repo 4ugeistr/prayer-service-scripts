@@ -135,18 +135,90 @@ def get_saints(month,day):
     return saint_string
 
 
+ending_fem_dic = {'1':"-ша",
+                  '2':"-га",
+                  '3':"-тя",
+                  '4':"-та",
+                  '5':"-та",
+                  '6':"-та",
+                  '7':"-ма",
+                  '8':"-ма",
+                  '9':"-та",
+                  '0':"-та",
+                  '40':"-ва"}
+
+ending_masc_dic = {'1':"-ий",
+                  '2':"-ий",
+                  '3':"-ій",
+                  '4':"-ий",
+                  '5':"-ий",
+                  '6':"-ий",
+                  '7':"-ий",
+                  '8':"-ий",
+                  '9':"-ий",
+                  '0':"-ий"}
+    
+special_sat_sun_dates=[
+    {"date":datetime(year_no,1,6),
+     "holiday":"Богоявленні",
+     "holiday_locative":"Богоявленні",
+     "holiday_instrumental":"Богоявленням"},
+    {"date":datetime(year_no,1,6),
+     "holiday":"Воздвиження",
+     "holiday_locative":"Воздвиженні",
+     "holiday_instrumental":"Воздвиженням"},
+    {"date":datetime(year_no,12,25),
+     "holiday":"Різдво",
+     "holiday_locative":"Різдві",
+     "holiday_instrumental":"Різдвом"}]
+
+special_named_dates=[
+    {"date":datetime(year_no,1,5),
+     "day":"Навечір'я Богоявлення."},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя про Закхея."},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя про Митаря і Фарисея."},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя м'ясопусна, про Страшний суд."},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя сиропусна, прощення"},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя 1-ша Великого посту, Православ'я."},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя 2-га Великого посту."},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя 3-тя Великого посту, Хрестопоклонна."},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя 4-та Великого посту."},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя 5-та Великого посту."},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя 6-та Великого посту, квітна."},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя про Закхея"},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя про Закхея"},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя про Закхея"},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя про Закхея"},
+    {"date":datetime(year_no,12,24),
+     "day":"Неділя про Закхея"},
+    
+
+    
+    {"date":datetime(year_no,12,24),
+     "day":"Навечір'я Різдва"}
+    ,]    ]
+
 def insert_special_header(p, date):
     day_name = day_dic_reversed[date.weekday()+1]
     week_no=paschalia.get_week(date,"","")[:2]
-    special_dates=[{"date":datetime(year_no,12,25),
-                     "holiday":"Різдво",
-                     "holiday_locative":"Різдві",
-                     "holiday_instrumental":"Різдвом"},
-                    {"date":datetime(year_no+1,1,6),
-                     "holiday":"Богоявленні",
-                     "holiday_locative":"Богоявленні",
-                     "holiday_instrumental":"Богоявленням"}]
-    for sd in special_dates:
+    ending_fem = ending_fem_dic[str(week_no)[-1]]
+    ending_masc = ending_masc_dic[str(week_no)[-1]
+    
+    for sd in special_sat_sun_dates:
         diff = (sd["date"]-date).days
         if abs(diff)<=7 and date.weekday()+1 in [6,7]:
             if diff>0:
@@ -154,13 +226,12 @@ def insert_special_header(p, date):
             else:
                 p_new = p.insert_paragraph_before(f"{day_name} по {sd['holiday_locative']}")
             format_line(p_new, '')
-    
     if date.weekday()+1 in [6,7]:
-        p_new = p.insert_paragraph_before(f"{day_name} {week_no} по Зісланні Святого Духа.")
+        p_new = p.insert_paragraph_before(f"{day_name} {week_no}{ending_fem} по Зісланні Святого Духа.")
         format_line(p_new, '')
 
     if date.weekday()+1 in [1]:
-        p_new = p.insert_paragraph_before(f"Тиждень {week_no} по Зісланні Святого Духа.")
+        p_new = p.insert_paragraph_before(f"Тиждень {week_no}{ending_masc} по Зісланні Святого Духа.")
         format_line(p_new, '')
 
 
