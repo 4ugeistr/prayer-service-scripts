@@ -116,21 +116,18 @@ def get_day_label(cur_date):
         else:
             return f"{day_name} {weeks:02}{ending_fem} по Зісланні Святого Духа"
             
-    if (paschalia[1]["pascha"] - cur_date).days == 7*11:
+    #if (paschalia[1]["pascha"] - cur_date).days == 7*11:
+    if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7*2):
         return f"Неділя про Закхея"
-    if (paschalia[1]["pascha"] - cur_date).days == 7*10:
+    
+    #if (paschalia[1]["pascha"] - cur_date).days == 7*10:
+    if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7*2):
         return f"Неділя про Митаря і Фарисея"
     
-    if (paschalia[1]["pascha"] - cur_date).days == 7*9:
+    #if (paschalia[1]["pascha"] - cur_date).days == 7*9:
+    if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7):
         return f"Неділя про Блудного сина"
-    if (paschalia[1]["pascha"] - cur_date).days == 7*10:
-        return f"Неділя про Митаря і Фарисея"
-    if (paschalia[1]["pascha"] - cur_date).days == 7*10:
-        return f"Неділя про Митаря і Фарисея"
-    if (paschalia[1]["pascha"] - cur_date).days == 7*10:
-        return f"Неділя про Митаря і Фарисея"
-    if (paschalia[1]["pascha"] - cur_date).days == 7*10:
-        return f"Неділя про Митаря і Фарисея"
+
     
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=6):
         return f"Тиждень м'ясопусний"
@@ -173,12 +170,16 @@ def get_day_label(cur_date):
     
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*3+6):
         return f"Субота заупокійна."
+
+
+
+    #Після Пасхи
     
-    if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*4):
-        return f"Неділя 1-ша Великого посту, Православ’я."
-    
-    if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7):
-        return f"Неділя 1-ша Великого посту, Православ’я."
+    if cur_date == paschalia[1]["pascha"]+timedelta(days=7*4):
+        return f"Неділя 4-та після Пасхи, розслабленого."
+
+    if cur_date == paschalia[1]["pascha"]+timedelta(days=7*5):
+        return f"Неділя 5-та після Пасхи, самарянки."
     
 
 
