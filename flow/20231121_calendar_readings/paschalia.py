@@ -106,18 +106,20 @@ day_dic_reversed = {v:k for k,v in day_dic.items()}
 def get_day_label(cur_date):
     day_name = day_dic_reversed[cur_date.weekday()+1]
     paschalia = get_prev_next_pascha(cur_date)
-    ending_fem = ending_fem_dic[str(week_no)[-1]]
-    ending_masc = ending_masc_dic[str(week_no)[-1]]
+    #ending_fem = ending_fem_dic[str(week_no)[-1]]
+    #ending_masc = ending_masc_dic[str(week_no)[-1]]
     
-    if cur_date < paschalia[1]["meatfare_sunday"]-timedelta(days=7):
+    if cur_date < paschalia[1]["meatfare_sunday"]-timedelta(days=7*3):
         weeks = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
-        if cur_date.weekday+1 >1 and cur_date.weekday+1 <=5: 
+        if cur_date.weekday()+1 in (1,2,3,4,5):
+            ending_masc = ending_masc_dic[str(weeks)[-1]]
             return f"Тиждень {weeks:02}{ending_masc} по Зісланні Святого Духа"
         else:
+            ending_fem = ending_fem_dic[str(weeks)[-1]]
             return f"{day_name} {weeks:02}{ending_fem} по Зісланні Святого Духа"
             
     #if (paschalia[1]["pascha"] - cur_date).days == 7*11:
-    if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7*2):
+    if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7*3):
         return f"Неділя про Закхея"
     
     #if (paschalia[1]["pascha"] - cur_date).days == 7*10:
