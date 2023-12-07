@@ -118,18 +118,14 @@ def get_day_label(cur_date):
             ending_fem = ending_fem_dic[str(weeks)[-1]]
             return f"{day_name} {weeks:02}{ending_fem} по Зісланні Святого Духа"
             
-    #if (paschalia[1]["pascha"] - cur_date).days == 7*11:
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7*3):
         return f"Неділя про Закхея"
     
-    #if (paschalia[1]["pascha"] - cur_date).days == 7*10:
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7*2):
         return f"Неділя про Митаря і Фарисея"
     
-    #if (paschalia[1]["pascha"] - cur_date).days == 7*9:
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7):
         return f"Неділя про Блудного сина"
-
     
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=6):
         return f"Тиждень м'ясопусний"
@@ -149,6 +145,7 @@ def get_day_label(cur_date):
     if cur_date == paschalia[1]["cheesefare_sunday"]:
         return f"Неділя сиропусна, прощення."
     
+    #Початок Великого Посту
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=1):
         return f"Початок св. Великого Посту. Строгий піст."
     
@@ -173,10 +170,20 @@ def get_day_label(cur_date):
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*3+6):
         return f"Субота заупокійна."
 
+    if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*4):
+        return f"Неділя 3-тя Великого посту, Хрестопоклонна."
+    
+    if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*4+6):
+        return f"Субота заупокійна."
+    
+    if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*5):
+        return f"Неділя 3-тя Великого посту, Хрестопоклонна."
+    
+    if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*5+6):
+        return f"Субота заупокійна."
 
 
     #Після Пасхи
-    
     if cur_date == paschalia[1]["pascha"]+timedelta(days=7*4):
         return f"Неділя 4-та після Пасхи, розслабленого."
 
@@ -186,7 +193,7 @@ def get_day_label(cur_date):
 
 
     
-
+    '''
     elif cur_date > paschalia[1]["meatfare_sunday"] and cur_date < paschalia[1]["cheesefare_sunday"]:
         return f"00s"
                                
@@ -204,6 +211,11 @@ def get_day_label(cur_date):
         print("Warning:")
         print(f"Week number not found for {cur_date}, {day_title}")
         return "err"
+    '''
+    print("Warning:")
+    print(f"Week number not found for {cur_date}, {day_name}")
+    return "err"
+
     
 def get_week(cur_date, day_title,day_type):
     # пропускаємо номер тижня для 🕀 свят
