@@ -4,6 +4,9 @@ from docx.shared import RGBColor
 from datetime import datetime
 start_time = datetime.now()
 
+COLOR_RED = RGBColor(0xff, 0x00, 0x00)
+COLOR_CINNEBAR = RGBColor(0xff, 0x44, 0x00)
+
 docx_filename = "2024NJUL_orig.docx"
 
 year_no=2024
@@ -120,9 +123,12 @@ def format_line(p, handle=''):
     if 'i' in handle:
         p.runs[0].font.italic = True
     if 'r' in handle:
-        p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
-    p.runs[0].font.name='Times New Roman'
-    p.runs[0].font.size=152400
+        p.runs[0].font.color.rgb = COLOR_RED
+    #p.runs[0].font.name='Times New Roman'
+    p.runs[0].font.name='Book Antiqua'
+    #p.runs[0].font.size=152400
+    p.runs[0].font.size=177800
+    
     
 def get_saints(month,day):
     saint_string=""
@@ -163,7 +169,7 @@ special_sat_sun_dates=[
      "holiday":"Богоявленні",
      "holiday_locative":"Богоявленні",
      "holiday_instrumental":"Богоявленням"},
-    {"date":datetime(year_no,1,6),
+    {"date":datetime(year_no,9,14),
      "holiday":"Воздвиження",
      "holiday_locative":"Воздвиженні",
      "holiday_instrumental":"Воздвиженням"},
@@ -176,47 +182,15 @@ special_named_dates=[
     {"date":datetime(year_no,1,5),
      "day":"Навечір'я Богоявлення."},
     {"date":datetime(year_no,12,24),
-     "day":"Неділя про Закхея."},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя про Митаря і Фарисея."},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя м'ясопусна, про Страшний суд."},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя сиропусна, прощення"},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя 1-ша Великого посту, Православ'я."},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя 2-га Великого посту."},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя 3-тя Великого посту, Хрестопоклонна."},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя 4-та Великого посту."},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя 5-та Великого посту."},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя 6-та Великого посту, квітна."},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя про Закхея"},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя про Закхея"},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя про Закхея"},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя про Закхея"},
-    {"date":datetime(year_no,12,24),
-     "day":"Неділя про Закхея"},
-    
-
-    
-    {"date":datetime(year_no,12,24),
      "day":"Навечір'я Різдва"}
-    ,]    ]
+    ,]
 
 def insert_special_header(p, date):
+    #print)_
     day_name = day_dic_reversed[date.weekday()+1]
-    week_no=paschalia.get_week(date,"","")[:2]
-    ending_fem = ending_fem_dic[str(week_no)[-1]]
-    ending_masc = ending_masc_dic[str(week_no)[-1]
+    #week_no=paschalia.get_week(date,"","")[:2]
+    #ending_fem = ending_fem_dic[str(week_no)[-1]]
+    #ending_masc = ending_masc_dic[str(week_no)[-1]]
     
     for sd in special_sat_sun_dates:
         diff = (sd["date"]-date).days
@@ -226,6 +200,21 @@ def insert_special_header(p, date):
             else:
                 p_new = p.insert_paragraph_before(f"{day_name} по {sd['holiday_locative']}")
             format_line(p_new, '')
+    '''
+    for sd in special_named_dates:
+        if date==sd["date"]:
+            #print(date,sd["date"])
+            p_new = p.insert_paragraph_before(sd["day"])
+            format_line(p_new, '')
+    '''        
+    #day_label=paschalia.get_day_label(date)
+        
+    
+    if date.weekday()+1 in [1,6,7]:
+        p_new = p.insert_paragraph_before(paschalia.get_day_label(date))
+        format_line(p_new, '')
+                
+    '''
     if date.weekday()+1 in [6,7]:
         p_new = p.insert_paragraph_before(f"{day_name} {week_no}{ending_fem} по Зісланні Святого Духа.")
         format_line(p_new, '')
@@ -233,7 +222,7 @@ def insert_special_header(p, date):
     if date.weekday()+1 in [1]:
         p_new = p.insert_paragraph_before(f"Тиждень {week_no}{ending_masc} по Зісланні Святого Духа.")
         format_line(p_new, '')
-
+    '''
 
 
 
@@ -258,8 +247,14 @@ for p in doc.paragraphs:
     re_result = re.search(month_list_string,p.text.lower())
     if re_result:
         month_no = month_list[re_result.group(1).capitalize()]
+
+        #якщо перше квітня - закінчуємо процедуру.
+        if month_no==4:
+            break
+
         matrix.append({"month":month_no,"days":[]})
         month = matrix[-1]["days"]
+         
 
 
     #знаходимо день
@@ -269,6 +264,7 @@ for p in doc.paragraphs:
         reading_first = False
         week_day = re_result.group(1)
         delete_paragraph(p)
+
         continue
     
         
@@ -307,7 +303,7 @@ for p in doc.paragraphs:
 
         lst = filter(lambda l:int(l[0])==month_no and int(l[1])==day_no,saint_matrix[1:])
         for l in lst:
-            p_new=p.insert_paragraph_before(l[9])
+            p_new=p.insert_paragraph_before(l[8]+'.')
             format_line(p_new, ''.join(l[2:5]))
         '''
         saints_string=get_saints(month_no, day_no)
@@ -345,7 +341,9 @@ doc.save("2024NJUL.docx")
 
 csv_data=[]
 year_no=2024
-for month_no in range(1,13):
+
+#for month_no in range(1,13):
+for month_no in range(1,4):
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         csv_data.append([month_no,d])
         #print(month_no,d)

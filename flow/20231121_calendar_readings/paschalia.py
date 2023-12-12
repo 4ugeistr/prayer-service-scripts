@@ -19,11 +19,12 @@ paschalia_table = [
      "pascha":datetime(2025,4,20)},
     ]
 
-
+'''
 # 0 - previous, 1 - current
 paschalia = [{},{}]
 paschalia[0]["pascha"]=previous_pascha
 paschalia[1]["pascha"]=pascha
+'''
 
 special_day_list = [
             "Субота перед Різдвом",
@@ -50,42 +51,43 @@ special_day_list = [
             "Субота перед Воздвиженням",
             "Субота по Воздвиженні"
             ]
-ending_fem_dic = {'1':"-ша",
-                  '2':"-га",
-                  '3':"-тя",
-                  '4':"-та",
-                  '5':"-та",
-                  '6':"-та",
-                  '7':"-ма",
-                  '8':"-ма",
-                  '9':"-та",
-                  '0':"-та",
-                  '40':"-ва"}
+ending_fem_dic = {'1':"ша",
+                  '2':"га",
+                  '3':"тя",
+                  '4':"та",
+                  '5':"та",
+                  '6':"та",
+                  '7':"ма",
+                  '8':"ма",
+                  '9':"та",
+                  '0':"та",
+                  '40':"ва"}
 
-ending_masc_dic = {'1':"-ий",
-                  '2':"-ий",
-                  '3':"-ій",
-                  '4':"-ий",
-                  '5':"-ий",
-                  '6':"-ий",
-                  '7':"-ий",
-                  '8':"-ий",
-                  '9':"-ий",
-                  '0':"-ий"}
+ending_masc_dic = {'1':"ий",
+                  '2':"ий",
+                  '3':"ій",
+                  '4':"ий",
+                  '5':"ий",
+                  '6':"ий",
+                  '7':"ий",
+                  '8':"ий",
+                  '9':"ий",
+                  '0':"ий"}
+'''
 for p in paschalia:
     p["meatfare_sunday"]=p["pascha"]-timedelta(days=7*8)
     p["cheesefare_sunday"]=p["pascha"]-timedelta(days=7*7)
     p["palm_sunday"]=p["pascha"]-timedelta(days=7)
     #lent_start = pascha - timedelta(days=7*7-1)
     p["pentecost"] = p["pascha"] + timedelta(days=7*7)
-
+'''
 for p in paschalia_table:
     p["meatfare_sunday"]=p["pascha"]-timedelta(days=7*8)
     p["cheesefare_sunday"]=p["pascha"]-timedelta(days=7*7)
+    p["lent_start"] = p["pascha"] - timedelta(days=7*7-1)
     p["palm_sunday"]=p["pascha"]-timedelta(days=7)
-    p["lent_start"] = pascha - timedelta(days=7*7-1)
     p["pentecost"] = p["pascha"] + timedelta(days=7*7)
-    
+
 
 def get_prev_next_pascha(cur_date):
     lst  =  list(filter(lambda p: p['year'] == cur_date.year-1 or p['year'] == cur_date.year , paschalia_table))
@@ -93,6 +95,10 @@ def get_prev_next_pascha(cur_date):
         print(len(lst))
         raise Exception
     return lst
+
+paschalia = get_prev_next_pascha(datetime(2024,1,1))
+
+
             
 day_dic = {"Понеділок":1,
             "Вівторок":2,
@@ -105,7 +111,7 @@ day_dic_reversed = {v:k for k,v in day_dic.items()}
 
 def get_day_label(cur_date):
     day_name = day_dic_reversed[cur_date.weekday()+1]
-    paschalia = get_prev_next_pascha(cur_date)
+    #paschalia = get_prev_next_pascha(cur_date)
     #ending_fem = ending_fem_dic[str(week_no)[-1]]
     #ending_masc = ending_masc_dic[str(week_no)[-1]]
     
@@ -113,21 +119,49 @@ def get_day_label(cur_date):
         weeks = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
         if cur_date.weekday()+1 in (1,2,3,4,5):
             ending_masc = ending_masc_dic[str(weeks)[-1]]
-            return f"Тиждень {weeks:02}{ending_masc} по Зісланні Святого Духа"
+            return f"Тиждень {weeks:02}-{ending_masc} по Зісланні Святого Духа"
         else:
             ending_fem = ending_fem_dic[str(weeks)[-1]]
-            return f"{day_name} {weeks:02}{ending_fem} по Зісланні Святого Духа"
+            return f"{day_name} {weeks:02}-{ending_fem} по Зісланні Святого Духа"
             
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7*3):
         return f"Неділя про Закхея"
     
+    if paschalia[1]["meatfare_sunday"]-timedelta(days=7*3) < cur_date < paschalia[1]["meatfare_sunday"]-timedelta(days=7*2):
+        weeks = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
+        if cur_date.weekday()+1 in (1,2,3,4,5):
+            ending_masc = ending_masc_dic[str(weeks)[-1]]
+            return f"Тиждень {weeks:02}{ending_masc} по Зісланні Святого Духа"
+        else:
+            ending_fem = ending_fem_dic[str(weeks)[-1]]
+            return f"{day_name} {weeks:02}{ending_fem} по Зісланні Святого Духа"
+    
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7*2):
         return f"Неділя про Митаря і Фарисея"
+
+    if paschalia[1]["meatfare_sunday"]-timedelta(days=7*2) < cur_date < paschalia[1]["meatfare_sunday"]-timedelta(days=7*1):
+        weeks = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
+        if cur_date.weekday()+1 in (1,2,3,4,5):
+            ending_masc = ending_masc_dic[str(weeks)[-1]]
+            return f"Тиждень {weeks:02}-{ending_masc} по Зісланні Святого Духа"
+        else:
+            ending_fem = ending_fem_dic[str(weeks)[-1]]
+            return f"{day_name} {weeks:02}-{ending_fem} по Зісланні Святого Духа"
     
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7):
         return f"Неділя про Блудного сина"
     
-    if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=6):
+    if paschalia[1]["meatfare_sunday"]-timedelta(days=7) < cur_date < paschalia[1]["meatfare_sunday"]:
+        weeks = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
+        if cur_date.weekday()+1 in (1,2,3,4,5):
+            ending_masc = ending_masc_dic[str(weeks)[-1]]
+            return f"Тиждень {weeks:02}-{ending_masc} по Зісланні Святого Духа"
+        else:
+            ending_fem = ending_fem_dic[str(weeks)[-1]]
+            return f"{day_name} {weeks:02}-{ending_fem} по Зісланні Святого Духа"    
+    
+    
+    if paschalia[1]["meatfare_sunday"]-timedelta(days=7) < cur_date < paschalia[1]["meatfare_sunday"]-timedelta(days=1):
         return f"Тиждень м'ясопусний"
     
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=1):
@@ -136,7 +170,7 @@ def get_day_label(cur_date):
     if cur_date == paschalia[1]["meatfare_sunday"]:
         return f"Неділя м'ясопусна, про Страшний суд."
     
-    if cur_date == paschalia[1]["cheesefare_sunday"]-timedelta(days=6):
+    if paschalia[1]["cheesefare_sunday"]-timedelta(days=7) < cur_date < paschalia[1]["cheesefare_sunday"]-timedelta(days=1):
         return f"Тиждень сиропусний"
     
     if cur_date == paschalia[1]["cheesefare_sunday"]-timedelta(days=1):
@@ -146,21 +180,30 @@ def get_day_label(cur_date):
         return f"Неділя сиропусна, прощення."
     
     #Початок Великого Посту
+    weeks = ((cur_date - paschalia[1]["cheesefare_sunday"]).days -1)// 7 + 1
+    ending_masc = ending_masc_dic[str(weeks)[-1]]
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=1):
         return f"Початок св. Великого Посту. Строгий піст."
+
+    if paschalia[1]["cheesefare_sunday"]+timedelta(days=1) <  cur_date < paschalia[1]["cheesefare_sunday"]+timedelta(days=6):
+        return f"Тиждень {weeks}-{ending_masc} Великого посту."
     
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=6):
-        return f"Пам'ять великомученика Теодора Тирона"
+        return f"Субота 1-ша Ведликого Посту, пам'ять великомученика Теодора Тирона."
     
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7):
         return f"Неділя 1-ша Великого посту, Православ’я."
+
+    if paschalia[1]["cheesefare_sunday"]+timedelta(days=7) < cur_date < paschalia[1]["cheesefare_sunday"]+timedelta(days=7+6):
+        return f"Тиждень {weeks}-{ending_masc} Великого посту."
     
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7+6):
         return f"Субота заупокійна. Прп. йоана Ліствичника"
     
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*2):
         return f"Неділя 2-га Великого посту."
-    
+
+    #Закінчення перших трьох місяців
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*2+6):
         return f"Субота заупокійна."
     
@@ -171,17 +214,20 @@ def get_day_label(cur_date):
         return f"Субота заупокійна."
 
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*4):
-        return f"Неділя 3-тя Великого посту, Хрестопоклонна."
+        return f"Неділя 4-та Великого посту."
     
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*4+6):
-        return f"Субота заупокійна."
+        return f"Субота акафістова."
     
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*5):
-        return f"Неділя 3-тя Великого посту, Хрестопоклонна."
+        return f"Неділя 5-та Великого посту."
     
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*5+6):
-        return f"Субота заупокійна."
+        return f"Субота Лазарева."
 
+    if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7*5):
+        return f"Неділя 6-та Великого посту."
+    
 
     #Після Пасхи
     if cur_date == paschalia[1]["pascha"]+timedelta(days=7*4):
