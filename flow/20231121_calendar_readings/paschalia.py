@@ -99,6 +99,15 @@ def get_prev_next_pascha(cur_date):
 paschalia = get_prev_next_pascha(datetime(2024,1,1))
 
 
+def get_week_no(date,mode='u')
+    if paschalia["pascha"]+timedelta(days=7*2-1)<date
+
+def get_echos(date,mode):
+    if mode=='u':
+        return (int(date.strftime("%U"))-25) % 8 + 1
+    elif mode=='g':
+        return (int(date.strftime("%U"))-24) % 8 + 1
+
             
 day_dic = {"Понеділок":1,
             "Вівторок":2,
