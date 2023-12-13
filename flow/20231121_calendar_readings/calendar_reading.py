@@ -7,7 +7,7 @@ start_time = datetime.now()
 COLOR_RED = RGBColor(0xff, 0x00, 0x00)
 COLOR_CINNEBAR = RGBColor(0xff, 0x44, 0x00)
 
-docx_filename = "2024NJUL_orig.docx"
+docx_filename = "2024NJUL.docx"
 
 year_no=2024
 
@@ -337,7 +337,7 @@ for p in doc.paragraphs:
 
 
     
-doc.save("2024NJUL.docx")
+doc.save("2024NJUL_updated.docx")
 
 csv_data=[]
 year_no=2024
