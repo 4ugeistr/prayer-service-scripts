@@ -101,9 +101,9 @@ paschalia = get_prev_next_pascha(datetime(2024,1,1))
 
 def get_week_no(cur_date,mode='u'):
     if cur_date > paschalia[1]["pentecost"]:
-        weeks_after_pascha = ((cur_date - paschalia[1]["pascha"]).days -1)// 7 + 1
+        weeks_after_pascha = ((cur_date - paschalia[1]["pentecost"]).days -1)// 7 + 1
     else:
-        weeks_after_pascha = ((cur_date - paschalia[0]["pascha"]).days -1)// 7 + 1
+        weeks_after_pascha = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
     return weeks_after_pascha
         
 
