@@ -99,19 +99,33 @@ def get_prev_next_pascha(cur_date):
 paschalia = get_prev_next_pascha(datetime(2024,1,1))
 
 
-def get_week_no(cur_date,mode='u'):
+def get_week_from_50(cur_date,mode='u'):
     if cur_date > paschalia[1]["pentecost"]:
-        weeks_after_pascha = ((cur_date - paschalia[1]["pentecost"]).days -1)// 7 + 1
+        weeks = ((cur_date - paschalia[1]["pentecost"]).days -1)// 7 + 1
     else:
-        weeks_after_pascha = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
-    return weeks_after_pascha
+        weeks = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
+    return weeks
         
 
-def get_echos(date,mode):
+def get_week_from_pascha(cur_date,mode='u'):
+    if cur_date > paschalia[1]["pascha"]:
+        weeks = ((cur_date - paschalia[1]["pascha"]).days -1)// 7 + 1
+    else:
+        weeks = ((cur_date - paschalia[0]["pascha"]).days -1)// 7 + 1
+    return weeks
+
+def get_echos(date,mode='u'):
     if mode=='u':
         return (int(date.strftime("%U"))-25) % 8 + 1
     elif mode=='g':
         return (int(date.strftime("%U"))-24) % 8 + 1
+
+def get_resurrection_gospel(date,mode='u'):
+    if mode=='u':
+        return (int(date.strftime("%U"))-25) % 8 + 1
+    elif mode=='g':
+        return (int(date.strftime("%U"))-24) % 8 + 1
+    
 
             
 day_dic = {"Понеділок":1,
