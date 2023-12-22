@@ -156,18 +156,26 @@ def get_echos(cur_date):
     
 def get_resurrection_gospel(cur_date):
     gospel_list = [1,2,3,4,5,6,7,8,9,10,11]
-    if cur_date > paschalia[1]["pascha"]:
-        days = (cur_date - paschalia[1]["pascha"]).days
-    else:
-        days = (cur_date - paschalia[0]["pascha"]).days
-
-    if days ==7*1:
-        return 1
-    elif days == 7*2:
-        return 3
-    else:
-        return gospel_list[get_week_from_pascha(cur_date)%11-2]
-        
+    match get_week_from_pascha(cur_date):
+        case 0: #Пасха
+            return None
+        case 2: #Антипасха
+            return 1
+        case 3: #мироносиць
+            return 3
+        case 4:
+            return 4
+        case 5: 
+            return 7
+        case 6:
+            return 8
+        case 7:
+            return 10
+        case 8: #50-ця
+            return None
+        case _: #по 50-ці
+            return gospel_list[get_week_from_50(cur_date)%11-1]
+            
         
     
 
@@ -204,10 +212,10 @@ def get_day_label(cur_date):
         weeks = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
         if cur_date.weekday()+1 in (1,2,3,4,5):
             ending_masc = ending_masc_dic[str(weeks)[-1]]
-            return f"Тиждень {weeks:02}-{ending_masc} по Зісланні Святого Духа"
+            return f"Тиждень {weeks:02}-{ending_masc} по Зісланні Святого Духа."
         else:
             ending_fem = ending_fem_dic[str(weeks)[-1]]
-            return f"{day_name} {weeks:02}-{ending_fem} по Зісланні Святого Духа"
+            return f"{day_name} {weeks:02}-{ending_fem} по Зісланні Святого Духа."
             
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7*3):
         return f"Неділя про Закхея"
@@ -216,10 +224,10 @@ def get_day_label(cur_date):
         weeks = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
         if cur_date.weekday()+1 in (1,2,3,4,5):
             ending_masc = ending_masc_dic[str(weeks)[-1]]
-            return f"Тиждень {weeks:02}{ending_masc} по Зісланні Святого Духа"
+            return f"Тиждень {weeks:02}{ending_masc} по Зісланні Святого Духа."
         else:
             ending_fem = ending_fem_dic[str(weeks)[-1]]
-            return f"{day_name} {weeks:02}{ending_fem} по Зісланні Святого Духа"
+            return f"{day_name} {weeks:02}{ending_fem} по Зісланні Святого Духа."
     
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7*2):
         return f"Неділя про Митаря і Фарисея"
@@ -228,10 +236,10 @@ def get_day_label(cur_date):
         weeks = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
         if cur_date.weekday()+1 in (1,2,3,4,5):
             ending_masc = ending_masc_dic[str(weeks)[-1]]
-            return f"Тиждень {weeks:02}-{ending_masc} по Зісланні Святого Духа"
+            return f"Тиждень {weeks:02}-{ending_masc} по Зісланні Святого Духа."
         else:
             ending_fem = ending_fem_dic[str(weeks)[-1]]
-            return f"{day_name} {weeks:02}-{ending_fem} по Зісланні Святого Духа"
+            return f"{day_name} {weeks:02}-{ending_fem} по Зісланні Святого Духа."
     
     if cur_date == paschalia[1]["meatfare_sunday"]-timedelta(days=7):
         return f"Неділя про Блудного сина"
@@ -240,10 +248,10 @@ def get_day_label(cur_date):
         weeks = ((cur_date - paschalia[0]["pentecost"]).days -1)// 7 + 1
         if cur_date.weekday()+1 in (1,2,3,4,5):
             ending_masc = ending_masc_dic[str(weeks)[-1]]
-            return f"Тиждень {weeks:02}-{ending_masc} по Зісланні Святого Духа"
+            return f"Тиждень {weeks:02}-{ending_masc} по Зісланні Святого Духа."
         else:
             ending_fem = ending_fem_dic[str(weeks)[-1]]
-            return f"{day_name} {weeks:02}-{ending_fem} по Зісланні Святого Духа"    
+            return f"{day_name} {weeks:02}-{ending_fem} по Зісланні Святого Духа."    
     
     
     if paschalia[1]["meatfare_sunday"]-timedelta(days=7) < cur_date < paschalia[1]["meatfare_sunday"]-timedelta(days=1):

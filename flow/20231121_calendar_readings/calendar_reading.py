@@ -29,10 +29,10 @@ for k,v in month_list_lower.items():
     month_list[k.upper()]=v
 '''
 
-reading_indicator_string = '^(Єв\. –|'\
-                                'Ап\. –|'\
-                                'Єв\. -|'\
-                                'Ап\. -|'\
+reading_indicator_string = r'^(Єв\. –|'\
+                                r'Ап\. –|'\
+                                r'Єв\. -|'\
+                                r'Ап\. -|'\
                                 'Читання на Шостому часі:|'\
                                 'Час Шостий:|'\
                                 'Літ.:|'\
@@ -66,7 +66,7 @@ reading_indicator_string = '^(Єв\. –|'\
                                 'Свщмч.:|'\
                                 'Свщнмчч.:|'\
                                 'Влкмч.:|'\
-                                'На \d-му часі|'\
+                                r'На \d-му часі|'\
                                 'Отців:|'\
                                 'Отцям:|'\
                                 'Богородиці:|'\
@@ -128,7 +128,19 @@ def format_line(p, handle=''):
     p.runs[0].font.name='Book Antiqua'
     #p.runs[0].font.size=152400
     p.runs[0].font.size=177800
-    
+
+def format_run(r, handle=''):
+    #handle = "bir"
+    if 'b' in handle:
+        r.font.bold = True
+    if 'i' in handle:
+        r.font.italic = True
+    if 'r' in handle:
+        r.font.color.rgb = COLOR_RED
+    #p.runs[0].font.name='Times New Roman'
+    r.font.name='Book Antiqua'
+    #p.runs[0].font.size=152400
+    r.font.size=177800
     
 def get_saints(month,day):
     saint_string=""
@@ -192,14 +204,7 @@ def insert_special_header(p, date):
     #ending_fem = ending_fem_dic[str(week_no)[-1]]
     #ending_masc = ending_masc_dic[str(week_no)[-1]]
     
-    for sd in special_sat_sun_dates:
-        diff = (sd["date"]-date).days
-        if abs(diff)<=7 and date.weekday()+1 in [6,7]:
-            if diff>0:
-                p_new = p.insert_paragraph_before(f"{day_name} перед {sd['holiday_instrumental']}")
-            else:
-                p_new = p.insert_paragraph_before(f"{day_name} по {sd['holiday_locative']}")
-            format_line(p_new, '')
+    
     '''
     for sd in special_named_dates:
         if date==sd["date"]:
@@ -209,11 +214,41 @@ def insert_special_header(p, date):
     '''        
     #day_label=paschalia.get_day_label(date)
         
-    
-    if date.weekday()+1 in [1,6,7]:
+    p_new = None
+    if date.weekday()+1 in [1,7]:
         p_new = p.insert_paragraph_before(paschalia.get_day_label(date))
-        format_line(p_new, '')
-                
+        if date.weekday()+1 ==7:
+            format_line(p_new, 'r')
+        else:
+            format_line(p_new, '')
+
+
+    for sd in special_sat_sun_dates:
+        diff = (sd["date"]-date).days
+        if abs(diff)<=7 and date.weekday()+1 in [6,7]:
+            #p_new=None
+            if diff>0:
+                if not p_new:
+                    p_new = p.insert_paragraph_before(f"{day_name} перед {sd['holiday_instrumental']}.")
+                    format_line(p_new, '')
+                else:
+                    p_new.text = p_new.text[:-1] + f", перед {sd['holiday_instrumental']}."
+            elif diff<0:
+                if not p_new:
+                    p_new = p.insert_paragraph_before(f"{day_name} по {sd['holiday_locative']}.")
+                    format_line(p_new, '')
+                else:
+                    p_new.text = p_new.text[:-1] + f", по {sd['holiday_locative']}."
+            if date.weekday()+1 ==7:
+                format_line(p_new, 'r')
+
+    if date.weekday()+1 in [7]:
+        if p_new:
+            r_new = p_new.add_run(f' Гл. {paschalia.get_echos(date)}. Єв. {paschalia.get_resurrection_gospel(date)}')
+            format_run(r_new, 'ri')
+        else:
+            print('WTF')
+           
     '''
     if date.weekday()+1 in [6,7]:
         p_new = p.insert_paragraph_before(f"{day_name} {week_no}{ending_fem} по Зісланні Святого Духа.")
