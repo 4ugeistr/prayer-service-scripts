@@ -7,8 +7,8 @@ python ConvertUstav.py u Грудень Устав-Грудень.docx
 '''
 
 MONTH = 'Січень'
-YEAR = 2023
-MODE= 'g'
+YEAR = 2024
+MODE= 'u'
 filehtm = f"temp_{YEAR}_{MODE}.html"
 filedoc = f'ustav-{YEAR}-{MODE}.docx'
 #filedoc = f'2023 - КАЛЕНДАР УГКЦ З УСТАВОМ_20221031.docx'
@@ -314,7 +314,8 @@ file = None
 with open(filehtm,'r',encoding='utf-8') as f:
     file_lines = f.readlines()
 for line in file_lines:
-    if re.search('<p>.*?'+month_list_string,line):
+    if re.search('<h1>.*?'+month_list_string,line):
+        print("found month")
         day = int(re.search('<b>(\d{1,2})</b>',line)[1])
         month = month_list[re.search(month_list_string,line)[0]]
         if file:
