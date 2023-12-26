@@ -8,14 +8,16 @@ python ConvertUstav.py u Грудень Устав-Грудень.docx
 
 MONTH = 'Січень'
 YEAR = 2024
-MODE= 'u'
-filehtm = f"temp_{YEAR}_{MODE}.html"
-filedoc = f'ustav-{YEAR}-{MODE}.docx'
+mode= 'g'
+filehtm = f"temp_{YEAR}_{mode}.html"
+#filedoc = f'ustav-{YEAR}-{mode}.docx'
+#filedoc = 
+filedoc = "2024 (ГР) Календар з уставом.docx"
 #filedoc = f'2023 - КАЛЕНДАР УГКЦ З УСТАВОМ_20221031.docx'
 
 if len(sys.argv)>1:
     assert sys.argv[1]=='u' or sys.argv[1]=='g' 
-    MODE=sys.argv[1]
+    mode=sys.argv[1]
     if sys.argv[2]:
         MONTH=sys.argv[2]
     if sys.argv[3]:
@@ -28,13 +30,20 @@ re_pattern={
         '\g<1><b>\g<5></b> \g<6>,\g<3>\n<hr>\g<4>'
         ],
     "g":[
-        "(<p>)\s*?(<i>)?\s*?"\
-        "(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)"\
-        "\s*?(</i>)*?\s*?(</p>)?"\
-        "(\n<p>)(<b>)?(<i>)?(\d{1,2})\s*?(<i>)?\s*?(</i>)?",
-        '\g<1>'+MONTH+' <b>\g<9></b>, \g<3></p>\n<hr>\n<p>\g<7>\g<8>' 
+        '(<p>\w+ )(\d{1,2})(.*?)(\n<p>.*?)(\d{1,2}) (\(\d{1,2}\)) ',
+        '\g<1><b>\g<5></b> \g<6>,\g<3>\n<hr>\g<4>'
         ]
     }
+'''
+"g":[
+    "(<p>)\s*?(<i>)?\s*?"\
+    "(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)"\
+    "\s*?(</i>)*?\s*?(</p>)?"\
+    "(\n<p>)(<b>)?(<i>)?(\d{1,2})\s*?(<i>)?\s*?(</i>)?",
+    '\g<1>'+MONTH+' <b>\g<9></b>, \g<3></p>\n<hr>\n<p>\g<7>\g<8>' 
+    ]
+'''
+    
 
 
 CLEANR = re.compile('<a id="_.*?</a>')
@@ -183,10 +192,10 @@ with open(filehtm,'r',encoding='utf-8') as f:
 
 
 # Формування fallout.html з вийнятками
-if MODE=='g':
+if mode=='g':
     fallout_no = get_fallout(filehtm,
               word="(<p>)\s*?(<i>)?\s*?(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)",
-              pattern=re_pattern[MODE][0])
+              pattern=re_pattern[mode][0])
     print(f'{fallout_no} значень не потрапило в regexp. Див fallout.html')
 
 # Чистимо найбільш часті криві послідовності тегів форматування
@@ -231,25 +240,27 @@ with open(filehtm, "w",encoding='utf-8') as html_file:
 
 with open(filehtm,'r',encoding='utf-8') as f:
     content=f.read()
-    for item in re.findall(re_pattern[MODE][0],content):
+    for item in re.findall(re_pattern[mode][0],content):
         logging.debug(item)
     with open(filehtm+'_debug','w',encoding='utf-8') as f1:
         f1.write(content)
 with open(filehtm,'w',encoding='utf-8') as f:
     # Переміщаємо дату зі строки 2 в строку 1
-    if MODE=='u':
-        content,sub_qty=re.subn(re_pattern[MODE][0],re_pattern[MODE][1],content)
-    if MODE=='g':
+    if mode=='u' or mode=='g':
+        content,sub_qty=re.subn(re_pattern[mode][0],re_pattern[mode][1],content)
+    #if mode=='g':
+    if mode=='g_old':
         month_parts = re.split(f'(?:<p><b>|<h1>){month_list_string}(?:</b></p>|</h1>)\n',content)
         if len(month_parts)!=24+1:
             found_months_qty = (len(month_parts)-1) /2
             found_months = month_parts[1::2]
             print(f'Бракує місяців. Знайшло: {found_months_qty}')
             print(found_months)
-            raise Exception
+            #raise Exception
         content=month_parts[0]
         month_parts=month_parts[1:]
         month_parts_dict={month_parts[2*i]:month_parts[2*i+1] for i in range(int(len(month_parts)/2))}
+        
         sub_qty_total=0
 
         pattern="(<p>)\s*?(<i>)?\s*?"\
@@ -258,13 +269,14 @@ with open(filehtm,'w',encoding='utf-8') as f:
             "(\n<p>)(<b>)?(<i>)?(\d{1,2})\s*?(<i>)?\s*?(</i>)?"
         
         for month,month_part in month_parts_dict.items():
-            content+=f'<h1>{MONTH}</h1>\n'
+            content+=f'<h1>{month}</h1>\n'
 
             pattern_sub='\g<1>'+month+' <b>\g<9></b>, \g<3></p>\n<hr>\n<p>\g<7>\g<8>' 
             
             month_part,sub_qty=re.subn(pattern,pattern_sub,month_part)
             sub_qty_total+=sub_qty
             content+=month_part
+            
         sub_qty=sub_qty_total
     content = re.sub('<p> ','<p>',content)
     content=re.subn("((\n.*?)(</p>)?(\n<hr>))","\g<2></p>\g<4>",content)[0]
@@ -304,24 +316,72 @@ if file:
     file.close()
 '''
 # Розбиваємо тимчасовий файл по днях - всі місяці
+try:
+    os.mkdir(f'{mode}')
+except FileExistsError:
+    #print(f'Directory {i+1:02} already exists.')
+    pass
 for i in range(12):
     try:
-        os.mkdir(f'{i+1:02}')
+        os.mkdir(f'{mode}\\{i+1:02}')
     except FileExistsError:
         #print(f'Directory {i+1:02} already exists.')
         pass
 file = None
 with open(filehtm,'r',encoding='utf-8') as f:
     file_lines = f.readlines()
-for line in file_lines:
-    if re.search('<h1>.*?'+month_list_string,line):
-        print("found month")
-        day = int(re.search('<b>(\d{1,2})</b>',line)[1])
-        month = month_list[re.search(month_list_string,line)[0]]
-        if file:
+
+if mode =="u" or mode=='g':
+    for line in file_lines:        
+        re_result = re.search('<h1>'+month_list_string,line)
+        if re_result:
+            month = month_list[re_result.group(1)]
+            print("found month", month, line)
+            if file:
+                file.close()
+                #print("closing month")
+
+        re_result=re.search("^<p>"+day_list_string,line)
+        if re_result and file:
             file.close()
-        file = open(f'{month:02}\\u{day:02}.html', 'w',encoding='utf-8')
-    if file:
-        file.writelines(line)
+            #print("closing named_day")
+
+        re_result= re.search('^<p>(\d{1,2})',line)
+        if re_result:        
+            #print("found day", line)
+            day = int(re.search('^<p>(\d{1,2})',line)[1])
+            if file:
+                file.close()
+                #print("closing day")
+            file = open(f'{mode}\\{month:02}\\u{day:02}.html', 'w',encoding='utf-8')
+        if file and not file.closed:
+            file.writelines(line)
+'''
+elif mode=="g":
+    for line in file_lines:        
+        re_result = re.search('<h1>'+month_list_string,line)
+        if re_result:
+            month = month_list[re_result.group(1)]
+            print("found month", month, line)
+            if file:
+                file.close()
+                #print("closing month")
+
+        #re_result=re.search("^<p>"+day_list_string,line)
+        #if re_result and file:
+        #    file.close()
+            #print("closing named_day")
+
+        re_result= re.search('^<p>.*?<b>(\d{1,2})<\b>',line)
+        if re_result:        
+            #print("found day", line)
+            day = int(re.search('^<p>(\d{1,2})',line)[1])
+            if file:
+                file.close()
+                #print("closing day")
+            file = open(f'{mode}\\{month:02}\\u{day:02}.html', 'w',encoding='utf-8')
+        if file and not file.closed:
+            file.writelines(line)
+'''
 if file:
     file.close()        
