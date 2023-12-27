@@ -7,6 +7,8 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 mode_dict={'u':'Юл',
            'g':'Гр'}
 
+paschalia.paschalia = paschalia.get_prev_next_pascha(datetime(2024,1,1),mode)
+
 #select month
 #month_no = easygui.enterbox("Введіть номер місяця", "Місяць")
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
@@ -40,13 +42,13 @@ day_dic_reversed = {v:k for k,v in day_dic.items()}
 day_dic_string='('+'|'.join(day_dic.keys())+')'
 
 #doc = docx.Document("Літургія - Мінея\\10-Літургія-шаблони.docx") 
-
+'''
 def get_echos(date,mode):
     if mode=='u':
         return (int(date.strftime("%U"))-25) % 8 + 1
     elif mode=='g':
         return (int(date.strftime("%U"))-24) % 8 + 1
-
+'''
 def copy_paragraph(target_doc,source_paragraph):
     target_paragraph = target_doc.add_paragraph()
     for run in source_paragraph.runs:
@@ -215,11 +217,15 @@ def insert_header_liturgy(doc,date):
             format_line(p_new, '')
     
     if date.weekday()+1 in [6,7]:
-        p_new = doc.add_paragraph(f"{day_name} {week_no} по П'ятидесятниці")
-        format_line(p_new, '')
+        p_new = doc.add_paragraph(f"{day_name} {week_no} по П'ятидесятниці.")
+        if date.weekday()+1 == 7:
+            p_new.text+= f" Гл. "+str(paschalia.get_echos(date))+"."
+            format_line(p_new, 'r')
+        else:
+            format_line(p_new, '')
 
     if date.weekday()+1 in [1]:
-        p_new = doc.add_paragraph(f"Тиждень {week_no} по П'ятидесятниці")
+        p_new = doc.add_paragraph(f"Тиждень {week_no} по П'ятидесятниці.")
         format_line(p_new, '')
 
     #перелік святих
@@ -227,6 +233,8 @@ def insert_header_liturgy(doc,date):
     for l in lst:
         p_new=doc.add_paragraph(l[9])
         format_line(p_new, ''.join(l[2:5]))
+
+
 
 new_doc = docx.Document()
 '''
@@ -246,11 +254,12 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     #print(dismissal_matrix[d][2])
     if datetime(year_no, month_no, d).weekday()+1==7:
         #print(d, "copied sunday ", get_echos(datetime(year_no,month_no,d)))
-        copy_paragraph_list(new_doc,templates_resurrection[get_echos(datetime(year_no,month_no,d),mode)])
+        copy_paragraph_list(new_doc,templates_resurrection[paschalia.get_echos(datetime(year_no,month_no,d))])
     elif d in templates_menaion.keys():
         copy_paragraph_list(new_doc,templates_menaion[d])
     else:
-        copy_paragraph_list(new_doc,templates_everyday[datetime(2023, month_no, d).weekday()+1])
+        print(d, datetime(year_no, month_no, d).weekday()+1,templates_everyday[datetime(year_no, month_no, d).weekday()+1][38].text[:20])
+        copy_paragraph_list(new_doc,templates_everyday[datetime(year_no, month_no, d).weekday()+1])
         
     
 mode_new = 'ГР' if mode=='g' else "НЮ"
