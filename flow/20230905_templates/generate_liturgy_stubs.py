@@ -263,4 +263,4 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         
     
 mode_new = 'ГР' if mode=='g' else "НЮ"
-new_doc.save(f'{month_no}-Літургія-{mode_new}.docx')
+new_doc.save(f'{month_no:02}-Літургія-{mode_new}.docx')
