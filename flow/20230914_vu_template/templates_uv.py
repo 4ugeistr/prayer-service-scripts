@@ -5,6 +5,7 @@ import paschalia
 
 #filenames= glob.glob('*/*/*.txt')
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+paschalia.paschalia = paschalia.get_prev_next_pascha(datetime(2024,1,1),mode)
 
 old_files = glob.glob('2022/*/*.doc*')
 filenames={}
@@ -88,7 +89,7 @@ for m in range(1,13):
             filenames[m][d]=re.sub(r'Гл.\s?\d\s?-\s?','',data)
             #print(m,d,filenames[m][d])
 
-def get_echos(date,mode):
+def get_echos_deprecated(date,mode):
     if mode=='u':
         return (int(date.strftime("%U"))-25) % 8 + 1
     elif mode=='g':
@@ -121,7 +122,8 @@ def delete_run(run):
 
 def copy_run(target_paragraph,run):
     new_run = target_paragraph.add_run(run.text)
-    new_run.style = run.style.name
+    #KeyError: "no style with name 'Default Paragraph Font'"
+    #new_run.style = run.style.name
     new_run.bold = run.bold
     new_run.italic = run.italic
     new_run.underline = run.underline
@@ -213,7 +215,7 @@ def get_menaion_template_files():
     filenames = glob.glob(f'В,У - Мінея/{month_no:02}*/*.docx')
     template_dic={}
     for f in filenames:
-        #print("Checking",f)
+        print("Checking",f)
         pattern=r'(\d{2})-__-(.*?).docx'
         #print(pattern)
         re_result = re.search(pattern,f)
@@ -419,7 +421,7 @@ saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
 templates_octoechos_dic = get_octoechos_template_files()
 templates_menaion_dic = get_menaion_template_files()
 templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
-templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no}.docx')
+templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
 vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
 templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
 templates_kanon_dic = get_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
@@ -442,14 +444,14 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     dest_filename=f'{folder_name}\\{d:02}-{day_short_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
     if datetime(year_no, month_no, d).weekday()+1==7:
         #echos=
-        dest_filename+=f'-Гл.{get_echos(datetime(year_no,month_no,d),mode)}'
+        dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d))}'
         #draft_dic[d].append('неділя')
     dest_filename+=f'-{filenames[month_no][d]}.docx'
     if d in templates_menaion_dic.keys() and datetime(year_no, month_no, d).weekday()+1!=7:
         src_filename=templates_menaion_dic[d]
         draft_dic[d].append('мінея')
     else:        
-        src_filename=templates_octoechos_dic[get_echos(datetime(year_no,month_no,d),mode)][datetime(year_no, month_no, d).weekday()+1]
+        src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d))][datetime(year_no, month_no, d).weekday()+1]
         draft_dic[d].append('октоїх')
     shutil.copy(src_filename,dest_filename)
     draft_dic[d].append(dest_filename)
@@ -486,7 +488,7 @@ def insert_boh_hospod_echos(path,date):
         if re_result:
             #print("found")
             if date.weekday()+1==7:
-                echos = get_echos(date,mode)
+                echos = paschalia.get_echos(date)
             else:
                 #echos = int(re.search("(\d)",templates_menaion[date.day][0]['troparion'][0]).group(1))
                 echos = int(re.search(r"(\d)",templates_menaion[date.day][0]['troparion'].text).group(1))
@@ -546,7 +548,7 @@ def get_troparia_block(date,service):
         if not ordo_matrix[date.day][2:][i]:
             continue
         if ordo_matrix[date.day][2:][i] == 'resurrection':
-            troparia = templates_resurrection[get_echos(date,mode)][0]
+            troparia = templates_resurrection[paschalia.get_echos(date)][0]
         if ordo_matrix[date.day][2:][i] == 'saint':
             #print(date.day, i)
             if i==2:
@@ -695,7 +697,7 @@ def insert_dismissal(path,date):
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
     insert_header(desc[1],datetime(year_no, month_no, d))
-    insert_dismissal(desc[1],datetime(year_no, month_no, d))
+    #insert_dismissal(desc[1],datetime(year_no, month_no, d))
     if desc[0]=='неділя' or desc[0]=='октоїх':
         pass
         #вставити стихири ГВ
