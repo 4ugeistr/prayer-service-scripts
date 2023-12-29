@@ -429,7 +429,7 @@ litany_list = get_kanon_litany("Канон - Мала єтенія.docx")
 
 
 
-folder_name=f'drafts\\{year_no}-{month_no}-{mode}'
+folder_name=f'drafts\\{year_no}-{month_no:02}-{mode}'
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
 
