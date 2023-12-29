@@ -132,10 +132,10 @@ for k,v in lines_dict.items():
     res = re.findall('<i>(.*?)</i>',v['readings'])
     v['array']+=normalize(res)
         
-    res = re.findall('Ап\. – (.*?)(?:<br>|<i>|\n|\|)',v['readings'])
+    res = re.findall('Ап\. – (.*?)(?:<br>|<i>|\n|\||<sup>)',v['readings'])
     v['array']+=normalize(res)
 
-    res = re.findall('Єв\. – (.*?)(?:<br>|<i>|\n|$)',v['readings'])
+    res = re.findall('Єв\. – (.*?)(?:<br>|<i>|\n|<sup>|$)',v['readings'])
     v['array']+=normalize(res)
 
 #convert apostol
