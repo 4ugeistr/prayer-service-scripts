@@ -1,8 +1,12 @@
 import docx,re
 
-docx_filename='12-Літургія-ГР.docx'
+'''
+docx_filename='01-Літургія-НЮ.docx'
+'''
+docx_filename='01-Літургія-ГР.docx'
+
 mode='u'
-cur_month='Грудень'
+cur_month='Січень'
 
 
 month_list = {'Січень':1,

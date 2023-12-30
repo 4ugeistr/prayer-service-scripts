@@ -134,7 +134,7 @@ templates_feast = get_feast_template_texts(f'свято-{month_no:02}.docx')
 template_file_list = get_template_files('docx_templates/hours-template-*.docx')
 
 
-folder_name=f'drafts\\{year_no}-{month_no}-{mode}'
+folder_name=f'drafts\\{year_no}-{month_no:02}-{mode}'
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
 
@@ -142,7 +142,7 @@ if not os.path.exists(folder_name):
 print(year_no, month_no)
 for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     #print(d,datetime(year_no, month_no, d).weekday()+1)
-    dest_filename=f'{folder_name}\\{d:02}.{month_no}.docx'
+    dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
 
     if ordo_matrix[d][1]=='y' or datetime(year_no, month_no, d).weekday()+1==7:
         shutil.copy(template_file_list[7],dest_filename)
@@ -212,7 +212,7 @@ hours_translate = {1:1,
 for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     print(d)
 #for d in range(1,2):
-    dest_filename=f'{folder_name}\\{d:02}.{month_no}.docx'
+    dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
     doc = docx.Document(dest_filename)
     hour=None
     for p in doc.paragraphs:

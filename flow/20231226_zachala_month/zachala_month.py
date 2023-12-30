@@ -2,7 +2,7 @@ import re, csv
 from thefuzz import fuzz
 from datetime import datetime
 
-mode='u'
+mode='g'
 year = 2024
 month = 'Січень'
 month_list = {'Січень':1,
