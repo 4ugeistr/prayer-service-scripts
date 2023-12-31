@@ -1,7 +1,13 @@
 import re, docx, csv, easygui, glob, os, calendar, shutil
 from datetime import datetime
+import paschalia
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+mode_dic = {'НЮ':'u',
+            'ГР':'g',}
+mode_dic_reversed = {v:k for k,v in mode_dic.items()}
+paschalia.mode = mode
+paschalia.init_paschalia_dates(mode)
 #mode = 'u'
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
@@ -11,13 +17,13 @@ def delete_paragraph(paragraph):
     p.getparent().remove(p)
     p._p = p._element = None
 
-
+'''
 def get_echos(date,mode):
     if mode=='u':
         return (int(date.strftime("%U"))-25) % 8 + 1
     elif mode=='g':
         return (int(date.strftime("%U"))-24) % 8 + 1
-
+'''
 
 def get_matrix(csv_filename):
     matrix={}
@@ -127,13 +133,15 @@ def get_template_files(path):
 #   insert troparia
 #   insert kondakion
 
-ordo_matrix = get_matrix("Часи.csv")
+ordo_matrix = get_matrix(f"Часи_{mode_dic_reversed[mode]}.csv")
+
 templates_resurrection = get_resurrection_template_texts('воскресні.docx')
 templates_menaion = get_menaion_template_texts(f'тропарі-{month_no:02}.docx')
 templates_feast = get_feast_template_texts(f'свято-{month_no:02}.docx')
 template_file_list = get_template_files('docx_templates/hours-template-*.docx')
 
-
+if not os.path.exists('drafts'):
+    os.makedirs('drafts')
 folder_name=f'drafts\\{year_no}-{month_no:02}-{mode}'
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
@@ -173,9 +181,9 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
             if o=="":
                 hours_matrix[d].append("")
             elif o =='resurrection' and (i+1)%3!=0:
-                hours_matrix[d].append(templates_resurrection[get_echos(datetime(year_no,month_no,d),mode)][0])
+                hours_matrix[d].append(templates_resurrection[paschalia.get_echos(datetime(year_no,month_no,d))][0])
             elif o =='resurrection' and (i+1)%3==0:
-                hours_matrix[d].append(templates_resurrection[get_echos(datetime(year_no,month_no,d),mode)][1])
+                hours_matrix[d].append(templates_resurrection[paschalia.get_echos(datetime(year_no,month_no,d))][1])
             elif o =='feast' and (i+1)%3!=0:
                 hours_matrix[d].append(templates_feast[d][0])
             elif o =='feast' and (i+1)%3==0:
@@ -185,7 +193,11 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
                 hours_matrix[d].append(templates_menaion[d][0])
             elif o =='saint' and (i+1)%3==0:
                 hours_matrix[d].append(templates_menaion[d][1])    
-
+    if month_no == 1 and d==1:
+        hours_matrix[d] =   [templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][2],
+                            templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][3],
+                            templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][2],
+                            templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][3]]
 print("paragraphs gathered")          
 '''
 for p in hours_matrix[2]:
@@ -210,7 +222,7 @@ hours_translate = {1:1,
 
 
 for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-    print(d)
+    #print(d)
 #for d in range(1,2):
     dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
     doc = docx.Document(dest_filename)
@@ -237,7 +249,7 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
             if value:
                 copy_paragraph_before(p,value)
             else:
-                print("warning",d,hour)
+                print("warning troparion",d,hour)
             delete_paragraph(p)
 
         re_result = re.search("^Кондак(\s)?$",p.text)
@@ -247,9 +259,10 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
             if value:
                 copy_paragraph_before(p,value)
             else:
-                print("warning",d,hour)
+                print("warning kondakion",d,hour)
             delete_paragraph(p)
     doc.save(dest_filename)
         
-for k,v in hours_matrix.items():
-    print(k,len(v))
+#for k,v in hours_matrix.items():
+#    print(k,len(v))
+print("Done!")

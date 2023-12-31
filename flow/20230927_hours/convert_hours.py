@@ -20,6 +20,7 @@ header=[
     ]
 
 dirs = easygui.diropenbox()
+print(f'Converting: {dirs}')
 os.chdir(dirs)
 
 filenames = glob(f'*.docx')
@@ -37,4 +38,4 @@ for filename in filenames:
     with open(html_filename,'w',encoding='utf8') as html_file:
         html_file.write(result)
 
-    
+print("Done!")

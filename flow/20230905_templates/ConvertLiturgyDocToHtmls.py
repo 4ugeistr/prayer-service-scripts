@@ -10,7 +10,7 @@ CLEANR = re.compile('<.*?>')
 #mode='g'
 mode_dic = {'НЮ':'u',
             'ГР':'g',}
-
+mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 
 #mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 #dirs = easygui.diropenbox()
@@ -23,6 +23,7 @@ filedoc = easygui.fileopenbox(
     default="*.docx"
 )
 #dirs = os.path.dirname(filedoc)
+os.chdir(os.path.dirname(filedoc))
 filedoc = os.path.basename(filedoc)
 print(filedoc)
 
