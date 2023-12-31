@@ -1,30 +1,43 @@
 import sys, re, mammoth
 from glob import glob
+from datetime import datetime
 import os
 import easygui
 
 CLEANA = re.compile('<a.*?</a>')
 CLEANR = re.compile('<.*?>')
 
-mode='g'
+#mode='g'
+mode_dic = {'НЮ':'u',
+            'ГР':'g',}
 
-mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
-dirs = easygui.diropenbox()
-paths = glob(f'{dirs}\\*.docx', recursive=True)
-filedoc = paths[0]
+#mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+#dirs = easygui.diropenbox()
+#paths = glob(f'{dirs}\\*.docx', recursive=True)
+#filedoc = paths[0]
 
 filedoc = easygui.fileopenbox(
     title="Select a .docx file",
     filetypes=["*.docx"],
     default="*.docx"
 )
+#dirs = os.path.dirname(filedoc)
+filedoc = os.path.basename(filedoc)
+print(filedoc)
+
+mode = mode_dic[filedoc.split('.')[0][-2:]]
+month_no = int(filedoc[:2])
+year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
+
+if not os.path.exists('drafts'):
+    os.makedirs('drafts')
+folder_name=f'drafts\\{year_no}-{month_no:02}-{mode}'
+if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
 
 
-
-
-
-filehtm = dirs + '/temp.html'
+filehtm = folder_name + '/temp.html'
 
 # Перевизначаємо дефолтні (em & strong) теги для італіка та болда
 style_map = """
@@ -130,7 +143,7 @@ for line in file_lines:
         if file:
             file.close()
         try:
-            file = open(dirs+'/b{:02d}.html'.format(cur_date), 'w',encoding='utf-8')
+            file = open(folder_name+'/b{:02d}.html'.format(cur_date), 'w',encoding='utf-8')
             print('/b{:02d}.html'.format(cur_date))
         except TypeError as e:
             print(line)
@@ -140,7 +153,7 @@ for line in file_lines:
         file.writelines(line)
         
     if line.startswith('</vidpust'):
-        print(line)
+        #print(line)
         if lit_template=='liz_pascha':
             file.writelines([
             '<p><i>Тоді співаємо кінцеве:</i> Христос воскрес: <i>тричі, цілий тропар.</i> <i>А потім закінчуємо:</i></p>',
