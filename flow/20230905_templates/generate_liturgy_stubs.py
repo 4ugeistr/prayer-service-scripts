@@ -190,7 +190,7 @@ templates_resurrection = get_resurrection_template_texts(path)
 templates_everyday = get_everyday_template_texts(path)
 saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
 
-dismissal_matrix = get_dismissal_matrix(f'Читання{mode_dict[mode]}.csv',month_no)
+#dismissal_matrix = get_dismissal_matrix(f'Читання{mode_dict[mode]}.csv',month_no)
 
 
 def insert_header_liturgy(doc,date):
@@ -217,7 +217,8 @@ def insert_header_liturgy(doc,date):
             format_line(p_new, '')
     
     if date.weekday()+1 in [6,7]:
-        p_new = doc.add_paragraph(f"{day_name} {week_no} по П'ятидесятниці.")
+        #p_new = doc.add_paragraph(f"{day_name} {week_no} по П'ятидесятниці.")
+        p_new = doc.add_paragraph(paschalia.get_day_label(date))
         if date.weekday()+1 == 7:
             p_new.text+= f" Гл. "+str(paschalia.get_echos(date))+"."
             format_line(p_new, 'r')
@@ -225,7 +226,8 @@ def insert_header_liturgy(doc,date):
             format_line(p_new, '')
 
     if date.weekday()+1 in [1]:
-        p_new = doc.add_paragraph(f"Тиждень {week_no} по П'ятидесятниці.")
+        #p_new = doc.add_paragraph(f"Тиждень {week_no} по П'ятидесятниці.")
+        p_new = doc.add_paragraph(paschalia.get_day_label(date))
         format_line(p_new, '')
 
     #перелік святих
@@ -245,10 +247,7 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     print(d)
     heading_text =' '.join([month_dic_reversed[month_no],str(d)+',',day_dic_reversed[datetime(year_no, month_no, d).weekday()+1]])
     new_doc.add_heading(heading_text, level=2)
-    #print(heading_text)
 
-    #REDO! in January =D
-    #new_doc.add_paragraph(dismissal_matrix[d][2])
     insert_header_liturgy(new_doc,datetime(year_no,month_no,d))
 
     #print(dismissal_matrix[d][2])

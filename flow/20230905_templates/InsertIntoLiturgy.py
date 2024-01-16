@@ -157,13 +157,22 @@ for p in doc.paragraphs:
 '''   
 
 #вставляємо читання та відпусти 
+iz='святого отця нашого Йоана Золотоустого, архиєпископа Константинограда,'
+vv='святого отця нашого Василія Великого, архиєпископа Кесарії Кападокійської,'
+
 placeholder=False
 cur_date=None
 reading_type=None
+liturgy=None
+
 for p in doc.paragraphs:
     re_result=re.search(f'^{month_list_string} (\d+)',p.text)
     if re_result:
         cur_date = int(re_result.group(2))
+    
+    re_result=re.search(f'liturgia=(.*?)(?:\s|/)',p.text)
+    if re_result:
+        liturgy = re_result.group(1)
     '''
     elif mode == 'g':
        #re_result=re.search(f'^\n*({day_list_string}\n)?(\d+)',p.text)
@@ -182,6 +191,9 @@ for p in doc.paragraphs:
     if placeholder:
         if re.search(f'</{reading_type}>',p.text):
             if placeholder=='vidpust':
+                print(cur_date, 'dismissal', liturgy)
+                if liturgy=='lvv':
+                    dismissal_matrix[cur_date][reading_type_indices[reading_type]]=dismissal_matrix[cur_date][reading_type_indices[reading_type]].replace(iz,vv)
                 insert_dismissal(p,cur_date,reading_type_indices[reading_type])
             elif placeholder in ['apostol','evanhelie']:
                 #print(placeholder)
@@ -192,10 +204,15 @@ for p in doc.paragraphs:
             placeholder = False
         else:
             delete_paragraph(p)
+
+    #застаріле:
+    '''
     if re.search('святий за календарем',p.text):
+        print(cur_date, 'dismissal')
+        
         p.insert_paragraph_before(dismissal_matrix[cur_date][2])
         delete_paragraph(p)
-
+    '''
 
 # вставляємо святих після дати        
 #for p in doc.paragraphs:

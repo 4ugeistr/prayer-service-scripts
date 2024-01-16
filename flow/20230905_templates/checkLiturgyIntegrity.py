@@ -1,12 +1,12 @@
 import docx,re
 
 '''
-docx_filename='01-Літургія-НЮ.docx'
+docx_filename='02-Літургія-НЮ.docx'
 '''
-docx_filename='01-Літургія-ГР.docx'
+docx_filename='02-Літургія-НЮ.docx'
 
 mode='u'
-cur_month='Січень'
+cur_month='Лютий'
 
 
 month_list = {'Січень':1,

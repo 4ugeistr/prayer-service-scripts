@@ -282,7 +282,7 @@ def get_day_label(cur_date):
         return f"Тиждень {weeks}-{ending_masc} Великого посту."
     
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=6):
-        return f"Субота 1-ша Ведликого Посту, пам'ять великомученика Теодора Тирона."
+        return f"Субота 1-ша Великого Посту, пам'ять великомученика Теодора Тирона."
     
     if cur_date == paschalia[1]["cheesefare_sunday"]+timedelta(days=7):
         return f"Неділя 1-ша Великого посту, Православ’я."
