@@ -2,6 +2,7 @@ import re,glob,calendar,docx,os,easygui, shutil, csv
 from datetime import datetime
 from docx.shared import RGBColor
 import paschalia
+RGB_RED = RGBColor(0xff, 0x44, 0x00)
 
 #filenames= glob.glob('*/*/*.txt')
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
@@ -446,7 +447,13 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         #echos=
         dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d))}'
         #draft_dic[d].append('неділя')
-    dest_filename+=f'-{filenames[month_no][d]}.docx'
+    try:
+        dest_filename+=f'-{filenames[month_no][d]}.docx'
+    except KeyError as e:
+        if month_no == 2 and d == 29:
+            dest_filename+=f'-Касіана.docx'
+        else:
+            raise e
     if d in templates_menaion_dic.keys() and datetime(year_no, month_no, d).weekday()+1!=7:
         src_filename=templates_menaion_dic[d]
         draft_dic[d].append('мінея')
@@ -675,6 +682,17 @@ def insert_header(path,date):
             break
     doc.save(path)
 
+# робимо всі "Священик" червоними та italic
+BLACK='b'
+RED='r'   
+def add_text(p,text, color=BLACK):
+    r = p.add_run(text)
+    r.font.name='Times New Roman'
+    r.font.size=152400
+    if color == RED:
+        r.font.color.rgb = RGB_RED
+        r.italic = True
+        
 def insert_dismissal(path,date):
     doc = docx.Document(path)
     shoutout_found = None
@@ -692,12 +710,34 @@ def insert_dismissal(path,date):
             format_line(p_new, '')
             delete_paragraph(p)
             shoutout_found = False
-    doc.save(path)    
+
+    for p in doc.paragraphs:
+        if re.search(f'Священик:',p.text):
+            re_result=re.search(f'^(Священик:)( .+?)(якого є храм)(.*?)$',p.text)
+            p_bak=p.text
+            p.clear()
+
+            try:
+                if re_result:
+                    add_text(p,re_result.group(1),color=RED)
+                    add_text(p,re_result.group(2))
+                    add_text(p,re_result.group(3),color=RED)
+                    add_text(p,re_result.group(4))
+                else:
+                    re_result=re.search(f'^(Священик:)(.*?)$',p_bak)
+                    add_text(p,re_result.group(1),color=RED)
+                    add_text(p,re_result.group(2))
+            except:
+                print(p_bak)
+                raise
+    doc.save(path)
+
+    
 
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
     insert_header(desc[1],datetime(year_no, month_no, d))
-    #insert_dismissal(desc[1],datetime(year_no, month_no, d))
+    insert_dismissal(desc[1],datetime(year_no, month_no, d))
     if desc[0]=='неділя' or desc[0]=='октоїх':
         pass
         #вставити стихири ГВ
