@@ -31,34 +31,28 @@ def get_stichera_matrix(path):
             #do we need a flag?
             handle='gv'
             #st_dound=False
-            stichera_dic[day]["gv_stichera"]=[]
+            #stichera_dic[day]["gv_stichera"]=[]
+            continue
+
+        re_result = re.search(r"богородичний",p.text)
+        if re_result:
+            stichera_dic[day].setdefault(f"{handle}_theotokion", []).append(p)
             continue
         
         re_result = re.search(r"^Слава",p.text)
         if re_result:
-            if handle=='gv':
-                stichera_dic[day]["gv_doxa"]=p
-            elif handle=='st':
-                stichera_dic[day]["st_doxa"]=p
+            stichera_dic[day].setdefault(f"{handle}_doxa", []).append(p)
             continue
         
-        re_result = re.search(r"^І нині",p.text)
-        if re_result:
-            if handle=='gv':
-                stichera_dic[day]["gv_theotokion"]=p
-            elif handle=='st':
-                stichera_dic[day]["st_doxa"]=p
-            continue
 
         if re.search("стиховні", p.text):
             handle = "st"
             continue
 
+        if handle in ('gv','st'):
+            stichera_dic[day].setdefault(f"{handle}_stichera", []).append(p)
         
             
-        if handle == 'gv':
-            stichera_dic[day]["gv_stichera"].append(p)
-
     return stichera_dic
 
         
