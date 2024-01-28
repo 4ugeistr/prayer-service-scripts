@@ -161,6 +161,7 @@ print("templates created")
 
 hours_matrix={}
 for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
+    print(d)
     if ordo_matrix[d][3] =="":
         if len(templates_menaion[d])<=2:
             hours_matrix[d] = ["","","",
