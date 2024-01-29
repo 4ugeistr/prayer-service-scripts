@@ -3,7 +3,7 @@ import docx,re
 '''
 docx_filename='02-Літургія-НЮ.docx'
 '''
-docx_filename='02-Літургія-НЮ.docx'
+docx_filename='02-Літургія-ГР.docx'
 
 mode='u'
 cur_month='Лютий'
