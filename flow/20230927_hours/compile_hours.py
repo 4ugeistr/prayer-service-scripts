@@ -6,10 +6,15 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 mode_dic = {'НЮ':'u',
             'ГР':'g',}
 mode_dic_reversed = {v:k for k,v in mode_dic.items()}
-paschalia.mode = mode
-paschalia.init_paschalia_dates(mode)
+
+if paschalia.mode!=mode:
+    raise Exception(f"ERROR. Вибраний {mode}, але пакет paschalia налаштований як {paschalia.mode}")
+
+#paschalia.mode = mode
+#paschalia.init_paschalia_dates(mode)
 #mode = 'u'
-month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
+#month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
+month_no = 2
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
 def delete_paragraph(paragraph):

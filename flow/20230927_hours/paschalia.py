@@ -108,7 +108,7 @@ def get_prev_next_pascha(cur_date, mode='u'):
         raise Exception
     return lst
 
-mode='g'
+mode='u'
 paschalia_dates = get_prev_next_pascha(datetime(2024,1,1),mode)
 
 def init_paschalia_dates( mode, date = datetime(2024,1,1)):
