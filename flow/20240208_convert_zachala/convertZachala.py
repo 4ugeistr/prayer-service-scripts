@@ -1,46 +1,46 @@
-import os
-from docx import Document
+import os, mammoth, easygui,re
+from glob import glob
 
-def process_paragraph(paragraph):
-    # Extract text from the paragraph
-    text = []
-    for run in paragraph.runs:
-        text.append(run.text)
-    text = ''.join(text)
+custom_style_map = """
+i => i
+b => b
+"""
 
-    # Check if the paragraph contains Bible excerpt
-    if any(word.isdigit() for word in text.split()):
-        return f'<p>{text}</p>'
-    else:
-        return None
 
-def process_docx(file_path):
-    document = Document(file_path)
-    html_content = []
 
-    for paragraph in document.paragraphs:
-        processed_paragraph = process_paragraph(paragraph)
-        if processed_paragraph:
-            html_content.append(processed_paragraph)
+def insert_line_breaks(html):
+    # Add line breaks after block-level elements
+    block_level_elements = ['</h1>', '</h2>', '</h3>', '</h4>', '</h5>', '</h6>', '</p>', '</ol>', '</ul>']
+    for element in block_level_elements:
+        html = html.replace(element, element + '\n')
+    return html
 
-    return '\n'.join(html_content)
-
-def save_as_html(html_content, output_file_path):
-    with open(output_file_path, 'w', encoding='utf-8') as html_file:
-        html_file.write(html_content)
 
 def main():
-    docx_folder = r'c:\Work\GitHub\prayer-service-scripts\flow\20240204_zachala'
-    output_folder = docx_folder+r'\output'
+    dirs = easygui.diropenbox()
+    print(f'Converting docs in dir: {dirs}')
+    os.chdir(dirs)
+    filenames = glob(f'*.docx')
+    if not os.path.exists('output'):
+        os.mkdir('output')
 
-    # Process each docx file in the folder
-    for docx_file in os.listdir(docx_folder):
-        if docx_file.endswith('.docx'):
-            file_path = os.path.join(docx_folder, docx_file)
-            html_content = process_docx(file_path)
-            output_file_path = os.path.join(output_folder, f"{docx_file.split('.')[0]}.html")
-            save_as_html(html_content, output_file_path)
-            print(f"{docx_file} converted to HTML.")
+    for filename in filenames:
+        with open(filename,'rb') as docx_file:
+            result = mammoth.convert_to_html(docx_file,style_map=custom_style_map).value
+            #result = mammoth.convert_to_html(docx_file).value
+
+        result = insert_line_breaks(result)
+        #change &nbsp to regular space
+        result=result.replace(u'\xa0', ' ')
+
+        #mammoth doesn't process superscript. workaround
+        result = re.sub('(\d{1,2})\. ','<i>\g<1>.</i> ',result)
+        #for some reason dots are out side italics run. getting them in        
+        result = re.sub('<i>(\d{1,2})</i>. ','<i>\g<1>.</i> ',result)
+        
+        html_filename=f'output/'+filename.split('.')[0]+'.html'
+        with open(html_filename,'w',encoding='utf16') as html_file:
+            html_file.write(result)
 
 if __name__ == "__main__":
     main()
