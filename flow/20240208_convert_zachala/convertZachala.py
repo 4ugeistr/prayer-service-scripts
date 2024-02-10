@@ -39,7 +39,7 @@ def main():
         result = re.sub('<i>(\d{1,2})</i>. ','<i>\g<1>.</i> ',result)
         
         html_filename=f'output/'+filename.split('.')[0]+'.html'
-        with open(html_filename,'w',encoding='utf16') as html_file:
+        with open(html_filename,'w',encoding='utf8') as html_file:
             html_file.write(result)
 
 if __name__ == "__main__":
