@@ -4,6 +4,7 @@ from glob import glob
 custom_style_map = """
 i => i
 b => b
+u => em
 """
 
 
@@ -26,7 +27,7 @@ def main():
 
     for filename in filenames:
         with open(filename,'rb') as docx_file:
-            result = mammoth.convert_to_html(docx_file,style_map=custom_style_map).value
+            result = mammoth.convert_to_html(docx_file,style_map=custom_style_map,include_default_style_map=False ).value
             #result = mammoth.convert_to_html(docx_file).value
 
         result = insert_line_breaks(result)

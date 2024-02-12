@@ -106,7 +106,7 @@ for filehtml in html_files:
                     print(f'УВАГА: щось пішло не так. Перевірити {filehtml}')
                     f.close()
                     raise Error
-                print(line)
+                #print(line)
                 f.write(line)
 
 print('Формуємо вихідні файли')
