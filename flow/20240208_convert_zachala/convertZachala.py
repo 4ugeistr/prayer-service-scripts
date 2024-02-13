@@ -35,9 +35,9 @@ def main():
         result=result.replace(u'\xa0', ' ')
 
         #mammoth doesn't process superscript. workaround
-        result = re.sub('(\d{1,2})\. ','<i>\g<1>.</i> ',result)
+        result = re.sub(r'(\d{1,2})\. ',r'<i>\g<1>.</i> ',result)
         #for some reason dots are out side italics run. getting them in        
-        result = re.sub('<i>(\d{1,2})</i>. ','<i>\g<1>.</i> ',result)
+        result = re.sub(r'<i>(\d{1,2})</i>. ',r'<i>\g<1>.</i> ',result)
         
         html_filename=f'output/'+filename.split('.')[0]+'.html'
         with open(html_filename,'w',encoding='utf8') as html_file:
