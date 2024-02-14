@@ -14,8 +14,11 @@ day_dic_reversed = {v:k for k,v in day_dic.items()}
 
 paschalia_dates_table = [
     {"mode":"u",
+     "year":2021,
+     "pascha":datetime(2021,5,2)},
+    {"mode":"u",
      "year":2022,
-     "pascha":datetime(2023,4,24)},
+     "pascha":datetime(2022,4,24)},
     {"mode":"u",
      "year":2023,
      "pascha":datetime(2023,4,16)},
@@ -27,8 +30,11 @@ paschalia_dates_table = [
      "pascha":datetime(2025,4,20)},
     
     {"mode":"g",
+     "year":2021,
+     "pascha":datetime(2021,4,4)},
+     {"mode":"g",
      "year":2022,
-     "pascha":datetime(2023,4,17)},
+     "pascha":datetime(2022,4,17)},
     {"mode":"g",
      "year":2023,
      "pascha":datetime(2023,4,9)},
@@ -107,7 +113,11 @@ for p in paschalia_dates_table:
 def get_prev_next_pascha(cur_date, mode='u'):
     lst  =  list(filter(lambda p: (p['year'] == cur_date.year-1 or p['year'] == cur_date.year) and p['mode']==mode , paschalia_dates_table))
     if len(lst)!=2:
+        print(cur_date, mode)
         print(len(lst))
+        if lst:
+            for i in lst:
+                print("Pascha date:", i["pascha"])
         raise Exception
     return lst
 
@@ -179,18 +189,19 @@ weekday
 '''
 
 def get_day_details(cur_date,paschalia_dates):
-    
-    if cur_date < paschalia_dates[1]["lent_start"] or cur_date > paschalia_dates[1]["pentecost"]:
+
+    weeks_till_lent = None
+    if cur_date < paschalia_dates[1]["lent_start"] or cur_date >= paschalia_dates[1]["pentecost"]:
         period = 'pentecost'
         week = get_week_from_50(cur_date, paschalia_dates)
-    elif cur_date < paschalia_dates[1]["pascha"]:
+        weeks_till_lent = ((paschalia_dates[1]["lent_start"] - cur_date).days - 1) //7 +1
+        weeks_till_lent = None if weeks_till_lent > 5 else weeks_till_lent
+    elif cur_date <= paschalia_dates[1]["pascha"]:
         period = 'lent'
         week = ((cur_date - paschalia_dates[1]["cheesefare_sunday"]).days - 1) // 7 + 1
     else:
         period = 'pascha'
         week = get_week_from_pascha(cur_date, paschalia_dates)
-
-    #weeks_till_lent = ((paschalia_dates[1]["lent_start"] - cur_date).days - 1) //7 +1
 
     day = cur_date.weekday()+1
 
@@ -430,4 +441,4 @@ def get_week_related_label(cur_date):
 
 if __name__ == "__main__":
     paschalia_dates = get_prev_next_pascha(datetime.now(), mode='u')
-    print(get_day_details(datetime(2024,3,25),paschalia_dates))
+    print(get_day_details(datetime(2024,3,3),paschalia_dates))
