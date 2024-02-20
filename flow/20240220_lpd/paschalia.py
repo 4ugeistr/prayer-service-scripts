@@ -441,4 +441,4 @@ def get_week_related_label(cur_date):
 
 if __name__ == "__main__":
     paschalia_dates = get_prev_next_pascha(datetime.now(), mode='u')
-    print(get_day_details(datetime(2024,3,3),paschalia_dates))
+    print(get_day_details(datetime(2024,4,1),paschalia_dates))
