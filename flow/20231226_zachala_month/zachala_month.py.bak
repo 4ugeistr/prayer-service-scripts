@@ -4,7 +4,7 @@ from datetime import datetime
 
 mode='u'
 year = 2024
-month = 'Березень'
+month = 'Лютий'
 month_list = {'Січень':1,
               'Лютий':2,
               'Березень':3,

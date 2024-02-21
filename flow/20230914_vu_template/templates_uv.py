@@ -6,10 +6,8 @@ RGB_RED = RGBColor(0xff, 0x44, 0x00)
 
 #filenames= glob.glob('*/*/*.txt')
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
-paschalia.paschalia = paschalia.get_prev_next_pascha(datetime(2024,1,1),mode)
+#paschalia.paschalia = paschalia.get_prev_next_pascha(datetime(2024,1,1),mode)
 
-old_files = glob.glob('2022/*/*.doc*')
-filenames={}
 
 
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
@@ -57,44 +55,6 @@ if mode == 'u':
 elif mode == 'g':
     mode_suffix='Гр'
 
-i=0
-for f in old_files:
-    re_result=re.search(r'2022\\2022.(\d{2})\\(\d{1,2})(?:-|_)(?:.*?)(?:-|_)(.*).docx?',f)
-    if re_result:
-        i+=1
-        #print(i,re_result.group(1),re_result.group(2),re_result.group(3))
-        if not int(re_result.group(1)) in filenames.keys():
-            filenames[int(re_result.group(1))]={}
-        if not int(re_result.group(2)) in filenames[int(re_result.group(1))].keys():
-            filenames[int(re_result.group(1))][int(re_result.group(2))]={}
-        filenames[int(re_result.group(1))][int(re_result.group(2))]=re_result.group(3)
-
-
-for month, month_data in filenames.items():
-    day_count=0
-    for day in month_data.keys():
-        day_count+=1
-    #print(month, day_count, calendar.monthrange(2023, month)[1])
-
-'''
-for month in range(1,13):
-    for day_no in range(1,calendar.monthrange(2023, month)[1]+1):
-        if not day_no in filenames[month].keys():
-            print("Пропущено:",month, day_no)
-'''
-
-for m in range(1,13):
-    for d, data in filenames[m].items():
-        if re.search('Гл', data):
-            #print(m,d,data)
-            filenames[m][d]=re.sub(r'Гл.\s?\d\s?-\s?','',data)
-            #print(m,d,filenames[m][d])
-
-def get_echos_deprecated(date,mode):
-    if mode=='u':
-        return (int(date.strftime("%U"))-25) % 8 + 1
-    elif mode=='g':
-        return (int(date.strftime("%U"))-24) % 8 + 1
 '''
 def copy_paragraph_before(p_to_insert_before,source_paragraph):
     target_paragraph = p_to_insert_before.insert_paragraph_before()
@@ -404,7 +364,7 @@ def get_kanon_texts(path):
         if re_result:
             kanon_found=True
             kanon_end_found=False
-            template_doc[echos]=[]
+            template_dic[echos]=[]
             
         re_result = re.search(r"Пісня 9",p.text)
         if re_result:
@@ -412,58 +372,9 @@ def get_kanon_texts(path):
             kanon_end_found = True
             
         if kanon_found and not kanon_end_found:
-            template_doc[echos].append(p)
+            template_dic[echos].append(p)
             
     return template_dic
-
-ordo_matrix = get_matrix("тропарі.csv")
-dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
-saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
-templates_octoechos_dic = get_octoechos_template_files()
-templates_menaion_dic = get_menaion_template_files()
-templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
-templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
-vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
-templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
-templates_kanon_dic = get_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
-litany_list = get_kanon_litany("Канон - Мала єтенія.docx")
-
-
-
-folder_name=f'drafts\\{year_no}-{month_no:02}-{mode}'
-if not os.path.exists(folder_name):
-    os.makedirs(folder_name)
-
-print(year_no, month_no)
-
-
-
-draft_dic={}
-for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-    draft_dic[d]=[]
-    #print(d,datetime(year_no, month_no, d).weekday()+1)
-    dest_filename=f'{folder_name}\\{d:02}-{day_short_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
-    if datetime(year_no, month_no, d).weekday()+1==7:
-        #echos=
-        dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d))}'
-        #draft_dic[d].append('неділя')
-    try:
-        dest_filename+=f'-{filenames[month_no][d]}.docx'
-    except KeyError as e:
-        if month_no == 2 and d == 29:
-            dest_filename+=f'-Касіана.docx'
-        else:
-            raise e
-    if d in templates_menaion_dic.keys() and datetime(year_no, month_no, d).weekday()+1!=7:
-        src_filename=templates_menaion_dic[d]
-        draft_dic[d].append('мінея')
-    else:        
-        src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d))][datetime(year_no, month_no, d).weekday()+1]
-        draft_dic[d].append('октоїх')
-    shutil.copy(src_filename,dest_filename)
-    draft_dic[d].append(dest_filename)
-
-
 
 def insert_prokimenon(path,day):
     doc = docx.Document(path)
@@ -495,7 +406,7 @@ def insert_boh_hospod_echos(path,date):
         if re_result:
             #print("found")
             if date.weekday()+1==7:
-                echos = paschalia.get_echos(date)
+                echos = paschalia.get_echos(date,paschalia_dates)
             else:
                 #echos = int(re.search("(\d)",templates_menaion[date.day][0]['troparion'][0]).group(1))
                 echos = int(re.search(r"(\d)",templates_menaion[date.day][0]['troparion'].text).group(1))
@@ -555,7 +466,7 @@ def get_troparia_block(date,service):
         if not ordo_matrix[date.day][2:][i]:
             continue
         if ordo_matrix[date.day][2:][i] == 'resurrection':
-            troparia = templates_resurrection[paschalia.get_echos(date)][0]
+            troparia = templates_resurrection[paschalia.get_echos(date,paschalia_dates)][0]
         if ordo_matrix[date.day][2:][i] == 'saint':
             #print(date.day, i)
             if i==2:
@@ -731,11 +642,108 @@ def insert_dismissal(path,date):
                 print(p_bak)
                 raise
     doc.save(path)
+old_files = glob.glob('2022/*/*.doc*')
+filenames={}
 
+i=0
+for f in old_files:
+    re_result=re.search(r'2022\\2022.(\d{2})\\(\d{1,2})(?:-|_)(?:.*?)(?:-|_)(.*).docx?',f)
+    if re_result:
+        i+=1
+        #print(i,re_result.group(1),re_result.group(2),re_result.group(3))
+        if not int(re_result.group(1)) in filenames.keys():
+            filenames[int(re_result.group(1))]={}
+        if not int(re_result.group(2)) in filenames[int(re_result.group(1))].keys():
+            filenames[int(re_result.group(1))][int(re_result.group(2))]={}
+        filenames[int(re_result.group(1))][int(re_result.group(2))]=re_result.group(3)
+
+
+for month, month_data in filenames.items():
+    day_count=0
+    for day in month_data.keys():
+        day_count+=1
+    #print(month, day_count, calendar.monthrange(2023, month)[1])
+
+'''
+for month in range(1,13):
+    for day_no in range(1,calendar.monthrange(2023, month)[1]+1):
+        if not day_no in filenames[month].keys():
+            print("Пропущено:",month, day_no)
+'''
+
+for m in range(1,13):
+    for d, data in filenames[m].items():
+        if re.search('Гл', data):
+            #print(m,d,data)
+            filenames[m][d]=re.sub(r'Гл.\s?\d\s?-\s?','',data)
+            #print(m,d,filenames[m][d])
+
+
+lent_templates = glob.glob('*/*/*.docx')
+
+ordo_matrix = get_matrix("тропарі.csv")
+dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
+saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
+templates_octoechos_dic = get_octoechos_template_files()
+templates_menaion_dic = get_menaion_template_files()
+templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
+templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
+vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
+templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
+templates_kanon_dic = get_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
+litany_list = get_kanon_litany("Канон - Мала єтенія.docx")
+
+
+
+folder_name=f'drafts\\{year_no}-{month_no:02}-{mode}'
+if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
+
+print(year_no, month_no)
+
+
+
+paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
+
+draft_dic={}
+for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     
+    draft_dic[d]=[]
+    #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
+    
+    dest_filename=f'{folder_name}\\{d:02}-{day_short_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
+    if datetime(year_no, month_no, d).weekday()+1==7:
+        
+        dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)}'
+    try:
+        dest_filename+=f'-{filenames[month_no][d]}.docx'
+    #TODO: change to process as an edge case rather then exception handling
+    except KeyError as e:
+        if month_no == 2 and d == 29:
+            dest_filename+=f'-Касіана.docx'
+        else:
+            raise e
+    day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
+    expected_template_path = f"В,У - Пісна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ЛПД.docx"    
+    if expected_template_path in lent_templates:
+        src_filename=expected_template_path
+        draft_dic[d].append('піст')
+
+    elif d in templates_menaion_dic.keys() and datetime(year_no, month_no, d).weekday()+1!=7:
+
+        src_filename=templates_menaion_dic[d]
+        draft_dic[d].append('мінея')
+    else:        
+        src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)][datetime(year_no, month_no, d).weekday()+1]
+        draft_dic[d].append('октоїх')
+
+
+    shutil.copy2(src_filename,dest_filename)
+    draft_dic[d].append(dest_filename)
 
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
+    print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
     insert_header(desc[1],datetime(year_no, month_no, d))
     insert_dismissal(desc[1],datetime(year_no, month_no, d))
     if desc[0]=='неділя' or desc[0]=='октоїх':
@@ -751,8 +759,5 @@ for d,desc in draft_dic.items():
     if desc[0]=='мінея':
         #вставити прокімен
         insert_prokimenon(desc[1], datetime(year_no, month_no, d).weekday()+1)
+    if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1==6:
         pass
-    
-
-    
-
