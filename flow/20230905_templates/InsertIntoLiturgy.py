@@ -1,4 +1,4 @@
-import docx,re,csv, easygui
+import docx,re,csv, easygui,paschalia
 from glob import glob
 from docx.shared import RGBColor
 from datetime import datetime
@@ -7,7 +7,8 @@ RGB_RED = RGBColor(0xff, 0x44, 0x00)
 #docx_filename='2023-07-Літургії-Гр.docx'
 #mode='g'
 #cur_month='Липень'
-
+month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
+year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
 #dirs = easygui.diropenbox()
@@ -164,11 +165,13 @@ placeholder=False
 cur_date=None
 reading_type=None
 liturgy=None
+paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
 
 for p in doc.paragraphs:
     re_result=re.search(f'^{month_list_string} (\d+)',p.text)
     if re_result:
         cur_date = int(re_result.group(2))
+
     
     re_result=re.search(f'liturgia=(.*?)(?:\s|/)',p.text)
     if re_result:

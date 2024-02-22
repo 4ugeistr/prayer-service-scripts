@@ -442,7 +442,7 @@ def insert_prefix_to_paragraph(p,text="Слава: ",formatting='b'):
 
 
 def get_troparia_theotokion(echos, date, service):
-    #print(echos, date, service)
+    print(echos, date, service)
     res = filter(lambda t: t['service'] == service and t['weekday'] == date.weekday()+1, templates_theotokion_dic[echos])
     l = list(res)
     p = l[0]["p"]

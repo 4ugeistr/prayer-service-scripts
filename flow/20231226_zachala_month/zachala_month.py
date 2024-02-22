@@ -1,11 +1,14 @@
-import re, csv
+import re, csv,easygui
 from thefuzz import fuzz
 from datetime import datetime
 
-mode='u'
-year = 2024
-month = 'Березень'
-month_list = {'Січень':1,
+#mode='u'
+mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
+#month = 'Березень'
+month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
+
+month_dic= {'Січень':1,
               'Лютий':2,
               'Березень':3,
               'Квітень':4,
@@ -17,6 +20,8 @@ month_list = {'Січень':1,
               'Жовтень':10,
               'Листопад':11,
               'Грудень':12}
+month_dic_reversed = {v:k for k,v in month_dic.items()}
+month = month_dic_reversed[month_no]
 
 weekday_list = {
                 1:'пн',
@@ -35,8 +40,8 @@ def clean_tags(s):
     '@':'🕃', #(red)
     '&':'🕃'} #(black)
     s=re.sub('#','🕀 ',s)
-    s=re.sub('\*','🕁 ',s)
-    s=re.sub('\+','🕂 ',s)
+    s=re.sub(r'\*','🕁 ',s)
+    s=re.sub(r'\+','🕂 ',s)
     s=re.sub('@','🕃 ',s)
     s=re.sub('&','🕃 ',s)
     
@@ -57,28 +62,28 @@ def clean_tags(s):
     return s
 
 def restore_format(lines):
-    new_lines = [re.sub('(\d{2}\|\d\|\d\|\d\|\d\|.)(.*)','\g<1>|\g<>',line) for line in lines]
+    new_lines = [re.sub(r'(\d{2}\|\d\|\d\|\d\|\d\|.)(.*)',r'\g<1>|\g<>',line) for line in lines]
     return new_lines
 
 def transform_readings(k,s):
     #print(k,'before=',s)
     
     s = re.sub('Літ:','Літ.:',s)
-    s = re.sub('<i>Літургія св. Йоана Золотоустого\.</i><br>','',s)
-    s = re.sub('Літургія св. Василія Великого\.','Літ.',s)
-    s = re.sub('Літургія св. Василія Великого\.','Літ.',s)
+    s = re.sub(r'<i>Літургія св. Йоана Золотоустого\.</i><br>','',s)
+    s = re.sub(r'Літургія св. Василія Великого\.','Літ.',s)
+    s = re.sub(r'Літургія св. Василія Великого\.','Літ.',s)
 #    s = re.sub('<i>Вечірня з Літургією св. Василія Великого.</i><br>','',s)
     '''
     if k==26:
         print(s)
     '''
-    s = re.sub('Літ\.(?:[^:])','Літ.:<',s)
+    s = re.sub(r'Літ\.(?:[^:])','Літ.:<',s)
     
     
-    s = re.sub('<i>Утр(\.)?:</i>.*?<i>Літ(\.)?(:)?<br>(?P<reading>.*)','<i>\g<reading>',s)
-    s = re.sub('<i>Утр(\.)?:</i>.*?<i>Літ(\.)?(:)?</i><br>(?P<reading>.*)','\g<reading>',s)
-    s = re.sub('<i>Утр(\.)?:</i><br>Єв. – (?:.*?)<br>(?P<reading>.*)','\g<reading>',s)
-    s = re.sub('<i>Літ(\.)?(:)?</i><br>(?P<reading>.*)','\g<reading>',s)
+    s = re.sub(r'<i>Утр(\.)?:</i>.*?<i>Літ(\.)?(:)?<br>(?P<reading>.*)',r'<i>\g<reading>',s)
+    s = re.sub(r'<i>Утр(\.)?:</i>.*?<i>Літ(\.)?(:)?</i><br>(?P<reading>.*)',r'\g<reading>',s)
+    s = re.sub(r'<i>Утр(\.)?:</i><br>Єв. – (?:.*?)<br>(?P<reading>.*)',r'\g<reading>',s)
+    s = re.sub(r'<i>Літ(\.)?(:)?</i><br>(?P<reading>.*)',r'\g<reading>',s)
     #замінити <i>Ряд.:</i>
     #на <i>Літ.:<br>Ряд.:</i>
     
@@ -94,11 +99,11 @@ def transform_readings(k,s):
 with open('c1_'+mode+'.txt','r',encoding='utf8') as f:
     lines = f.readlines()
 #lines = restore_format(lines)
-lines = [re.sub('(\d{2}\|\d\|\d\|\d\|\d\|)(.)(.*)','\g<1>\g<2>|\g<3>',line) for line in lines]
+lines = [re.sub(r'(\d{2}\|\d\|\d\|\d\|\d\|)(.)(.*)',r'\g<1>\g<2>|\g<3>',line) for line in lines]
 
 lines_dict={}
 for line in lines:
-    res=re.search('(\d{2})\|\d\|\d\|\d\|\d\|.\|(.*)\|(.*)\|.*',line)
+    res=re.search(r'(\d{2})\|\d\|\d\|\d\|\d\|.\|(.*)\|(.*)\|.*',line)
     if res and res.group():
         lines_dict[int(res.group(1))] = {
             'header':clean_tags(res.group(2)),
@@ -132,10 +137,10 @@ for k,v in lines_dict.items():
     res = re.findall('<i>(.*?)</i>',v['readings'])
     v['array']+=normalize(res)
         
-    res = re.findall('Ап\. – (.*?)(?:<br>|<i>|\n|\||<sup>)',v['readings'])
+    res = re.findall(r'Ап\. – (.*?)(?:<br>|<i>|\n|\||<sup>)',v['readings'])
     v['array']+=normalize(res)
 
-    res = re.findall('Єв\. – (.*?)(?:<br>|<i>|\n|<sup>|$)',v['readings'])
+    res = re.findall(r'Єв\. – (.*?)(?:<br>|<i>|\n|<sup>|$)',v['readings'])
     v['array']+=normalize(res)
 
 #convert apostol
@@ -182,23 +187,29 @@ ev_dic = {
 for k,v in lines_dict.items():
     for i in range(2):
         found=False
+        ratio_max=0
         for item in evanhelie_list:
+            ratio=fuzz.token_sort_ratio(v['array'][4+i],item[0])
             if fuzz.token_sort_ratio(v['array'][4+i],item[0])==100:
                 found=True
                 v['array'][4+i]=f'#{ev_dic[item[1]]}{item[2]:0>3}{item[3]}'
+                break
+            if ratio>ratio_max:
+                ratio_max=ratio
+                item_found=item[0]
         if v['array'][4+i] and not found:
-            print(k,4+i,v['array'][4+i])
-            print('ratio:',fuzz.token_sort_ratio(v['array'][4+i],item[0]))
+            print(k,4+i,v['array'][4+i],item_found)
+            print('ratio:',ratio_max)
             #raise Exception
 
 for k,v in lines_dict.items():
     try:
-        weekday = datetime(year,month_list[month],k).isoweekday()
+        weekday = datetime(year_no,month_dic[month],k).isoweekday()
     except ValueError:
         print('Achtung')
         print(k,v)
         raise ValueError
-    l = [month,f'{k:0>2}.{month_list[month]:0>2}',weekday, weekday_list[weekday]]
+    l = [month,f'{k:0>2}.{month_dic[month]:0>2}',weekday, weekday_list[weekday]]
     v['array']=l+[v['header']]+v['array']
 
 #reverse dictionary search
@@ -207,7 +218,7 @@ for k,v in lines_dict.items():
 #for k,v in lines_dict.items():  
 #    print(k,v['array'])
 
-with open(f'{year}-{month}-{mode}.csv','w', newline='', encoding='utf-8') as csvfile:
+with open(f'{year_no}-{month_no}-{mode}.csv','w', newline='', encoding='utf-8') as csvfile:
     csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"')
     for k,v in lines_dict.items():  
         csvwriter.writerow(v['array'])
