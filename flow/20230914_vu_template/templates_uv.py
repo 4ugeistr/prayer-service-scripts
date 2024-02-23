@@ -724,18 +724,22 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         else:
             raise e
     day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
-    expected_template_path = f"В,У - Пісна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ЛПД.docx"    
-    if expected_template_path in lent_templates:
+    expected_template_path = f"В,У - Пісна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"    
+    #print(expected_template_path)
+    if expected_template_path in lent_templates and day_details[3]!=7:
         src_filename=expected_template_path
         draft_dic[d].append('піст')
+        #print(d, "Шаблон Великого Посту")
 
     elif d in templates_menaion_dic.keys() and datetime(year_no, month_no, d).weekday()+1!=7:
 
         src_filename=templates_menaion_dic[d]
         draft_dic[d].append('мінея')
+        #print(d, "Шаблон Мінеї")
     else:        
         src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)][datetime(year_no, month_no, d).weekday()+1]
         draft_dic[d].append('октоїх')
+        #print(d, "Шаблон Октоїха")
 
 
     shutil.copy2(src_filename,dest_filename)
@@ -743,7 +747,7 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
 
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
-    print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
+    #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
     insert_header(desc[1],datetime(year_no, month_no, d))
     insert_dismissal(desc[1],datetime(year_no, month_no, d))
     if desc[0]=='неділя' or desc[0]=='октоїх':

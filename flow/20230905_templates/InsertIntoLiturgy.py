@@ -173,7 +173,7 @@ for p in doc.paragraphs:
         cur_date = int(re_result.group(2))
 
     
-    re_result=re.search(f'liturgia=(.*?)(?:\s|/)',p.text)
+    re_result=re.search(r'liturgia=(.*?)(?:\s|/)',p.text)
     if re_result:
         liturgy = re_result.group(1)
     '''
