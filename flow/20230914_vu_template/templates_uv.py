@@ -1,7 +1,7 @@
 import re,glob,calendar,docx,os,easygui, shutil, csv
 from datetime import datetime
 from docx.shared import RGBColor
-import paschalia
+import paschalia,get_stichera
 RGB_RED = RGBColor(0xff, 0x44, 0x00)
 
 #filenames= glob.glob('*/*/*.txt')
@@ -442,7 +442,7 @@ def insert_prefix_to_paragraph(p,text="Слава: ",formatting='b'):
 
 
 def get_troparia_theotokion(echos, date, service):
-    print(echos, date, service)
+    #print(echos, date, service)
     res = filter(lambda t: t['service'] == service and t['weekday'] == date.weekday()+1, templates_theotokion_dic[echos])
     l = list(res)
     p = l[0]["p"]
@@ -593,6 +593,19 @@ def insert_header(path,date):
             break
     doc.save(path)
 
+def stretch_texts(qty_of_verses_requested, texts):
+    result = []
+    repetitions_per_text, remaining_verses = divmod(qty_of_verses_requested, len(texts))
+    for t in texts:
+        result.append([t]*repetitions_per_text)
+    for i in range(remaining_verses):
+        result[i].append(result[i][0])
+    return sum(result,[])
+
+
+
+
+
 # робимо всі "Священик" червоними та italic
 BLACK='b'
 RED='r'   
@@ -642,6 +655,93 @@ def insert_dismissal(path,date):
                 print(p_bak)
                 raise
     doc.save(path)
+
+'''
+def init_stichera_dic(n):
+    stichera_dic = {}
+    for i in range(n):
+        stichera_dic[stichos_list[-n:][i]]=i
+    return stichera_dic
+'''
+
+def insert_menaion_stichera(path,date):
+    doc = docx.Document(path)
+    stichera_no=None
+    look_for_slava=False
+    k=date.day
+    #required_stichera_qty = stichera_gv_matrix[k][1]
+
+    if stichera_gv_matrix[k][1].isnumeric() and stichera_gv_matrix[k][1]!='0':
+        #stichos_dic =init_stichera_dic(stichera_gv_matrix[k][1])
+        n= int(stichera_gv_matrix[k][1])
+        stichos_dic = {stichos_list[-n:][i]: i for i in range(n) }
+    else:
+        return 0
+    
+    '''
+    stichos_dic={
+    "Стих: Від ранньої сторожі до ночі":0,
+    "Стих: Бо в Господа милість і відкуплення велике в нього":1,
+    "Стих: Хваліте Господа всі народи":2,
+    "Стих: Велике бо до нас його милосердя":3,
+    }
+    '''
+
+
+    stichos_dic_string='('+'|'.join(stichos_dic.keys())+')'
+    print(date.day,stichos_dic_string)
+
+    try:
+        texts = stretch_texts(n,stichera_matrix[k]['gv_stichera'])
+    except IndexError:
+        print(IndexError)
+        print(f"Skipping day{k}")
+        return -1
+    for p in doc.paragraphs:
+        re_result = re.search(f"{stichos_dic_string}",p.text)
+        if re_result:
+            #print(f"Day {k}, found string:",re_result.group(1)[:20])
+            stichera_no=stichos_dic[re_result.group(1)]
+            continue
+
+        if stichera_no or stichera_no==0:
+            copy_paragraph_before(p,texts[stichera_no])
+            delete_paragraph(p)
+            #print(f"Inserted stichera {stichera_no} for {v}")
+            stichera_no=None
+            look_for_slave=True
+            continue
+    
+        re_result = re.search("^(Слава|І нині)",p.text)
+        if re_result and look_for_slava:
+            delete_paragraph(p)
+
+        re_result = re.search("^Вхід",p.text)
+        if re_result:
+            look_for_slave=False
+            if "gv_doxa" in stichera_matrix[k]:
+                print(f"Inserted doxa for {k}")
+                copy_paragraph_before(p,stichera_matrix[k]["gv_doxa"][0])
+
+            if datetime(year_no,month_no,k).weekday()+1 in (3,5):
+                if  len(stichera_matrix[k]["gv_theotokion"])==2:
+                    print(f"Inserted theo for {k}")
+                    copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][1])
+                else:
+                    p.insert_paragraph_before("ХРЕСТОБОГОРОДИЧНИЙ")
+            else:
+                print(f"Inserted theo for {k}")
+                try:
+                    copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][0])
+                except KeyError:
+                    print("Warning, failed to find stichera_matrix[k]['gv_theotokion'][0]")
+                    p.insert_paragraph_before("БОГОРОДИЧНИЙ")
+                            
+
+    doc.save(path)
+
+
+
 old_files = glob.glob('2022/*/*.doc*')
 filenames={}
 
@@ -682,6 +782,7 @@ for m in range(1,13):
 lent_templates = glob.glob('*/*/*.docx')
 
 ordo_matrix = get_matrix("тропарі.csv")
+stichera_gv_matrix = get_matrix("стихириМінеїГР.csv")
 dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
 saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
 templates_octoechos_dic = get_octoechos_template_files()
@@ -692,7 +793,7 @@ vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
 templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
 templates_kanon_dic = get_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
 litany_list = get_kanon_litany("Канон - Мала єтенія.docx")
-
+stichera_matrix = get_stichera.get_stichera_matrix(glob.glob(f'Стихири - Мінея\\Мінея_{month_no:02}*.docx')[0])
 
 
 folder_name=f'drafts\\{year_no}-{month_no:02}-{mode}'
@@ -745,11 +846,24 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     shutil.copy2(src_filename,dest_filename)
     draft_dic[d].append(dest_filename)
 
+stichos_list=[
+    "Стих: Від ранньої сторожі до ночі",
+    "Стих: Бо в Господа милість і відкуплення велике в нього",
+    "Стих: Хваліте Господа всі народи",
+    "Стих: Велике бо до нас його милосердя"
+]
+
+
+
+    
+
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
     #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
     insert_header(desc[1],datetime(year_no, month_no, d))
     insert_dismissal(desc[1],datetime(year_no, month_no, d))
+    insert_menaion_stichera(desc[1],datetime(year_no, month_no, d))
+
     if desc[0]=='неділя' or desc[0]=='октоїх':
         pass
         #вставити стихири ГВ
