@@ -1,17 +1,24 @@
 import re
 from datetime import datetime, timedelta
 
-#for 2023
-#previous_pascha =  datetime(2022,4,24)
-#pascha = datetime(2023,4,16)
-#for 2024
-#previous_pascha =  datetime(2023,4,16)
-#pascha = datetime(2024,5,5)
+
+day_dic = {"Понеділок":1,
+            "Вівторок":2,
+            "Середа":3,
+            "Четвер":4,
+            "П'ятниця":5,
+            "Субота":6,
+            "Неділя":7}
+day_dic_reversed = {v:k for k,v in day_dic.items()}
+
 
 paschalia_dates_table = [
     {"mode":"u",
+     "year":2021,
+     "pascha":datetime(2021,5,2)},
+    {"mode":"u",
      "year":2022,
-     "pascha":datetime(2023,4,24)},
+     "pascha":datetime(2022,4,24)},
     {"mode":"u",
      "year":2023,
      "pascha":datetime(2023,4,16)},
@@ -23,8 +30,11 @@ paschalia_dates_table = [
      "pascha":datetime(2025,4,20)},
     
     {"mode":"g",
+     "year":2021,
+     "pascha":datetime(2021,4,4)},
+     {"mode":"g",
      "year":2022,
-     "pascha":datetime(2023,4,17)},
+     "pascha":datetime(2022,4,17)},
     {"mode":"g",
      "year":2023,
      "pascha":datetime(2023,4,9)},
@@ -35,8 +45,6 @@ paschalia_dates_table = [
      "year":2025,
      "pascha":datetime(2025,4,20)},
     ]
-
-
 
 special_day_list = [
             "Субота перед Різдвом",
@@ -101,36 +109,27 @@ for p in paschalia_dates_table:
     p["pentecost"] = p["pascha"] + timedelta(days=7*7)
 
 
+# 0 - previous, 1 - current
 def get_prev_next_pascha(cur_date, mode='u'):
     lst  =  list(filter(lambda p: (p['year'] == cur_date.year-1 or p['year'] == cur_date.year) and p['mode']==mode , paschalia_dates_table))
     if len(lst)!=2:
+        print(cur_date, mode)
         print(len(lst))
+        if lst:
+            for i in lst:
+                print("Pascha date:", i["pascha"])
         raise Exception
     return lst
 
+#TODO: треба буде позбутись статики.
 mode='u'
 paschalia_dates = get_prev_next_pascha(datetime(2024,1,1),mode)
-
-def init_paschalia_dates( mode, date = datetime(2024,1,1)):
-    paschalia_dates = get_prev_next_pascha(datetime(2024,1,1),mode)
-    print(f"Prev Pascha: {paschalia_dates[0]['pascha']}")
-    print(f"Next Pascha: {paschalia_dates[1]['pascha']}")
-    
-
-'''
-# 0 - previous, 1 - current
-paschalia_dates = [{},{}]
-paschalia_dates[0]["pascha"]=previous_pascha
-paschalia_dates[1]["pascha"]=pascha
-'''
-
 
 '''
 0123456|789
 0111111|122
 '''
-
-def get_week_from_50(cur_date):
+def get_week_from_50(cur_date,paschalia_dates):
     if cur_date > paschalia_dates[1]["pentecost"]:
         days = (cur_date - paschalia_dates[1]["pentecost"]).days
     else:
@@ -139,12 +138,11 @@ def get_week_from_50(cur_date):
     weeks = days // 7 + modifier    
     return weeks
 
-    
 '''
 0123456|789
 0000000|222
 '''     
-def get_week_from_pascha(cur_date):
+def get_week_from_pascha(cur_date,paschalia_dates):
     if cur_date > paschalia_dates[1]["pascha"]:
         days = (cur_date - paschalia_dates[1]["pascha"]).days
     else:
@@ -153,16 +151,14 @@ def get_week_from_pascha(cur_date):
     weeks = days // 7 + modifier
     return weeks
 
-
-
-def get_echos(cur_date):
+def get_echos(cur_date,paschalia_dates):
     echos_list = [1,2,3,4,5,6,7,8]
     #додати повернення None для дат які не мають Гласу?
-    return echos_list[get_week_from_pascha(cur_date)%8-2]
+    return echos_list[get_week_from_pascha(cur_date,paschalia_dates)%8-2]
     
-def get_resurrection_gospel(cur_date):
+def get_resurrection_gospel(cur_date,paschalia_dates):
     gospel_list = [1,2,3,4,5,6,7,8,9,10,11]
-    match get_week_from_pascha(cur_date):
+    match get_week_from_pascha(cur_date,paschalia_dates):
         case 0: #Пасха
             return None
         case 2: #Антипасха
@@ -180,35 +176,39 @@ def get_resurrection_gospel(cur_date):
         case 8: #50-ця
             return None
         case _: #по 50-ці
-            return gospel_list[get_week_from_50(cur_date)%11-1]
+            return gospel_list[get_week_from_50(cur_date,paschalia_dates)%11-1]
+                
             
-        
-    
 
-def get_echos_depr(date,mode='u'):
-    if mode=='u':
-        return (int(date.strftime("%U"))-25) % 8 + 1
-    elif mode=='g':
-        return (int(date.strftime("%U"))-24) % 8 + 1
+'''
+period = {lent|pascha|pentecost}
+week from last large period start
+week till next pascha (pentecost period only?)
+weekday
 
-def get_resurrection_gospel_depr(date,mode='u'):
-    if mode=='u':
-        return (int(date.strftime("%U"))-25) % 8 + 1
-    elif mode=='g':
-        return (int(date.strftime("%U"))-24) % 8 + 1
-    
+'''
 
-            
-day_dic = {"Понеділок":1,
-            "Вівторок":2,
-            "Середа":3,
-            "Четвер":4,
-            "П'ятниця":5,
-            "Субота":6,
-            "Неділя":7}
-day_dic_reversed = {v:k for k,v in day_dic.items()}
+def get_day_details(cur_date,paschalia_dates):
 
-def get_day_label(cur_date):
+    weeks_till_lent = None
+    if cur_date < paschalia_dates[1]["lent_start"] or cur_date >= paschalia_dates[1]["pentecost"]:
+        period = 'pentecost'
+        week = get_week_from_50(cur_date, paschalia_dates)
+        weeks_till_lent = ((paschalia_dates[1]["lent_start"] - cur_date).days - 1) //7 +1
+        weeks_till_lent = None if weeks_till_lent > 5 else weeks_till_lent
+    elif cur_date <= paschalia_dates[1]["pascha"]:
+        period = 'lent'
+        week = ((cur_date - paschalia_dates[1]["cheesefare_sunday"]).days - 1) // 7 + 1
+    else:
+        period = 'pascha'
+        week = get_week_from_pascha(cur_date, paschalia_dates)
+
+    day = cur_date.weekday()+1
+
+    return period, week, weeks_till_lent, day
+
+
+def get_day_label_legacy(cur_date):
     day_name = day_dic_reversed[cur_date.weekday()+1]
     #paschalia_dates = get_prev_next_pascha(cur_date)
     #ending_fem = ending_fem_dic[str(week_no)[-1]]
@@ -401,6 +401,7 @@ def get_week(cur_date, day_title,day_type):
         return "err"
 
 def get_week_related_label(cur_date):
+    day_title = "day_title"
     # пропускаємо номер тижня для 🕀 свят
     #if day_type=="#":
     #    return "***"
@@ -438,3 +439,6 @@ def get_week_related_label(cur_date):
         print(f"Week number not found for {cur_date}, {day_title}")
         return "err"
 
+if __name__ == "__main__":
+    paschalia_dates = get_prev_next_pascha(datetime.now(), mode='u')
+    print(get_day_details(datetime(2024,3,3),paschalia_dates))
