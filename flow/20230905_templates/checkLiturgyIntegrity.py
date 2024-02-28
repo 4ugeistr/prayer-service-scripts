@@ -1,12 +1,11 @@
 import docx,re
 
-'''
-docx_filename='02-Літургія-НЮ.docx'
-'''
-docx_filename='02-Літургія-ГР.docx'
 
-mode='u'
-cur_month='Лютий'
+#docx_filename='03-Літургія-НЮ.docx'
+docx_filename='03-Літургія-ГР.docx'
+
+mode='g'
+cur_month='Березень'
 
 
 month_list = {'Січень':1,
@@ -69,10 +68,12 @@ for p in doc.paragraphs:
 #   print(doc.paragraphs[i].text)
 cur_date=None
 for p in doc.paragraphs:
-    if mode == 'u':
+    #if mode == 'u':
+    if mode:
        re_result=re.search(f'^{month_list_string} (\d+)',p.text)
        if re_result:
            cur_date = int(re_result.group(2))
+    '''
     elif mode == 'g':
        #re_result=re.search(f'^\n*({day_list_string}\n)?(\d+)',p.text)
        re_result=re.search(f'^(\d+)',p.text)
@@ -80,7 +81,7 @@ for p in doc.paragraphs:
        #print('Y')
        if re_result:
            cur_date = int(re_result.group(1))
-
+    '''
     if cur_date and not cur_date in history:
        history[cur_date]={}
 
