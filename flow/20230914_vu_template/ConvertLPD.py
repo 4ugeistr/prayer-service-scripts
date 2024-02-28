@@ -24,8 +24,8 @@ if not os.path.exists(outpath):
     except OSError as error:
         print(error)    
 
-print('Отримуємо перелік docx')
-included_extensions = ['docx']
+print('Отримуємо перелік doc')
+included_extensions = ['doc','docx']
 doc_files = [fn for fn in os.listdir(path)
               if any(fn.endswith(ext) for ext in included_extensions)]
 
@@ -70,12 +70,13 @@ for filehtml in html_files:
 
 print('Формуємо вихідні файли')
 for filehtml in html_files:
+    
     with open(temppath+'/'+filehtml, 'r', encoding='utf-8') as f:
         file_lines = f.readlines()
-
+    
     file = None
-    file_index = int(filehtml.split('.')[0])
-    file = open(outpath+'/'+'t{:02d}n.html'.format(file_index), 'w',encoding='utf-8') 
+    file_index = int(filehtml.split('-')[0])
+    file = open(outpath+'/'+'l{:02d}.html'.format(file_index), 'w',encoding='utf-8') 
     file.writelines(file_lines)            
 		
     file.close()
