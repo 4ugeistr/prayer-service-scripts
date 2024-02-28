@@ -192,7 +192,7 @@ if __name__== "__main__":
     templates_resurrection = get_resurrection_template_texts('воскресні.docx')
     templates_menaion = get_menaion_template_texts(f'тропарі-{month_no:02}.docx')
     templates_feast = get_feast_template_texts(f'свято-{month_no:02}.docx')
-    troparia_lent_triodion = get_feast_template_texts(f'піст-тріодь-{month_no:02}.docx')
+    troparia_lent_triodion = get_feast_template_texts(f'піст-тріодь-{month_no:02}-{mode_dic_reversed[mode]}.docx')
     template_file_list = get_template_files('docx_templates/hours-template-*.docx')
 
     paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
@@ -213,7 +213,7 @@ if __name__== "__main__":
 
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
 
-        if expected_triodion_template_path in lent_triodion_templates and day_details[3] in (1,2,3,4,5,6):
+        if expected_triodion_template_path in lent_triodion_templates and (day_details[3] in (1,2,3,4,5,6) or (day_details[1] in (6,7) and day_details[3]==7)):
             shutil.copy2(expected_triodion_template_path,dest_filename)
         elif ordo_matrix[d][1]=='y' or datetime(year_no, month_no, d).weekday()+1==7:
             shutil.copy2(template_file_list[7],dest_filename)
@@ -238,9 +238,9 @@ if __name__== "__main__":
                     9:4}
 
 
-    #for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
+    for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         #print(d)
-    for d in range(13,16):
+    #for d in range(13,16):
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
         doc = docx.Document(dest_filename)
         hour=None
@@ -271,7 +271,7 @@ if __name__== "__main__":
 
             re_result = re.search(r"^Кондак(\s)?$",p.text)
             if re_result and hour:
-                print("found кондак")
+                #print("found кондак")
                 value=hours_matrix[d][3*hours_translate[hour]-1]
                 if value:
                     copy_paragraph_before(p,value)
