@@ -1,9 +1,9 @@
-import re, easygui, calendar, glob,shutil,os,docx
+import re, easygui, calendar, glob,shutil,os,docx,csv
 from datetime import datetime
 from docx.shared import RGBColor
 import paschalia
 import get_stichera
-
+RGB_RED = RGBColor(0xff, 0x44, 0x00)
 BLACK='b'
 RED='r'   
 
@@ -20,6 +20,21 @@ day_short_dic={"ПН":1,
         "СБ":6,
         "НД":7}
 day_short_dic_reversed = {v:k for k,v in day_short_dic.items()}
+
+month_dic= {'Січень':1,
+              'Лютий':2,
+              'Березень':3,
+              'Квітень':4,
+              'Травень':5,
+              'Червень':6,
+              'Липень':7,
+              'Серпень':8,
+              'Вересень':9,
+              'Жовтень':10,
+              'Листопад':11,
+              'Грудень':12}
+month_dic_reversed = {v:k for k,v in month_dic.items()}
+#month_dic_string='('+'|'.join([x.lower() for x in month_dic.keys()])+')'
 
 
 lpd_templates = glob.glob('ЛПД/*/*.docx')
@@ -71,7 +86,7 @@ def stretch_texts(qty_of_verses_requested, texts):
         result[i].append(result[i][0])
     return sum(result,[])
 
-RGB_RED = RGBColor(0xff, 0x44, 0x00)
+
 def add_text(p,text, color=BLACK):
     r = p.add_run(text)
     r.font.name='Times New Roman'
@@ -80,11 +95,22 @@ def add_text(p,text, color=BLACK):
         r.font.color.rgb = RGB_RED
         r.italic = True
 
+def format_line(p, handle=''):
+    #handle = "bir"
+    if 'b' in handle:
+        p.runs[0].font.bold = True
+    if 'i' in handle:
+        p.runs[0].font.italic = True
+    if 'r' in handle:
+        p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
+    p.runs[0].font.name='Times New Roman'
+    p.runs[0].font.size=152400
+
 def insert_dismissal(path,date):
     doc = docx.Document(path)
     shoutout_found = None
     for p in doc.paragraphs:
-        re_result=re.search(r"\. Благослови\.",p.text)
+        re_result=re.search(r"(\.|\)) Благослови\.",p.text)
         if re_result:
             shoutout_found = True
             #print(date.day, "found!")
@@ -118,19 +144,35 @@ def insert_dismissal(path,date):
                 print(p_bak)
                 raise
     doc.save(path)
+    
+def get_dismissal_matrix(dismissal_csv_filename,cur_month):
+    matrix={}
+    with open(dismissal_csv_filename, newline='', encoding='utf-8') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in spamreader:
+            if row[0]==month_dic_reversed[cur_month]:
+                matrix[int(row[1].split('.')[0])]=row[2:]
+    return matrix
 
-stichos_dic={
-    "Стих: Від ранньої сторожі до ночі":0,
-    "Стих: Бо в Господа милість і багате в нього ізбавління":1,
-    "Стих: Хваліть Господа, всі народи":2,
-    "Стих: Бо утвердилася милість його на нас":3,
-    }
+stichos_list=[
+    "Стих: Якщо на беззаконня зважатимеш, Господи",
+    "Стих: Імени твого ради чекав я на Тебе",
+    "Стих: Від ранньої сторожі до ночі",
+    "Стих: Бо в Господа милість і багате в нього ізбавління",
+    "Стих: Хваліть Господа, всі народи",
+    "Стих: Бо утвердилася милість його на нас",
+    ]
 
-stichos_dic_string='('+'|'.join(stichos_dic.keys())+')'
 
+if mode == 'u':
+    mode_suffix='Юл'
+elif mode == 'g':
+    mode_suffix='Гр'
 
 if __name__ == "__main__":
     paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
+    dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
+    
     stub_dic={}
     folder= f'drafts\\{year_no}-{month_no:02}-{mode}-lpd'
     #os.makedirs('drafts', exist_ok=True)
@@ -139,10 +181,10 @@ if __name__ == "__main__":
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         #stub_dic[d]=None
         day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
-        expected_template_path = f"ЛПД\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ЛПД.docx"
-        
+        #expected_template_path = f"ЛПД\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ЛПД.docx"
+        expected_template_path = f"ЛПД\\{day_details[1]} тиждень\\{day_details[1]}т_{day_details[3]}-ЛПД.docx"
         if expected_template_path in lpd_templates:
-            filename=folder+f'\\{d:02}-{day_details[1]}-{day_short_dic_reversed[day_details[3]].lower()}-ЛПД.docx'
+            filename=folder+f'\\{d:02}.{month_no:02}-{day_details[1]}т_{day_details[3]}-ЛПД.docx'
             shutil.copy2(expected_template_path, filename)
             stub_dic[d]=filename
         #re_result = re.search("(\d)-(\d)-ЛПД.docx")
@@ -154,11 +196,15 @@ if __name__ == "__main__":
         stichera_no=None
         look_for_slava=False
         doc = docx.Document(v)
+        stichera_qty = 6 if k==26 else 4
+        stichos_dic = {stichos_list[-stichera_qty:][i]: i for i in range(stichera_qty) }
+        stichos_dic_string='('+'|'.join(stichos_dic.keys())+')'
         try:
-            texts = stretch_texts(4,stichera_matrix[k]['gv_stichera'])
+            texts = stretch_texts(stichera_qty,stichera_matrix[k]['gv_stichera'])
         except IndexError:
-            print(IndexError)
             print(f"Skipping day{k}")
+            print(IndexError)
+            
             continue
         for p in doc.paragraphs:
             re_result = re.search(f"{stichos_dic_string}",p.text)
@@ -172,7 +218,7 @@ if __name__ == "__main__":
                 delete_paragraph(p)
                 #print(f"Inserted stichera {stichera_no} for {v}")
                 stichera_no=None
-                look_for_slave=True
+                look_for_slava=True
                 continue
         
             re_result = re.search("^(Слава|І нині)",p.text)
@@ -185,19 +231,23 @@ if __name__ == "__main__":
                 if "gv_doxa" in stichera_matrix[k]:
                     print(f"Inserted doxa for {k}")
                     copy_paragraph_before(p,stichera_matrix[k]["gv_doxa"][0])
+                    if re.search("слава",stichera_matrix[k]["gv_doxa"][0].text.lower()) and re.search("і нині",stichera_matrix[k]["gv_doxa"][0].text.lower()):
+                        continue
+        
 
                 if datetime(year_no,month_no,k).weekday()+1 in (3,5):
                     if  len(stichera_matrix[k]["gv_theotokion"])==2:
                         print(f"Inserted theo for {k}")
                         copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][1])
                     else:
+                        print(f"Warning, failed to find theotokion for day {k}")
                         p.insert_paragraph_before("ХРЕСТОБОГОРОДИЧНИЙ")
                 else:
                     print(f"Inserted theo for {k}")
                     try:
                         copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][0])
                     except KeyError:
-                        print("Warning, failed to find stichera_matrix[k]['gv_theotokion'][0]")
+                        print(f"Warning, failed to find theotokion for day {k}")
                         p.insert_paragraph_before("БОГОРОДИЧНИЙ")
                             
         doc.save(v)
@@ -205,5 +255,5 @@ if __name__ == "__main__":
     for k,v in stub_dic.items():
         #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
         #insert_header(v,datetime(year_no, month_no, d))
-        insert_dismissal(v,datetime(year_no, month_no, d))
+        insert_dismissal(v,datetime(year_no, month_no, k))
         

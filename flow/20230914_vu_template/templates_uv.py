@@ -290,8 +290,7 @@ def get_dismissal_matrix(dismissal_csv_filename,cur_month):
     with open(dismissal_csv_filename, newline='', encoding='utf-8') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in spamreader:
-            if row[0]==month_dic_reversed[cur_month]:
-                matrix[int(row[1].split('.')[0])]=row[2:]
+            if row[0]==month_dic_reversed[cur_month]:                matrix[int(row[1].split('.')[0])]=row[2:]
     return matrix
 
 

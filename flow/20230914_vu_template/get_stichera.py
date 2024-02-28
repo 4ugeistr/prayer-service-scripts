@@ -23,7 +23,8 @@ def get_stichera_matrix(path):
     #gv = None
     #st_found = None
     for p in doc.paragraphs:
-
+        #if day==26:
+        #    print(p.text[:40])
         re_result = re.search(r"^(\d{1,2}) (.*)",p.text)
         if re_result:
             day = int(re_result.group(1))
@@ -36,20 +37,23 @@ def get_stichera_matrix(path):
 
         re_result = re.search(r"богородичний",p.text)
         if re_result:
+            #print("   found theo")
             stichera_dic[day].setdefault(f"{handle}_theotokion", []).append(p)
             continue
         
         re_result = re.search(r"^Слава",p.text)
         if re_result:
+            #print("   found doxa")
             stichera_dic[day].setdefault(f"{handle}_doxa", []).append(p)
             continue
         
 
-        if re.search("стиховні", p.text):
+        if re.search("стиховні", p.text.lower()):
             handle = "st"
             continue
 
         if handle in ('gv','st'):
+            #print("   found stichera",handle)
             stichera_dic[day].setdefault(f"{handle}_stichera", []).append(p)
         
             
