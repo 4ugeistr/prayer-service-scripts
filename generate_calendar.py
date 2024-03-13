@@ -55,11 +55,34 @@ def insert_header_liturgy(doc,date):
         format_line(p_new, '')
 
     #перелік святих
-    lst = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,saint_matrix[1:])
+    lst = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,day_headers_menaion[1:])
     for l in lst:
         p_new=doc.add_paragraph(l[9])
         format_line(p_new, ''.join(l[2:5]))
 
+def get_triodion_strings(date):
+    lines = []
+    triodion_params = paschalia.get_day_details(date)
+    
+
+    matrix = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,day_headers_menaion[1:])
+    
+    
+    for l in matrix:
+        lines.append({"text":l[9], "format":''.join(l[2:5])})
+        #p_new=doc.add_paragraph(l[9])
+        #format_line(p_new, ''.join(l[2:5]))
+    return lines
+
+
+def get_menaion_strings(date):
+    lines = []
+    matrix = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,day_headers_menaion[1:])
+    for l in matrix:
+        lines.append({"text":l[9], "format":''.join(l[2:5])})
+        #p_new=doc.add_paragraph(l[9])
+        #format_line(p_new, ''.join(l[2:5]))
+    return lines
 
 if __name__ == "__main__":
 
@@ -79,13 +102,29 @@ if __name__ == "__main__":
         doc.add_heading(du.month_dic_reversed[month_no],level=1)
         
         for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-            doc.add_heading(f"{d} "+du.day_dic_reversed[datetime(year_no,month_no,d).weekday()+1],level=2)
+            #doc.add_heading(f"{d} "+du.day_dic_reversed[datetime(year_no,month_no,d).weekday()+1],level=2)
+
+            doc.add_paragraph(str(du.day_dic_reversed[datetime(year_no,month_no,d).weekday()+1]))
+            
+            
+           #doc.add_paragraph(f"{d}")
+            first_line = f"{d} "
+            for line in get_menaion_strings(datetime(year_no,month_no,d)):
+                text = first_line+ line["text"]
+                p=doc.add_paragraph(text)
+                if first_line:
+                    first_line=""
+                format_line(p,line["format"])
+            
             #GET MENAION DAY HEADING
             #GET SPECIAL DAY HEADING
             #GET TRIODION DAY HEADING
-    
+            
+            doc.add_paragraph()
+            doc.add_paragraph()
+
     doc_filename = f"{year_no}_Календар_{mode}.docx"
     doc.save(doc_filename)
-
+    print("Done!")
 
     
