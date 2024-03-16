@@ -28,6 +28,7 @@ print('Отримуємо перелік doc')
 included_extensions = ['doc','docx']
 doc_files = [fn for fn in os.listdir(path)
               if any(fn.endswith(ext) for ext in included_extensions)]
+print(f'   {len(doc_files)} файлів')
 
 print('Конвертуємо doc в однойменні html')
 for filedoc in doc_files:
@@ -44,6 +45,8 @@ print('Отримуємо перелік html в тимчасовій папці
 included_extensions = ['html']
 html_files = [fn for fn in os.listdir(temppath)
               if any(fn.endswith(ext) for ext in included_extensions)]
+print(f'   {len(html_files)} файлів')
+
 print('Форматуємо html файли')
 for filehtml in html_files:
     with open(temppath+'/'+filehtml, 'r', encoding='utf-8') as f:
@@ -116,7 +119,8 @@ for filehtml in html_files:
 
     fileV = None
     fileU = None
-    file_index = int(filehtml.split('-')[0])
+    print(filehtml)
+    file_index = int(filehtml.split('-')[0].split('.')[0])
 
     for line in file_lines:
 
@@ -152,5 +156,5 @@ print('Готово!')
 
 # shutil.rmtree(temppath, ignore_errors=True, onerror=None)
 
-openpath = os.path.realpath(outpath)
-os.startfile(openpath)
+#openpath = os.path.realpath(outpath)
+#os.startfile(openpath)
