@@ -29,6 +29,7 @@ print(filedoc)
 
 mode = mode_dic[filedoc.split('.')[0][-2:]]
 month_no = int(filedoc[:2])
+print(f'Month: {month_no}')
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
 if not os.path.exists('drafts'):
@@ -99,10 +100,27 @@ with open(filehtm, 'w',encoding='utf-8') as f:
                 line = re.sub(CLEANR, '', line)
             f.write(line)
 
-# Розбиваємо тимчасовий файл по днях
+with open(filehtm,'r',encoding='utf-8') as f:
+    with open(filehtm+'bak', 'w',encoding='utf-8') as f2:
+        f2.write(f.read())
+
+def check_for_broken_tags(filehtm):
+    with open(filehtm,'r',encoding='utf-8') as f:
+        lines = f.readlines()
+        err_lines = []
+        for line in lines:
+            if re.search(r'[a-zA-Z0-9]',line) and not re.search(r'^<.*>$',line) and not "#" in line:
+                err_lines.append(line)
+        if err_lines:
+            for item in err_lines:
+                print(item)
+            raise Exception("Увага: в строках вище помилки в користувацьких html мітках.")
+        
+check_for_broken_tags(filehtm)
+
 with open(filehtm,'r',encoding='utf-8') as f:
     file_lines = f.readlines()
-
+# Розбиваємо тимчасовий файл по днях 
 file = None
 
 # ANMA - розбивка по послідовності індексів. Чутлива до пропущених днів, коли набрі днів не послідовний.
@@ -130,15 +148,9 @@ for line in file_lines:
 cur_date=None
 liturgy_template=None
 for line in file_lines:
-    #print('L: ',line)
-    #if mode == 'u':
     re_result=re.search(f'^(?:<p>|<h\d>)(?:<i>)?(?:<b>)?{month_list_string} (<b>)?(\d+)(</b>)?',line)
     if re_result:
         cur_date = int(re_result.group(3))
-    #elif mode == 'g':
-    #   re_result=re.search(f'^(<p>|<h\d>)(<i>)?(<b>)?(\d+)',line)
-    #   if re_result:
-    #       cur_date = int(re_result.group(4))
     if line.startswith('<ustav'):
         lit_template=re.search(f'liturgia={lit_template_list}',line).group(1)
         if file:
@@ -154,7 +166,6 @@ for line in file_lines:
         file.writelines(line)
         
     if line.startswith('</vidpust'):
-        #print(line)
         if lit_template=='liz_pascha':
             file.writelines([
             '<p><i>Тоді співаємо кінцеве:</i> Христос воскрес: <i>тричі, цілий тропар.</i> <i>А потім закінчуємо:</i></p>',
@@ -162,6 +173,7 @@ for line in file_lines:
         file.close()
         file = None
 
-
 if file:
     file.close()
+
+print("Файли успішно сконвертовані!")

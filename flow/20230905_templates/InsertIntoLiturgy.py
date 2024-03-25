@@ -176,15 +176,7 @@ for p in doc.paragraphs:
     re_result=re.search(r'liturgia=(.*?)(?:\s|/)',p.text)
     if re_result:
         liturgy = re_result.group(1)
-    '''
-    elif mode == 'g':
-       #re_result=re.search(f'^\n*({day_list_string}\n)?(\d+)',p.text)
-       re_result=re.search(f'^(\d+)',p.text)
-       #print(re_result, p.text[:20])
-       if re_result:
-           #print(re_result.groups())
-           cur_date = int(re_result.group(1))
-    '''
+
     #if re_result:
         #[день, місяць]
     #    cur_date=int(re_result.group(2))

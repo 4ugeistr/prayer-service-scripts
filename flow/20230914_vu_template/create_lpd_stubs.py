@@ -79,12 +79,16 @@ def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
 
 def stretch_texts(qty_of_verses_requested, texts):
     result = []
-    repetitions_per_text, remaining_verses = divmod(qty_of_verses_requested, len(texts))
-    for t in texts:
-        result.append([t]*repetitions_per_text)
-    for i in range(remaining_verses):
-        result[i].append(result[i][0])
-    return sum(result,[])
+    if qty_of_verses_requested > len(texts):
+        repetitions_per_text, remaining_verses = divmod(qty_of_verses_requested, len(texts))
+        for t in texts:
+            result.append([t]*repetitions_per_text)
+        for i in range(remaining_verses):
+            result[i].append(result[i][0])
+        return sum(result,[])
+    else:
+        return texts[:qty_of_verses_requested]
+
 
 
 def add_text(p,text, color=BLACK):
@@ -191,25 +195,35 @@ if __name__ == "__main__":
     print(f"Created {len(stub_dic)} stubs for month {month_no} mode {mode}!")
 
     stichera_matrix = get_stichera.get_stichera_matrix(glob.glob(f'Стихири - Мінея\\Мінея_{month_no:02}*.docx')[0])
-
     for k,v in stub_dic.items():
         stichera_no=None
         look_for_slava=False
         doc = docx.Document(v)
-        stichera_qty = 6 if k==26 else 4
+        #stichera_qty = 6 if k==26 else 4
+        stichera_qty = 4
         stichos_dic = {stichos_list[-stichera_qty:][i]: i for i in range(stichera_qty) }
         stichos_dic_string='('+'|'.join(stichos_dic.keys())+')'
         try:
             texts = stretch_texts(stichera_qty,stichera_matrix[k]['gv_stichera'])
+        except KeyError:
+            print(f"Пропускаємо {k}, немає стихир ГВ.")
+            print(IndexError) 
+            continue 
+        '''
+        try:
+            texts = stretch_texts(stichera_qty,stichera_matrix[k]['gv_stichera'])
         except IndexError:
-            print(f"Skipping day{k}")
-            print(IndexError)
-            
-            continue
+            print(f"Skipping day {k}")
+            print(IndexError) 
+            continue 
+        '''
+
         for p in doc.paragraphs:
+            #шукаємо параграф із стихом
             re_result = re.search(f"{stichos_dic_string}",p.text)
             if re_result:
                 #print(f"Day {k}, found string:",re_result.group(1)[:20])
+                #знаходим №пп стиха
                 stichera_no=stichos_dic[re_result.group(1)]
                 continue
 
@@ -236,7 +250,7 @@ if __name__ == "__main__":
         
 
                 if datetime(year_no,month_no,k).weekday()+1 in (3,5):
-                    if  len(stichera_matrix[k]["gv_theotokion"])==2:
+                    if  "gv_theotokion" in stichera_matrix[k] and len(stichera_matrix[k]["gv_theotokion"])==2:
                         print(f"Inserted theo for {k}")
                         copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][1])
                     else:
@@ -251,9 +265,10 @@ if __name__ == "__main__":
                         p.insert_paragraph_before("БОГОРОДИЧНИЙ")
                             
         doc.save(v)
-
+    if len(dismissal_matrix)==0:
+        print(f"УВАГА: відсутня матриця відпустів на місяць {month_no}.")
     for k,v in stub_dic.items():
         #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
         #insert_header(v,datetime(year_no, month_no, d))
         insert_dismissal(v,datetime(year_no, month_no, k))
-        
+print("Створення чернеток ЛПД завершено!")

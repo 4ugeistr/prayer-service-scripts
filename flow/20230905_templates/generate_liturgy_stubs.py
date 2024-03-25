@@ -10,11 +10,10 @@ mode_dict={'u':'Юл',
 paschalia.paschalia = paschalia.get_prev_next_pascha(datetime(2024,1,1),mode)
 
 #select month
-#month_no = easygui.enterbox("Введіть номер місяця", "Місяць")
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
-#select mode
-#mode = easygui.choicebox('u - Новоюліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+#month_no=3
+
 
 month_dic = {'Січень':1,
               'Лютий':2,
@@ -147,17 +146,28 @@ def get_everyday_template_texts(path):
         if cur_glas:
             template_dic[cur_glas].append(p)
     return template_dic
+
+
+def get_pascha_template_texts():
+    template_dic={}
+    doc = docx.Document(path)
+
         
         
 def get_menaion_template_texts():
+    template_dic={}
     directory_path ="Літургія - Мінея"
     all_files = os.listdir(directory_path)
-    docx_file = [file for file in all_files if file.endswith(".docx") and file[:2]==f'{month_no:02}' and len(file) >= 4][0]
+    try:
+        docx_file = [file for file in all_files if file.endswith(".docx") and file[:2]==f'{month_no:02}' and len(file) >= 4][0]
+    except IndexError:
+        print(f"Warning: menaion file not found for month {month_no}")
+        return template_dic
     print(docx_file)
     doc = docx.Document("Літургія - Мінея\\"+docx_file)
     template_found=False
     starting_tag_found=False
-    template_dic={}
+    
     for p in doc.paragraphs:
         
         re_result=re.search(f'^{month_dic_string} '+r'(\d+)',p.text)
@@ -187,7 +197,7 @@ def get_menaion_template_texts():
 def insert_header_liturgy(doc,date):
     day_name = day_dic_reversed[date.weekday()+1]
     #month_name = month_dic_reversed[month_no]
-    week_no=paschalia.get_week(date,"","")[:2]
+    week_no=paschalia.get_day_details(date,paschalia_dates)
 
     #Субота, Неділя, Тиждень etc...
     special_dates=[{"date":datetime(year_no,12,25),
@@ -206,7 +216,13 @@ def insert_header_liturgy(doc,date):
             else:
                 p_new = doc.add_paragraph(f"{day_name} по {sd['holiday_locative']}")
             format_line(p_new, '')
-    
+
+
+    if date.weekday()+1 in [6,7]:
+        print(date)
+        p_new=doc.add_paragraph(reading_matrix[date.day-1][4])
+        print(reading_matrix[date.day-1][:5])
+    '''
     if date.weekday()+1 in [6,7]:
         #p_new = doc.add_paragraph(f"{day_name} {week_no} по П'ятидесятниці.")
         p_new = doc.add_paragraph(paschalia.get_day_label_legacy(date))
@@ -215,17 +231,23 @@ def insert_header_liturgy(doc,date):
             format_line(p_new, 'r')
         else:
             format_line(p_new, '')
+    '''
 
     if date.weekday()+1 in [1]:
         #p_new = doc.add_paragraph(f"Тиждень {week_no} по П'ятидесятниці.")
         p_new = doc.add_paragraph(paschalia.get_day_label_legacy(date))
         format_line(p_new, '')
-
+    '''
     #перелік святих
     lst = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,saint_matrix[1:])
     for l in lst:
         p_new=doc.add_paragraph(l[9])
         format_line(p_new, ''.join(l[2:5]))
+    '''
+if mode == 'u':
+    mode_suffix='Юл'
+elif mode == 'g':
+    mode_suffix='Гр'
 
 
 if __name__ == "__main__":
@@ -235,6 +257,8 @@ if __name__ == "__main__":
     templates_resurrection = get_resurrection_template_texts(path)
     templates_everyday = get_everyday_template_texts(path)
     saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
+    reading_matrix = get_matrix_full(f"Читання{mode_suffix}.csv")
+    reading_matrix = list(filter(lambda x: (x[0]== month_dic_reversed[month_no]), reading_matrix))  
 
     #dismissal_matrix = get_dismissal_matrix(f'Читання{mode_dict[mode]}.csv',month_no)
 

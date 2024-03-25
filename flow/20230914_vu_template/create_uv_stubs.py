@@ -48,6 +48,7 @@ month_dic= {'Січень':1,
               'Грудень':12}
 month_dic_reversed = {v:k for k,v in month_dic.items()}
 month_dic_string='('+'|'.join([x.lower() for x in month_dic.keys()])+')'
+month_w_offset = list(month_dic.values())[4:]+list(month_dic.values())[:4]
 
 
 if mode == 'u':
@@ -553,7 +554,7 @@ def insert_header(path,date):
             month_name = month_dic_reversed[month_no]
             week_no=paschalia.get_week(date,"","")[:2]
             
-            txt =" ".join([month_name,str(date.day),day_name])
+            txt =" ".join([month_name,str(date.day)+",",day_name])
             p_new = p.insert_paragraph_before(txt)
             format_line(p_new, '')
 
@@ -592,14 +593,37 @@ def insert_header(path,date):
             break
     doc.save(path)
 
+def insert_header_from_dismissal_matrix(path,date):
+    #print(date)
+    doc = docx.Document(path)
+    for p in doc.paragraphs:
+        re_result = re.search("ВЕЧІРНЯ",p.text)
+        if not re_result:
+            delete_paragraph(p)
+        else:
+            day_name = day_dic_reversed[date.weekday()+1]
+            month_name = month_dic_reversed[month_no]
+            txt =" ".join([month_name,str(date.day)+",",day_name])
+            p_new = p.insert_paragraph_before(txt)
+            format_line(p_new, 'b')
+            p_new = p.insert_paragraph_before(dismissal_matrix[date.day][2])
+            format_line(p_new, '')
+            break
+    doc.save(path)    
+
+
 def stretch_texts(qty_of_verses_requested, texts):
     result = []
-    repetitions_per_text, remaining_verses = divmod(qty_of_verses_requested, len(texts))
-    for t in texts:
-        result.append([t]*repetitions_per_text)
-    for i in range(remaining_verses):
-        result[i].append(result[i][0])
-    return sum(result,[])
+    if qty_of_verses_requested > len(texts):
+        repetitions_per_text, remaining_verses = divmod(qty_of_verses_requested, len(texts))
+        for t in texts:
+            result.append([t]*repetitions_per_text)
+        for i in range(remaining_verses):
+            result[i].append(result[i][0])
+        return sum(result,[])
+    else:
+        return texts[:qty_of_verses_requested]
+
 
 
 
@@ -668,6 +692,7 @@ def insert_menaion_stichera(path,date):
     stichera_no=None
     look_for_slava=False
     k=date.day
+    #print(f"inserting {k}")
     #required_stichera_qty = stichera_gv_matrix[k][1]
 
     if stichera_gv_matrix[k][1].isnumeric() and stichera_gv_matrix[k][1]!='0':
@@ -686,15 +711,14 @@ def insert_menaion_stichera(path,date):
     }
     '''
 
-
     stichos_dic_string='('+'|'.join(stichos_dic.keys())+')'
-    print(date.day,stichos_dic_string)
+    #print(date.day,stichos_dic_string)
 
     try:
         texts = stretch_texts(n,stichera_matrix[k]['gv_stichera'])
-    except IndexError:
-        print(IndexError)
-        print(f"Skipping day{k}")
+    except KeyError as e:
+        print(f"Пропускаємо {k}, немає стихир ГВ.")
+        #print(e) 
         return -1
     for p in doc.paragraphs:
         re_result = re.search(f"{stichos_dic_string}",p.text)
@@ -736,7 +760,6 @@ def insert_menaion_stichera(path,date):
                     print("Warning, failed to find stichera_matrix[k]['gv_theotokion'][0]")
                     p.insert_paragraph_before("БОГОРОДИЧНИЙ")
                             
-
     doc.save(path)
 
 
@@ -778,7 +801,8 @@ for m in range(1,13):
             #print(m,d,filenames[m][d])
 
 
-lent_templates = glob.glob('*/*/*.docx')
+lent_templates = glob.glob('В,У - Пісна Тріодь/*/*.docx')
+pascha_pentecost_templates = glob.glob('В,У - Квітна Тріодь/*/*.docx')
 
 ordo_matrix = get_matrix("тропарі.csv")
 stichera_gv_matrix = get_matrix("стихириМінеїГР.csv")
@@ -787,7 +811,9 @@ saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
 templates_octoechos_dic = get_octoechos_template_files()
 templates_menaion_dic = get_menaion_template_files()
 templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
-templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
+#templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
+templates_menaion = get_menaion_troparia_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
+
 vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
 templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
 templates_kanon_dic = get_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
@@ -807,7 +833,7 @@ paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), 
 
 draft_dic={}
 for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-    
+#for d in range(1,5):    
     draft_dic[d]=[]
     #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
     
@@ -822,14 +848,25 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         if month_no == 2 and d == 29:
             dest_filename+=f'-Касіана.docx'
         else:
-            raise e
+            print(f"УВАГА: відсутнє коротке ім'я для {d}")
+            dest_filename+=f'-___.docx'
     day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
-    expected_template_path = f"В,У - Пісна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"    
+    #print(d, day_details)
+
     #print(expected_template_path)
-    if expected_template_path in lent_templates and day_details[3]!=7:
-        src_filename=expected_template_path
-        draft_dic[d].append('піст')
-        #print(d, "Шаблон Великого Посту")
+    if day_details[0]=='lent':
+        expected_lent_template_path = f"В,У - Пісна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"    
+        if expected_lent_template_path in lent_templates and day_details[3]!=7:
+            src_filename=expected_lent_template_path
+            draft_dic[d].append('піст')
+            #print(d, "Шаблон Великого Посту")
+    elif day_details[0] == 'pascha':
+        expected_template_path = f"В,У - Квітна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"
+        #print(expected_template_path)
+        if expected_template_path in pascha_pentecost_templates:
+            src_filename=expected_template_path
+            draft_dic[d].append('пасха')
+
 
     elif d in templates_menaion_dic.keys() and datetime(year_no, month_no, d).weekday()+1!=7:
 
@@ -859,7 +896,7 @@ stichos_list=[
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
     #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
-    insert_header(desc[1],datetime(year_no, month_no, d))
+    insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d))
     insert_dismissal(desc[1],datetime(year_no, month_no, d))
     insert_menaion_stichera(desc[1],datetime(year_no, month_no, d))
 
@@ -878,3 +915,5 @@ for d,desc in draft_dic.items():
         insert_prokimenon(desc[1], datetime(year_no, month_no, d).weekday()+1)
     if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1==6:
         pass
+
+print("Завершено створення чернеток УВ!")

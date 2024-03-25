@@ -1,0 +1,38 @@
+import ftplib
+
+# Replace with your FTP server address
+ftp_server = "ftp.example.com"
+
+# Replace with your username and password (if required)
+username = "your_username"
+password = "your_password"
+
+# Specify the file to download on the server and where to save it locally
+remote_file = "/path/to/file.txt"
+local_file = "downloaded_file.txt"
+
+try:
+  # Connect to the FTP server
+  ftp = ftplib.FTP(ftp_server)
+  
+  # Login if username and password are required
+  if username and password:
+    ftp.login(username, password)
+  
+  # Open a local file for writing in binary mode
+  with open(local_file, "wb") as local_handle:
+    
+    # Download the file from the server
+    def download_callback(chunk):
+      local_handle.write(chunk)
+    
+    ftp.retrbinary("RETR " + remote_file, download_callback)
+  
+  print(f"Downloaded file: {local_file}")
+  
+except ftplib.all_errors as e:
+  print(f"FTP error: {e}")
+finally:
+  # Close the FTP connection
+  if ftp:
+    ftp.quit()

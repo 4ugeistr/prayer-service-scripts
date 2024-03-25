@@ -52,7 +52,7 @@ def get_stichera_matrix(path):
             handle = "st"
             continue
 
-        if handle in ('gv','st'):
+        if handle in ('gv','st') and p.text:
             #print("   found stichera",handle)
             stichera_dic[day].setdefault(f"{handle}_stichera", []).append(p)
         
@@ -60,14 +60,9 @@ def get_stichera_matrix(path):
     return stichera_dic
 
         
-
-stichera_matrix = get_stichera_matrix(files[0])
-
-'''
-PLAN:
-get
-'''
-
+if __name__ == "__main__":
+    stichera_matrix = get_stichera_matrix(files[0])
+    print("DONE")
 
 
 

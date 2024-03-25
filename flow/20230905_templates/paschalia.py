@@ -440,5 +440,6 @@ def get_week_related_label(cur_date):
         return "err"
 
 if __name__ == "__main__":
-    paschalia_dates = get_prev_next_pascha(datetime.now(), mode='u')
+    mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+    paschalia_dates = get_prev_next_pascha(datetime.now(), mode)
     print(get_day_details(datetime(2024,3,3),paschalia_dates))
