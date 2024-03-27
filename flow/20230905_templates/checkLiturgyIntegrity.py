@@ -1,14 +1,7 @@
-import docx,re
+import docx, re, easygui
+from datetime import datetime
 
-
-#docx_filename='03-Літургія-НЮ.docx'
-docx_filename='03-Літургія-ГР.docx'
-
-mode='g'
-cur_month='Березень'
-
-
-month_list = {'Січень':1,
+month_dic = {'Січень':1,
               'Лютий':2,
               'Березень':3,
               'Квітень':4,
@@ -20,8 +13,21 @@ month_list = {'Січень':1,
               'Жовтень':10,
               'Листопад':11,
               'Грудень':12}
+month_dic_string='('+'|'.join(month_dic.keys())+')'
+month_dic_reversed = {v:k for k,v in month_dic.items()}
 
-month_list_string='('+'|'.join(month_list.keys())+')'
+mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
+cur_month=month_dic_reversed[month_no]
+
+if mode == 'u':
+    mode_suffix='Юл'
+elif mode == 'g':
+    mode_suffix='Гр'
+
+docx_filename=f'{month_no:02}-Літургія-{mode_suffix.upper()}.docx'
+#docx_filename='03-Літургія-НЮ.docx'
+
 day_list_string="(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)"
 
 list_of_text_templates=['liz','lvv','liz_pascha']
@@ -59,10 +65,10 @@ def pretty(d, indent=0):
 
 #прибираємо leading / trailing пробіли
 for p in doc.paragraphs:
-   if re.search('^.*?\s+$',p.text):
-      p.text = re.sub('^(.*?)\s+$','\g<1>',p.text)
-   if re.search('^\s+.*?$',p.text):
-      p.text = re.sub('^\s+(.*?)$','\g<1>',p.text)
+   if re.search(r'^.*?\s+$',p.text):
+      p.text = re.sub(r'^(.*?)\s+$',r'\g<1>',p.text)
+   if re.search(r'^\s+.*?$',p.text):
+      p.text = re.sub(r'^\s+(.*?)$',r'\g<1>',p.text)
 
 #for i in range(100):
 #   print(doc.paragraphs[i].text)
@@ -70,24 +76,16 @@ cur_date=None
 for p in doc.paragraphs:
     #if mode == 'u':
     if mode:
-       re_result=re.search(f'^{month_list_string} (\d+)',p.text)
+       re_result=re.search(f'^{month_dic_string} (\d+)',p.text)
        if re_result:
            cur_date = int(re_result.group(2))
-    '''
-    elif mode == 'g':
-       #re_result=re.search(f'^\n*({day_list_string}\n)?(\d+)',p.text)
-       re_result=re.search(f'^(\d+)',p.text)
-       #print(re_result, p.text[:20])
-       #print('Y')
-       if re_result:
-           cur_date = int(re_result.group(1))
-    '''
+
     if cur_date and not cur_date in history:
        history[cur_date]={}
 
     
     if cur_date:
-        ustav = re.search('^<ustav.*?liturgia=(\w+).*$', p.text)
+        ustav = re.search(r'^<ustav.*?liturgia=(\w+).*$', p.text)
         if ustav:
             if ustav.group(1) in list_of_text_templates:
                 history[cur_date]['ustav']='OK'

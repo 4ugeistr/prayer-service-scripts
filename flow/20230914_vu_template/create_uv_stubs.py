@@ -282,6 +282,8 @@ def get_matrix(csv_filename):
         for row in spamreader:
 
             if row[0]==str(month_no):
+                #print(row[1].split('.')[2],row)
+                #print(row[2:])
                 matrix[int(row[1].split('.')[2])]=row[2:]
     return matrix
 
@@ -454,17 +456,23 @@ def get_troparia_block(date,service):
     #    return 0
     
     troparia_block=[]
-    
+    troparia=None
     if ordo_matrix[date.day][1]=='y':
         print("Something wrong")
         raise Exception("Should have a ready template")
     saint_counter=0
-    
+    print("preparing troparia:",date.day, service)
     for i in list(range(4)):
         #if date.day==5:
             #print("i",i)
-        if not ordo_matrix[date.day][2:][i]:
-            continue
+        try:
+            if not ordo_matrix[date.day][2:][i]:
+                continue
+        except IndexError as e:
+            print('erred on:',i)
+            raise e
+            
+            
         if ordo_matrix[date.day][2:][i] == 'resurrection':
             troparia = templates_resurrection[paschalia.get_echos(date,paschalia_dates)][0]
         if ordo_matrix[date.day][2:][i] == 'saint':
@@ -492,10 +500,10 @@ def get_troparia_block(date,service):
                 #print("Слава і нині")
                 troparia=insert_prefix_to_paragraph(get_troparia_theotokion(echos,date,service),text="Слава, і нині: ")
                 #print("to insert",troparia.text)
-        #if date.day==1:
-            #print("inserting",i,ordo_matrix[date.day])
-            #print(ordo_matrix[date.day][2:][i])
-            #print(troparia.text)        
+        if date.day==8:
+            print("inserting",i,ordo_matrix[date.day])
+            print(ordo_matrix[date.day][2:][i])
+            print(troparia.text)        
         troparia_block.append(troparia)
     troparia_block.append(troparia_block[-1].insert_paragraph_before())        
     return troparia_block
@@ -510,6 +518,8 @@ def insert_troparia(path,date):
     troparion_end_found = False
     service = False
     for p in doc.paragraphs:
+        if troparion_found and date.day==8:
+            print(p.text[:20])
         if re.search("ВЕЧІРНЯ",p.text):
             service = 'vespers'
         if re.search("УТРЕНЯ",p.text):
@@ -521,13 +531,14 @@ def insert_troparia(path,date):
             troparion_end_found = False
             continue
         
-        re_result = re.search("(Великий відпуст|Єктенія усильного благання|Мала єктенія)",p.text)
+        re_result = re.search("(Великий відпуст|.ктенія усильного благання|Мала єктенія)",p.text)
         if re_result and troparion_found:
             troparion_end_found=True
             copy_paragraph_list_before(p,troparia_block[service])
             troparion_found=False
         elif  troparion_found and not troparion_end_found:
-            delete_paragraph(p)
+            pass
+            #delete_paragraph(p)
     doc.save(path)
     
 def format_line(p, handle=''):
@@ -900,8 +911,7 @@ for d,desc in draft_dic.items():
     insert_dismissal(desc[1],datetime(year_no, month_no, d))
     insert_menaion_stichera(desc[1],datetime(year_no, month_no, d))
 
-    if desc[0]=='неділя' or desc[0]=='октоїх':
-        pass
+    if desc[0]=='неділя' or desc[0]=='октоїх' or desc[0]=='пасха':
         #вставити стихири ГВ
         #вставити тропарі вечірні
         if ordo_matrix[d][1]!='y':
