@@ -75,7 +75,7 @@ for filehtml in html_files:
         file_lines = f.readlines()
     
     file = None
-    file_index = int(filehtml.split('-')[0])
+    file_index = int(filehtml.split('.')[0])
     file = open(outpath+'/'+'l{:02d}.html'.format(file_index), 'w',encoding='utf-8') 
     file.writelines(file_lines)            
 		

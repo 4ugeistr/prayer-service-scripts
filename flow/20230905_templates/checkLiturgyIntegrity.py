@@ -21,9 +21,9 @@ month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 cur_month=month_dic_reversed[month_no]
 
 if mode == 'u':
-    mode_suffix='Юл'
+    mode_suffix='НЮ'
 elif mode == 'g':
-    mode_suffix='Гр'
+    mode_suffix='ГР'
 
 docx_filename=f'{month_no:02}-Літургія-{mode_suffix.upper()}.docx'
 #docx_filename='03-Літургія-НЮ.docx'

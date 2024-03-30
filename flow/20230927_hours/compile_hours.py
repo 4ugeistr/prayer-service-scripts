@@ -17,6 +17,23 @@ month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 #month_no = 2
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
+month_dic= {'Січень':1,
+              'Лютий':2,
+              'Березень':3,
+              'Квітень':4,
+              'Травень':5,
+              'Червень':6,
+              'Липень':7,
+              'Серпень':8,
+              'Вересень':9,
+              'Жовтень':10,
+              'Листопад':11,
+              'Грудень':12}
+month_dic_reversed = {v:k for k,v in month_dic.items()}
+month_dic_string='('+'|'.join([x.lower() for x in month_dic.keys()])+')'
+month_w_offset = list(month_dic.values())[4:]+list(month_dic.values())[:4]
+
+
 def delete_paragraph(paragraph):
     p = paragraph._element
     p.getparent().remove(p)
@@ -135,7 +152,7 @@ def get_hours_matrix():
     hours_matrix={}
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         print(d)
-        if ordo_matrix[d][3] =="":
+        if ordo_matrix[d][1] =="":
             if len(templates_menaion[d])<=2:
                 hours_matrix[d] = ["","","",
                                 "",templates_menaion[d][0],templates_menaion[d][1],
@@ -147,7 +164,9 @@ def get_hours_matrix():
                                 "",templates_menaion[d][0],templates_menaion[d][1],
                                 "","","",
                                 "",templates_menaion[d][2],templates_menaion[d][3]]
-        else:
+        elif ordo_matrix[d][1] =="n":
+            pass
+        elif ordo_matrix[d][1] =="y":
             hours_matrix[d]=[]
             i=0
             for i in range(12):
@@ -161,6 +180,8 @@ def get_hours_matrix():
                 elif o =='triodion' and (i+1)%3!=0:
                     hours_matrix[d].append(troparia_lent_triodion[d][0])
                 elif o =='triodion' and (i+1)%3==0:
+                    if d==7:
+                        print(troparia_lent_triodion[d][1])
                     hours_matrix[d].append(troparia_lent_triodion[d][1])
                 elif o =='feast' and (i+1)%3!=0:
                     hours_matrix[d].append(templates_feast[d][0])
@@ -189,8 +210,10 @@ def get_hours_matrix():
 if __name__== "__main__":
     ordo_matrix = get_matrix(f"Часи_{mode_dic_reversed[mode]}.csv")
     lent_triodion_templates = glob.glob('lent-triodion/*/*.docx')
+    pentecostarion_templates = glob.glob('pentecostarion/*/*.docx')
     templates_resurrection = get_resurrection_template_texts('воскресні.docx')
-    templates_menaion = get_menaion_template_texts(f'тропарі-{month_no:02}.docx')
+    #templates_menaion = get_menaion_troparia_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
+    templates_menaion = get_menaion_template_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
     templates_feast = get_feast_template_texts(f'свято-{month_no:02}.docx')
     troparia_lent_triodion = get_feast_template_texts(f'піст-тріодь-{month_no:02}-{mode_dic_reversed[mode]}.docx')
     template_file_list = get_template_files('docx_templates/hours-template-*.docx')
@@ -210,11 +233,16 @@ if __name__== "__main__":
         #print(d,datetime(year_no, month_no, d).weekday()+1)
         day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
         expected_triodion_template_path=f"lent-triodion\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
+        expected_pentecostarion_template_path=f"pentecostarion\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
 
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
 
-        if expected_triodion_template_path in lent_triodion_templates and (day_details[3] in (1,2,3,4,5,6) or (day_details[1] in (6,7) and day_details[3]==7)):
+        if day_details[0]=='lent' and expected_triodion_template_path in lent_triodion_templates and (day_details[3] in (1,2,3,4,5,6) or (day_details[1] in (6,7) and day_details[3]==7)):
             shutil.copy2(expected_triodion_template_path,dest_filename)
+
+        elif day_details[0]=='pascha' and expected_pentecostarion_template_path in pentecostarion_templates:
+            shutil.copy2(expected_pentecostarion_template_path,dest_filename)
+
         elif ordo_matrix[d][1]=='y' or datetime(year_no, month_no, d).weekday()+1==7:
             shutil.copy2(template_file_list[7],dest_filename)
         else:
@@ -239,7 +267,7 @@ if __name__== "__main__":
 
 
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-        #print(d)
+        print(d)
     #for d in range(13,16):
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
         doc = docx.Document(dest_filename)
@@ -253,14 +281,14 @@ if __name__== "__main__":
                 #print(hour)
                 #print(d, "found hour", hour)
             re_result = re.search(r"^Слава Отцю, і Сину, і Святому Духові\.",p.text)
-            if re_result and hour:
+            if re_result and hour and ordo_matrix[d][1]!='n':
                 #print("found СН")
                 value=hours_matrix[d][3*hours_translate[hour]-3]
-                if not type(value)==str:
+                if not type(value)==str :
                     copy_paragraph_before(p,value)
 
             re_result = re.search(r"^Тропар(\s)?$",p.text)
-            if re_result and hour:
+            if re_result and hour and ordo_matrix[d][1]!='n':
                 #print("found тропар")
                 value=hours_matrix[d][3*hours_translate[hour]-2]
                 if value:
@@ -270,7 +298,7 @@ if __name__== "__main__":
                 delete_paragraph(p)
 
             re_result = re.search(r"^Кондак(\s)?$",p.text)
-            if re_result and hour:
+            if re_result and hour and ordo_matrix[d][1]!='n':
                 #print("found кондак")
                 value=hours_matrix[d][3*hours_translate[hour]-1]
                 if value:
