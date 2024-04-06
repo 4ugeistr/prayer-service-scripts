@@ -1,7 +1,41 @@
-import docx,re
+import docx, re, easygui, glob
+
+doc_input = docx.Document("input.docx") 
+doc_input = easygui.fileopenbox(
+    title="Select a .docx file",
+    filetypes=["*.docx"],
+    default="*.docx"
+)
+
+path = easygui.diropenbox()
+files = glob.glob(f'{path}\\*.docx')
+
+def get_texts(doc):
+    lst = [[],[]]
+    search = False
+    replace = False
+    i=0
+    for p in doc.paragraphs:
+        if re.search("Search",p.text):
+            if not lst or not "id" in lst[-1]:
+                lst.append({"id":i,"search":[],"replace":[]})
+            search = True
+            replace = False
+            i+=1
+            continue
+        if re.search("Replace",p.text):
+            search = False
+            replace = True
+            continue
+        if search:
+            lst[0].append(p)
+        if replace:
+            lst[1].append(p)
+    return lst
 
 
-doc_input = docx.Document("Слава Єдинородний.docx") 
+
+
 
 
 docs = ["12-Літургія-ГР.docx","12-Літургія-НЮ.docx","Літургія - змінні частини - шаблони.docx"]
@@ -37,12 +71,20 @@ def copy_paragraph_list_before(p_to_insert_before,paragraph_list):
         copy_paragraph_before(p_to_insert_before,p)
         
 
-for docx_filename in docs:
+text_matrix = get_texts(doc_input)
+
+for docx_filename in files:
     doc = docx.Document(docx_filename)
+
+    texts = None
     for p in doc.paragraphs:
+        if p.text == text_matrix[0][0].text:
+            print(f"Знайдено: {p.text[:20]}")
+        '''
         if re.search(r"<antifon3>",p.text):
             print(docx_filename, "FOUND")
             copy_paragraph_list_before(p,doc_input.paragraphs)
+        '''
     doc.save(docx_filename)
 
 
