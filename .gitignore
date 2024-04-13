@@ -160,3 +160,5 @@ cython_debug/
 #.idea/
 
 ~$*.docx
+perl.exe.stackdump
+sh.exe.stackdump
