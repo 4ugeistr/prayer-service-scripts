@@ -14,7 +14,7 @@ mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 #paschalia.init_paschalia_dates(mode)
 #mode = 'u'
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
-#month_no = 2
+month_no = 4
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
 month_dic= {'Січень':1,
@@ -267,41 +267,52 @@ if __name__== "__main__":
 
 
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-        print(d)
-    #for d in range(13,16):
+    #    print(d)
+    #for d in range(16,17):
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
         doc = docx.Document(dest_filename)
         hour=None
+        found_slava=False
         for p in doc.paragraphs:
             
             re_result = re.search(f"^ЧАС {hours_dic_reversed_string}",p.text)
             if re_result:
                 hour = int(hours_dic_reversed[re_result.group(1)])
+                found_slava = False
             #if d == 22:
                 #print(hour)
                 #print(d, "found hour", hour)
-            re_result = re.search(r"^Слава Отцю, і Сину, і Святому Духові\.",p.text)
+            re_result = re.search(r"^Слава Отцю, і Сину, і Святому Духові\.$",p.text)
             if re_result and hour and ordo_matrix[d][1]!='n':
-                #print("found СН")
+                found_slava=True
+                #print(f"found СН: {d} {hour} {ordo_matrix[d][1]} {3*hours_translate[hour]-3}")
                 value=hours_matrix[d][3*hours_translate[hour]-3]
-                if not type(value)==str :
+                if not type(value)==str:
+                    #print('inserting slava')
                     copy_paragraph_before(p,value)
 
-            re_result = re.search(r"^Тропар(\s)?$",p.text)
+            re_result = re.search(r"^Тропар(\s)?",p.text)
             if re_result and hour and ordo_matrix[d][1]!='n':
                 #print("found тропар")
                 value=hours_matrix[d][3*hours_translate[hour]-2]
-                if value:
+                if not found_slava:
+                    #print(f'deleting {p.text[:24]}')
+                    delete_paragraph(p)
+                    continue
+                if value and found_slava: #and value.text !=p.text
+                    #print(f'inserting troparion {value.text[:24]} before {p.text[:24]}')
                     copy_paragraph_before(p,value)
-                else:
-                    print("warning troparion",d,hour)
-                delete_paragraph(p)
+                    delete_paragraph(p)
+                elif value:
+                    print("warning troparion",d,hour,value.text[:24])
+                
 
-            re_result = re.search(r"^Кондак(\s)?$",p.text)
+            re_result = re.search(r"^Кондак(\s)?",p.text)
             if re_result and hour and ordo_matrix[d][1]!='n':
                 #print("found кондак")
                 value=hours_matrix[d][3*hours_translate[hour]-1]
                 if value:
+                    #print('inserting kondakion')
                     copy_paragraph_before(p,value)
                 else:
                     print("warning kondakion",d,hour)

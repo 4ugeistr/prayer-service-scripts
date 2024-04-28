@@ -223,3 +223,4 @@ with open(f'{year_no}-{month_no}-{mode}.csv','w', newline='', encoding='utf-8') 
     for k,v in lines_dict.items():  
         csvwriter.writerow(v['array'])
 
+print("Done!")

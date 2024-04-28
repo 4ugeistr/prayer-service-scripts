@@ -122,8 +122,8 @@ def get_prev_next_pascha(cur_date, mode='u'):
     return lst
 
 #TODO: треба буде позбутись статики.
-mode='u'
-paschalia_dates = get_prev_next_pascha(datetime(2024,1,1),mode)
+#mode='u'
+#paschalia_dates = get_prev_next_pascha(datetime(2024,1,1),mode)
 
 '''
 0123456|789
@@ -191,22 +191,29 @@ weekday
 
 def get_day_details(cur_date,paschalia_dates):
 
-    weeks_till_lent = None
-    if cur_date < paschalia_dates[1]["lent_start"] or cur_date >= paschalia_dates[1]["pentecost"]:
+    weeks_till_lent = day = None
+    if cur_date < paschalia_dates[1]["lent_start"] or cur_date > paschalia_dates[1]["pentecost"]:
         period = 'pentecost'
         week = get_week_from_50(cur_date, paschalia_dates)
         weeks_till_lent = ((paschalia_dates[1]["lent_start"] - cur_date).days - 1) //7 +1
         weeks_till_lent = None if weeks_till_lent > 5 else weeks_till_lent
+    elif cur_date == paschalia_dates[1]["pentecost"]:
+        #print("Check")
+        period = 'pentecost'
+        week = 1
+        day = 0
     elif cur_date <= paschalia_dates[1]["pascha"]:
         period = 'lent'
         week = ((cur_date - paschalia_dates[1]["cheesefare_sunday"]).days - 1) // 7 + 1
     else:
         period = 'pascha'
         week = get_week_from_pascha(cur_date, paschalia_dates)
-
-    day = cur_date.weekday()+1
-    if period=="pascha" and day ==7:
-        day=0
+    #print(day)
+    if not day and day!=0:
+        day = cur_date.weekday()+1
+        if period=="pascha" and day ==7:
+            day=0
+    #print(period, week, weeks_till_lent, day)
     return period, week, weeks_till_lent, day
 
 
@@ -443,4 +450,4 @@ def get_week_related_label(cur_date):
 
 if __name__ == "__main__":
     paschalia_dates = get_prev_next_pascha(datetime.now(), mode='g')
-    print(get_day_details(datetime(2024,4,7),paschalia_dates))
+    print(get_day_details(datetime(2024,5,19),paschalia_dates))

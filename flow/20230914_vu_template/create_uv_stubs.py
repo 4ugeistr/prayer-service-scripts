@@ -461,10 +461,10 @@ def get_troparia_block(date,service):
         print("Something wrong")
         raise Exception("Should have a ready template")
     saint_counter=0
-    print("preparing troparia:",date.day, service)
+    #print("preparing troparia:",date.day, service)
     for i in list(range(4)):
-        #if date.day==5:
-            #print("i",i)
+        #if date.day==2:
+        #    print(f"processing troparia for day{d}. item {i}")
         try:
             if not ordo_matrix[date.day][2:][i]:
                 continue
@@ -474,7 +474,14 @@ def get_troparia_block(date,service):
             
             
         if ordo_matrix[date.day][2:][i] == 'resurrection':
+            #if date.day==2:
+            #    print(f"inserting troparia for day{d}. item {i}")
             troparia = templates_resurrection[paschalia.get_echos(date,paschalia_dates)][0]
+        if ordo_matrix[date.day][2:][i] == 'triodion':
+            if i==3:
+                troparia=insert_prefix_to_paragraph(templates_triodion[date.day][0]["troparion"],text="І нині: ")
+            else:
+                troparia = templates_triodion[date.day][0]["troparion"]
         if ordo_matrix[date.day][2:][i] == 'saint':
             #print(date.day, i)
             if i==2:
@@ -500,10 +507,10 @@ def get_troparia_block(date,service):
                 #print("Слава і нині")
                 troparia=insert_prefix_to_paragraph(get_troparia_theotokion(echos,date,service),text="Слава, і нині: ")
                 #print("to insert",troparia.text)
-        if date.day==8:
-            print("inserting",i,ordo_matrix[date.day])
-            print(ordo_matrix[date.day][2:][i])
-            print(troparia.text)        
+        #if date.day==8:
+        #    print("inserting",i,ordo_matrix[date.day])
+        #    print(ordo_matrix[date.day][2:][i])
+        #    print(troparia.text)        
         troparia_block.append(troparia)
     troparia_block.append(troparia_block[-1].insert_paragraph_before())        
     return troparia_block
@@ -516,10 +523,11 @@ def insert_troparia(path,date):
     #troparia_block=get_troparia_block(date,'orthros')
     troparion_found = False
     troparion_end_found = False
+    troparion_label_count=0
     service = False
     for p in doc.paragraphs:
-        if troparion_found and date.day==8:
-            print(p.text[:20])
+        #if troparion_found and date.day==8:
+        #    print(p.text[:20])
         if re.search("ВЕЧІРНЯ",p.text):
             service = 'vespers'
         if re.search("УТРЕНЯ",p.text):
@@ -527,18 +535,22 @@ def insert_troparia(path,date):
         
         re_result = re.search("Тропарі",p.text)
         if re_result:
+            #print(f"Day {date.day}. Troparion label for service = {service} found")
             troparion_found = True
             troparion_end_found = False
+            troparion_label_count+=1
             continue
         
-        re_result = re.search("(Великий відпуст|.ктенія усильного благання|Мала єктенія)",p.text)
+        re_result = re.search("(Великий відпуст|.ктенія усильного благання|Мала .ктенія)",p.text)
         if re_result and troparion_found:
             troparion_end_found=True
             copy_paragraph_list_before(p,troparia_block[service])
             troparion_found=False
-        elif  troparion_found and not troparion_end_found:
-            pass
-            #delete_paragraph(p)
+        elif  troparion_found and not troparion_end_found and ordo_matrix[date.day][1]!='y':
+            #pass
+            delete_paragraph(p)
+    if troparion_label_count!=3:
+        print(f"WARNING! Day {date.day}: troparion_label_count={troparion_label_count}")
     doc.save(path)
     
 def format_line(p, handle=''):
@@ -754,12 +766,12 @@ def insert_menaion_stichera(path,date):
         if re_result:
             look_for_slave=False
             if "gv_doxa" in stichera_matrix[k]:
-                print(f"Inserted doxa for {k}")
+                #print(f"Inserted doxa for {k}")
                 copy_paragraph_before(p,stichera_matrix[k]["gv_doxa"][0])
 
             if datetime(year_no,month_no,k).weekday()+1 in (3,5):
-                if  len(stichera_matrix[k]["gv_theotokion"])==2:
-                    print(f"Inserted theo for {k}")
+                if  "gv_theotokion" in stichera_matrix[k] and len(stichera_matrix[k]["gv_theotokion"])==2:
+                    #print(f"Inserted theo for {k}")
                     copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][1])
                 else:
                     p.insert_paragraph_before("ХРЕСТОБОГОРОДИЧНИЙ")
@@ -824,6 +836,7 @@ templates_menaion_dic = get_menaion_template_files()
 templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
 #templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
 templates_menaion = get_menaion_troparia_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
+templates_triodion = get_menaion_troparia_texts(glob.glob(f'тріодь-05.docx')[0])
 
 vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
 templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
@@ -871,38 +884,44 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
             src_filename=expected_lent_template_path
             draft_dic[d].append('піст')
             #print(d, "Шаблон Великого Посту")
-    elif day_details[0] == 'pascha':
-        expected_template_path = f"В,У - Квітна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"
+    elif day_details[0] in ('pascha'):
+        expected_template_path = f"В,У - Квітна Тріодь\\pascha-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"
         #print(expected_template_path)
         if expected_template_path in pascha_pentecost_templates:
             src_filename=expected_template_path
             draft_dic[d].append('пасха')
 
+    elif day_details[0] == 'pentecost':
+        expected_template_path = f"В,У - Квітна Тріодь\\pentecost-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"
+        #print(expected_template_path)
+        if expected_template_path in pascha_pentecost_templates:
+            src_filename=expected_template_path
+            draft_dic[d].append('50-ця')
 
-    elif d in templates_menaion_dic.keys() and datetime(year_no, month_no, d).weekday()+1!=7:
-
-        src_filename=templates_menaion_dic[d]
-        draft_dic[d].append('мінея')
-        #print(d, "Шаблон Мінеї")
-    else:        
-        src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)][datetime(year_no, month_no, d).weekday()+1]
-        draft_dic[d].append('октоїх')
-        #print(d, "Шаблон Октоїха")
-
+        elif d in templates_menaion_dic.keys() and datetime(year_no, month_no, d).weekday()+1!=7:
+            src_filename=templates_menaion_dic[d]
+            draft_dic[d].append('мінея')
+            #print(d, "Шаблон Мінеї")
+        else:        
+            src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)][datetime(year_no, month_no, d).weekday()+1]
+            draft_dic[d].append('октоїх')
+            #print(d, "Шаблон Октоїха")
 
     shutil.copy2(src_filename,dest_filename)
     draft_dic[d].append(dest_filename)
 
 stichos_list=[
+    "Стих: Виведи з в'язниці мою душу",
+    "Стих: Мене обступлять праведники",
+    "Стих: З глибин взиваю до тебе, Господи",
+    "Стих: Нехай будуть твої вуха уважні",
+    "Стих: Коли ти, Господи, зважатимеш на беззаконня",
+    "Стих: Задля імени твого надіюсь на тебе, Господи",
     "Стих: Від ранньої сторожі до ночі",
     "Стих: Бо в Господа милість і відкуплення велике в нього",
     "Стих: Хваліте Господа всі народи",
     "Стих: Велике бо до нас його милосердя"
 ]
-
-
-
-    
 
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
@@ -911,10 +930,12 @@ for d,desc in draft_dic.items():
     insert_dismissal(desc[1],datetime(year_no, month_no, d))
     insert_menaion_stichera(desc[1],datetime(year_no, month_no, d))
 
-    if desc[0]=='неділя' or desc[0]=='октоїх' or desc[0]=='пасха':
+    if desc[0] in ('неділя','октоїх','пасха','50-ця'):
         #вставити стихири ГВ
         #вставити тропарі вечірні
         if ordo_matrix[d][1]!='y':
+            if d==2:
+                print(f'inserting troparia for {d}')
             insert_troparia(desc[1],datetime(year_no, month_no, d))
         #вставити глас для Бог Господь
         insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
