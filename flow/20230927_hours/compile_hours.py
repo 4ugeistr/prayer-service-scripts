@@ -14,7 +14,7 @@ mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 #paschalia.init_paschalia_dates(mode)
 #mode = 'u'
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
-month_no = 4
+#month_no = 4
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
 month_dic= {'Січень':1,
@@ -214,7 +214,7 @@ if __name__== "__main__":
     templates_resurrection = get_resurrection_template_texts('воскресні.docx')
     #templates_menaion = get_menaion_troparia_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
     templates_menaion = get_menaion_template_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
-    templates_feast = get_feast_template_texts(f'свято-{month_no:02}.docx')
+    templates_feast = get_feast_template_texts(f'свято-{month_no:02}-{mode_dic_reversed[mode]}.docx')
     troparia_lent_triodion = get_feast_template_texts(f'піст-тріодь-{month_no:02}-{mode_dic_reversed[mode]}.docx')
     template_file_list = get_template_files('docx_templates/hours-template-*.docx')
 
@@ -233,14 +233,17 @@ if __name__== "__main__":
         #print(d,datetime(year_no, month_no, d).weekday()+1)
         day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
         expected_triodion_template_path=f"lent-triodion\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
-        expected_pentecostarion_template_path=f"pentecostarion\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
+        expected_pascha_template_path=f"pascha\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
+        expected_pentecostarion_template_path=f"pentecost\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
 
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
 
         if day_details[0]=='lent' and expected_triodion_template_path in lent_triodion_templates and (day_details[3] in (1,2,3,4,5,6) or (day_details[1] in (6,7) and day_details[3]==7)):
             shutil.copy2(expected_triodion_template_path,dest_filename)
 
-        elif day_details[0]=='pascha' and expected_pentecostarion_template_path in pentecostarion_templates:
+        elif day_details[0]=='pascha' and expected_pascha_template_path in pentecostarion_templates:
+            shutil.copy2(expected_pentecostarion_template_path,dest_filename)
+        elif day_details[0]=='pentecost' and expected_pentecostarion_template_path in pentecostarion_templates:
             shutil.copy2(expected_pentecostarion_template_path,dest_filename)
 
         elif ordo_matrix[d][1]=='y' or datetime(year_no, month_no, d).weekday()+1==7:
