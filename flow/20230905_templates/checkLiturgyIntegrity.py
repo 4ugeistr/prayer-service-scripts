@@ -18,7 +18,7 @@ month_dic_reversed = {v:k for k,v in month_dic.items()}
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
-#month_no=4
+month_no=5
 cur_month=month_dic_reversed[month_no]
 
 if mode == 'u':
@@ -31,7 +31,7 @@ docx_filename=f'{month_no:02}-Літургія-{mode_suffix.upper()}.docx'
 
 day_list_string="(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)"
 
-list_of_text_templates=['liz','lvv','liz_pascha']
+list_of_text_templates=['liz','lvv','liz_pascha', 'liz_voznesinnia','liz_subota_po_voznesinni']
 
 list_of_tags_mandatory=['antifon1',
                         'antifon2',

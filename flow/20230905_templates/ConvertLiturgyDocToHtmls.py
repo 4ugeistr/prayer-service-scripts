@@ -111,9 +111,10 @@ def check_for_broken_tags(filehtm):
         for line in lines:
             if re.search(r'[a-zA-Z0-9]',line) and not re.search(r'^<.*>$',line) and not "#" in line:
                 err_lines.append(line)
+        print("err_lines:",len(err_lines),err_lines)
         if err_lines:
             for item in err_lines:
-                print(item)
+                print("ERR:",item)
             raise Exception("Увага: в строках вище помилки в користувацьких html мітках.")
         
 check_for_broken_tags(filehtm)

@@ -8,6 +8,8 @@ RGB_RED = RGBColor(0xff, 0x44, 0x00)
 #mode='g'
 #cur_month='Липень'
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
+month_no=5
+print("WARNING. Month_no OVERRIDE", month_no)
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
@@ -50,7 +52,7 @@ month_list_reversed = {v:k for k,v in month_list.items()}
 
 #cur_month_no = int(re.search('\d{4}.(\d{2})',dirs).group(1))
 #cur_month= month_list_reversed[int(re.search('\d{4}.(\d{2})',dirs).group(1))]
-month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
+#month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 #month_no -=1
 cur_month= month_list_reversed[month_no]
 
