@@ -1,4 +1,4 @@
-import re,glob,calendar,docx,os,easygui, shutil, csv
+import re,glob,calendar,docx,os,easygui, shutil, csv,copy
 from datetime import datetime
 from docx.shared import RGBColor
 import paschalia,get_stichera
@@ -484,13 +484,20 @@ def get_troparia_block(date,service):
                 troparia = templates_triodion[date.day][0]["troparion"]
         if ordo_matrix[date.day][2:][i] == 'saint':
             #print(date.day, i)
-            if i==2:
-                #print("adding Slava")
-                #print(templates_menaion[date.day][saint_counter]["troparion"].text)
-                troparia=insert_prefix_to_paragraph(templates_menaion[date.day][saint_counter]["troparion"],text="Слава: ")
-                #print(troparia.text)
-            else:
-                troparia=templates_menaion[date.day][saint_counter]["troparion"]
+            try:
+                if i==2:
+                    #print("adding Slava")
+                    #print(templates_menaion[date.day][saint_counter]["troparion"].text)
+                    troparia=insert_prefix_to_paragraph(templates_menaion[date.day][saint_counter]["troparion"],text="Слава: ")
+                    #print(troparia.text)
+                else:
+                    troparia=templates_menaion[date.day][saint_counter]["troparion"]
+            except IndexError as e:
+                print(e)
+                print("Check if troparion is in the file")
+                print("Check if menaion matrix is populated")
+                raise e
+
             #troparia_block.append(troparia)
             saint_counter+=1
         #if i==3 and ordo_matrix[date.day][2:][i] == 'saint':
@@ -544,12 +551,17 @@ def insert_troparia(path,date):
         re_result = re.search("(Великий відпуст|.ктенія усильного благання|Мала .ктенія)",p.text)
         if re_result and troparion_found:
             troparion_end_found=True
+            troparia_block_to_copy = copy.deepcopy(troparia_block[service])
+            #Додаємо (2 р.) до першого тропаря на Бог Господь.
+            if service == 'orthros' and troparion_label_count ==2:
+                #r = troparia_block_to_copy[0].add_run("(2 р.)")
+                add_text(troparia_block_to_copy[0],"(2 р.)","r")
             copy_paragraph_list_before(p,troparia_block[service])
             troparion_found=False
         elif  troparion_found and not troparion_end_found and ordo_matrix[date.day][1]!='y':
             #pass
             delete_paragraph(p)
-    if troparion_label_count!=3:
+    if troparion_label_count!=3 and date.weekday()+1 !=7:
         print(f"WARNING! Day {date.day}: troparion_label_count={troparion_label_count}")
     doc.save(path)
     
@@ -718,6 +730,10 @@ def insert_menaion_stichera(path,date):
     #print(f"inserting {k}")
     #required_stichera_qty = stichera_gv_matrix[k][1]
 
+    if date.weekday() + 1 == 6:
+        print(f"Стихири: пропускаємо {k}, бо субота, обернений порядок стихир")
+        return -2
+
     if stichera_gv_matrix[k][1].isnumeric() and stichera_gv_matrix[k][1]!='0':
         #stichos_dic =init_stichera_dic(stichera_gv_matrix[k][1])
         n= int(stichera_gv_matrix[k][1])
@@ -740,7 +756,7 @@ def insert_menaion_stichera(path,date):
     try:
         texts = stretch_texts(n,stichera_matrix[k]['gv_stichera'])
     except KeyError as e:
-        print(f"Пропускаємо {k}, немає стихир ГВ.")
+        print(f"Стихири: пропускаємо {k}, немає стихир ГВ.")
         #print(e) 
         return -1
     for p in doc.paragraphs:
@@ -755,7 +771,7 @@ def insert_menaion_stichera(path,date):
             delete_paragraph(p)
             #print(f"Inserted stichera {stichera_no} for {v}")
             stichera_no=None
-            look_for_slave=True
+            look_for_slava=True
             continue
     
         re_result = re.search("^(Слава|І нині)",p.text)
@@ -764,7 +780,7 @@ def insert_menaion_stichera(path,date):
 
         re_result = re.search("^Вхід",p.text)
         if re_result:
-            look_for_slave=False
+            look_for_slava=False
             if "gv_doxa" in stichera_matrix[k]:
                 #print(f"Inserted doxa for {k}")
                 copy_paragraph_before(p,stichera_matrix[k]["gv_doxa"][0])
@@ -776,11 +792,12 @@ def insert_menaion_stichera(path,date):
                 else:
                     p.insert_paragraph_before("ХРЕСТОБОГОРОДИЧНИЙ")
             else:
-                print(f"Inserted theo for {k}")
+                #print(f"Inserted theo for {k}")
                 try:
                     copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][0])
                 except KeyError:
-                    print("Warning, failed to find stichera_matrix[k]['gv_theotokion'][0]")
+                    #print("Warning, failed to find stichera_matrix[k]['gv_theotokion'][0]")
+                    print(f"Стихири: для {k} не знайдено богородичний ГВ в файлі з стихирами")
                     p.insert_paragraph_before("БОГОРОДИЧНИЙ")
                             
     doc.save(path)
@@ -934,8 +951,8 @@ for d,desc in draft_dic.items():
         #вставити стихири ГВ
         #вставити тропарі вечірні
         if ordo_matrix[d][1]!='y':
-            if d==2:
-                print(f'inserting troparia for {d}')
+            #if d==2:
+            #    print(f'inserting troparia for {d}')
             insert_troparia(desc[1],datetime(year_no, month_no, d))
         #вставити глас для Бог Господь
         insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))

@@ -137,12 +137,14 @@ for k,v in lines_dict.items():
     res = re.findall('<i>(.*?)</i>',v['readings'])
     v['array']+=normalize(res)
         
-    res = re.findall(r'Ап\. – (.*?)(?:<br>|<i>|\n|\||<sup>)',v['readings'])
+    res = re.findall(r'Ап\. (?:–|-) (.*?)(?:<br>|<i>|\n|\||<sup>)',v['readings'])
     v['array']+=normalize(res)
 
-    res = re.findall(r'Єв\. – (.*?)(?:<br>|<i>|\n|<sup>|$)',v['readings'])
+    res = re.findall(r'Єв\. (?:–|-) (.*?)(?:<br>|<i>|\n|<sup>|$)',v['readings'])
     v['array']+=normalize(res)
 
+
+print(lines_dict[8])
 #convert apostol
 
 apostol_list=[]
@@ -170,12 +172,22 @@ for k,v in lines_dict.items():
             if ratio==100:
                 found=True
                 v['array'][2+i]=f'#ap{item[2]:0>3}'+f'{item[3]}'
-                break
+                ratio_max=ratio
+                break  
             if ratio>ratio_max:
                 ratio_max=ratio
-                item_found=item[0]
+                item_found=item
+        
+        if ratio_max>=85 and ratio_max<100:
+            found=True
+            v['array'][2+i]=f'#ap{item_found[2]:0>3}{item_found[3]}'
+            print(f"WARNING. ratio: {ratio_max}")
+            print(k,2+i,v['array'][2+i], item_found[0])
+            print('Input:',lines_dict[k]['readings'])  
+        
         if v['array'][2+i] and not found:
-            print(k,2+i,v['array'][2+i], item_found)
+            print(f"ERROR. ratio: {ratio_max}")
+            print(k,2+i,v['array'][2+i], item_found[0])
             print('ratio:',ratio_max)
             #raise Exception
 ev_dic = {
@@ -190,15 +202,25 @@ for k,v in lines_dict.items():
         ratio_max=0
         for item in evanhelie_list:
             ratio=fuzz.token_sort_ratio(v['array'][4+i],item[0])
-            if fuzz.token_sort_ratio(v['array'][4+i],item[0])==100:
+            #print(f"Checking {v['array'][4+i]} vs {item[0]}, ratio = {ratio}")
+            if ratio==100:
                 found=True
                 v['array'][4+i]=f'#{ev_dic[item[1]]}{item[2]:0>3}{item[3]}'
+                ratio_max=ratio
                 break
             if ratio>ratio_max:
                 ratio_max=ratio
-                item_found=item[0]
+                item_found=item
+        if ratio_max>=85 and ratio_max<100:
+            found=True
+            v['array'][4+i]=f'#{ev_dic[item_found[1]]}{item_found[2]:0>3}{item_found[3]}'
+            print(f"WARNING. ratio: {ratio_max}")
+            print(k,4+i,v['array'][4+i],item_found[0])
+            print('Input:',lines_dict[k]['readings'])  
+        
         if v['array'][4+i] and not found:
-            print(k,4+i,v['array'][4+i],item_found)
+            print(f"ERROR. ratio: {ratio_max}")
+            print(k,4+i,v['array'][4+i],item_found[0])
             print('ratio:',ratio_max)
             #raise Exception
 

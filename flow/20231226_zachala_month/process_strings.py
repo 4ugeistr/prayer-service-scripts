@@ -38,3 +38,4 @@ def process_strings(input_file, output_file):
 input_file = 'input.txt'
 output_file = 'output.txt'
 process_strings(input_file, output_file)
+print("DONE!")
