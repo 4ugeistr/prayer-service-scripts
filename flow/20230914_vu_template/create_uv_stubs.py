@@ -1,6 +1,7 @@
 import re,glob,calendar,docx,os,easygui, shutil, csv,copy
 from datetime import datetime
-from docx.shared import RGBColor
+from docx.shared import RGBColor, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 import paschalia,get_stichera
 RGB_RED = RGBColor(0xff, 0x44, 0x00)
 
@@ -32,6 +33,7 @@ day_dic = {"Понеділок":1,
             "Субота":6,
             "Неділя":7}
 day_dic_reversed = {v:k for k,v in day_dic.items()}
+day_dic["П’ятниця"]=5
 day_dic_string='('+'|'.join(day_dic.keys())+')'
 
 month_dic= {'Січень':1,
@@ -85,7 +87,7 @@ def delete_run(run):
 def copy_run(target_paragraph,run):
     new_run = target_paragraph.add_run(run.text)
     #KeyError: "no style with name 'Default Paragraph Font'"
-    #new_run.style = run.style.name
+    new_run.style = run.style.name
     new_run.bold = run.bold
     new_run.italic = run.italic
     new_run.underline = run.underline
@@ -100,6 +102,7 @@ def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
     target_paragraph = paragraph_to_insert_before.insert_paragraph_before()
     try:
         target_paragraph.style = source_paragraph.style
+        target_paragraph.paragraph_format.space_after = source_paragraph.paragraph_format.space_after
         #target_paragraph.style.font = source_paragraph.style.font.name
     except KeyError:
         print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
@@ -157,48 +160,61 @@ def get_octoechos_template_files():
 
 irmos_list = [1,3,4,5,6,7,8,9]
 
-def get_octoechos_kanon():
-    doc = docx.Document(f)
+def get_octoechos_kanon_texts(path):
+    doc = docx.Document(path)
     matrix = {}
     for i in range(8):
         matrix[i+1]={}
     for p in doc.paragraphs:
         
-        re_result = re.search("Глас (\d)",p.text)
+        re_result = re.search(r"Глас (\d)",p.text)
         if re_result:
             echos = int(re_result.group(1))
             echos_found = True
+            song_found = False
             continue
 
-        if echos_found and re.search(f"{day_dic_string}",p.text)
-            #week_day = 
+        if (echos_found or song_found) and re.search(f"{day_dic_string}",p.text):
             week_day_no = day_dic[re.search(f"{day_dic_string}",p.text).group(1)]
             matrix[echos][week_day_no]=[]
             week_day_no_found = True
-            echos_found = False
+            echos_found = song_found = False
             continue
         
-        if week_day_no_found and re.search("Канон", p.text):
+        if (week_day_no_found or song_found) and re.search("Канон", p.text):
             matrix[echos][week_day_no].append({"label":p.text})
             label_found = True
-            week_day_no_found = False
+            week_day_no_found = song_found = False
             continue
 
-        re_result=re.search("Пісня (\d)",p.text)
-        if label_found and re_result:
+        re_result=re.search(r"Пісня (\d)",p.text)
+        if (label_found or song_found) and re_result:
             song_no = int(re_result.group(1))
-            matrix[echos][week_day_no][-1][song_no]=[]
+            matrix[echos][week_day_no][-1][song_no]=[p]
             label_found=False
             song_found = True
             continue
-
         
-
-
-
-        re_result = 
+        if p.text == "":
+            continue
+        if song_found:
+            matrix[echos][week_day_no][-1][song_no].append(p)
 
     return matrix
+
+def get_kanon_litany(path):
+    template_dic={}
+    doc = docx.Document(path)
+    litany_no = None
+    for p in doc.paragraphs:
+        re_result = re.search(r"Мала єктенія (\d)",p.text)
+        if re_result:
+            litany_no=int(re_result.group(1))
+            template_dic[litany_no]=[]
+            continue
+        elif litany_no:
+            template_dic[litany_no].append(p)
+    return template_dic
 
 def get_menaion_template_files():
     filenames = glob.glob(f'В,У - Мінея/{month_no:02}*/*.docx')
@@ -354,57 +370,6 @@ def get_theotokion_troparia_texts(path):
             
     return template_dic
 
-
-def get_kanon_litany(path):
-    template_dic={}
-    doc = docx.Document(path)
-    litany_no = None
-    for p in doc.paragraphs:
-        re_result = re.search(r"Мала єктенія (\d)",p.text)
-        if re_result:
-            litany_no=int(re_result.group(1))
-            template_dic[litany_no]=[]
-            continue
-        elif litany_no:
-            template_dic[litany_no].append(p)
-    return template_dic
-        
-
-def get_kanon_texts(path):
-    template_dic={}
-    doc = docx.Document(path)
-    
-    kanon_found=False
-    kanon_end_found=False
-    for p in doc.paragraphs:
-        re_result = re.search(r"Глас (\d)",p.text)
-        if re_result:
-            #print("found")
-            echos=int(re_result.group(1))
-            template_dic[echos]={}
-        #print(p.text)
-        re_result = re.search(f"^{day_dic_string}",p.text)
-        if re_result:
-            day = re_result.group(1)
-            weekday_no = day_dic[day]
-            template_dic[echos][weekday_no]=[]
-
-        re_result = re.search(r"Канон*(П)",p.text)
-        if re_result:
-            kanon_found=True
-            kanon_end_found=False
-            template_dic[echos]=[]
-            
-        re_result = re.search(r"Пісня 9",p.text)
-        if re_result:
-            kanon_found = False
-            kanon_end_found = True
-            
-        if kanon_found and not kanon_end_found:
-            template_dic[echos].append(p)
-            
-    return template_dic
-
 def insert_prokimenon(path,day):
     doc = docx.Document(path)
     #print(path)
@@ -466,9 +431,6 @@ def insert_prefix_to_paragraph(p,text="Слава: ",formatting='b'):
     for r in bkp:
         copy_run(p_new,r)
     return p_new
-
-
-
 
 def get_troparia_theotokion(echos, date, service):
     #print(echos, date, service)
@@ -582,8 +544,10 @@ def insert_troparia(path,date):
             #Додаємо (2 р.) до першого тропаря на Бог Господь.
             if service == 'orthros' and troparion_label_count ==2:
                 #r = troparia_block_to_copy[0].add_run("(2 р.)")
-                add_text(troparia_block_to_copy[0],"(2 р.)","r")
-            copy_paragraph_list_before(p,troparia_block[service])
+                add_text(troparia_block_to_copy[0]," (2 р.)","r")
+                #print(f"ADDED {troparia_block_to_copy[0].text}")
+            #copy_paragraph_list_before(p,troparia_block[service])
+            copy_paragraph_list_before(p,troparia_block_to_copy)
             troparion_found=False
         elif  troparion_found and not troparion_end_found and ordo_matrix[date.day][1]!='y':
             #pass
@@ -741,41 +705,50 @@ def insert_dismissal(path,date):
                 raise
     doc.save(path)
 
-'''
-def init_stichera_dic(n):
-    stichera_dic = {}
-    for i in range(n):
-        stichera_dic[stichos_list[-n:][i]]=i
-    return stichera_dic
-'''
+
+stichos_list=[
+    "Стих: Виведи з в'язниці мою душу",
+    "Стих: Мене обступлять праведники",
+    "Стих: З глибин взиваю до тебе, Господи",
+    "Стих: Нехай будуть твої вуха уважні",
+    "Стих: Коли ти, Господи, зважатимеш на беззаконня",
+    "Стих: Задля імени твого надіюсь на тебе, Господи",
+    "Стих: Від ранньої сторожі до ночі",
+    "Стих: Бо в Господа милість і відкуплення велике в нього",
+    "Стих: Хваліте Господа всі народи",
+    "Стих: Велике бо до нас його милосердя"
+]
 
 def insert_menaion_stichera(path,date):
     doc = docx.Document(path)
     stichera_no=None
     look_for_slava=False
     k=date.day
+    delta = None
+    dogmatikos = None
     #print(f"inserting {k}")
     #required_stichera_qty = stichera_gv_matrix[k][1]
 
     if date.weekday() + 1 == 6:
-        print(f"Стихири: пропускаємо {k}, бо субота, обернений порядок стихир")
-        return -2
-
+        #print(f"Стихири: пропускаємо {k}, бо субота, обернений порядок стихир")
+        #return -2
+        if stichera_gv_matrix[k][1]=='3':
+            delta = 3
+        else:
+            print(f"Стихири: пропускаємо {k}, бо субота і стихир {stichera_gv_matrix[k][1]}")
+            #return -2
+    
     if stichera_gv_matrix[k][1].isnumeric() and stichera_gv_matrix[k][1]!='0':
         #stichos_dic =init_stichera_dic(stichera_gv_matrix[k][1])
         n= int(stichera_gv_matrix[k][1])
-        stichos_dic = {stichos_list[-n:][i]: i for i in range(n) }
+        if date.weekday() + 1 in (1,2,3,4,5,7):
+            stichos_dic = {stichos_list[-n:][i]: i for i in range(n) }
+        if date.weekday() + 1 in (6,):
+            stichos_dic = {stichos_list[-n - delta :-delta][i]: i for i in range(n) }
+        #print(stichos_dic)
+
     else:
         return 0
-    
-    '''
-    stichos_dic={
-    "Стих: Від ранньої сторожі до ночі":0,
-    "Стих: Бо в Господа милість і відкуплення велике в нього":1,
-    "Стих: Хваліте Господа всі народи":2,
-    "Стих: Велике бо до нас його милосердя":3,
-    }
-    '''
 
     stichos_dic_string='('+'|'.join(stichos_dic.keys())+')'
     #print(date.day,stichos_dic_string)
@@ -786,11 +759,14 @@ def insert_menaion_stichera(path,date):
         print(f"Стихири: пропускаємо {k}, немає стихир ГВ.")
         #print(e) 
         return -1
+    
+    delete_empty = False
     for p in doc.paragraphs:
         re_result = re.search(f"{stichos_dic_string}",p.text)
         if re_result:
             #print(f"Day {k}, found string:",re_result.group(1)[:20])
             stichera_no=stichos_dic[re_result.group(1)]
+            delete_empty = True
             continue
 
         if stichera_no or stichera_no==0:
@@ -800,9 +776,15 @@ def insert_menaion_stichera(path,date):
             stichera_no=None
             look_for_slava=True
             continue
-    
+        
+        if p.text == "" and delete_empty:
+            delete_paragraph(p)
+            continue
+
         re_result = re.search("^(Слава|І нині)",p.text)
         if re_result and look_for_slava:
+            if re.search('догмат',p.text):
+                dogmatikos = p
             delete_paragraph(p)
 
         re_result = re.search("^Вхід",p.text)
@@ -811,8 +793,9 @@ def insert_menaion_stichera(path,date):
             if "gv_doxa" in stichera_matrix[k]:
                 #print(f"Inserted doxa for {k}")
                 copy_paragraph_before(p,stichera_matrix[k]["gv_doxa"][0])
-
-            if datetime(year_no,month_no,k).weekday()+1 in (3,5):
+            #if datetime(year_no,month_no,k).weekday()+1 in (1,2,3,4,5):
+            #    copy_paragraph_before(p,doc.add_paragraph("Догмат"))
+            elif datetime(year_no,month_no,k).weekday()+1 in (3,5):
                 if  "gv_theotokion" in stichera_matrix[k] and len(stichera_matrix[k]["gv_theotokion"])==2:
                     #print(f"Inserted theo for {k}")
                     copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][1])
@@ -826,10 +809,55 @@ def insert_menaion_stichera(path,date):
                     #print("Warning, failed to find stichera_matrix[k]['gv_theotokion'][0]")
                     print(f"Стихири: для {k} не знайдено богородичний ГВ в файлі з стихирами")
                     p.insert_paragraph_before("БОГОРОДИЧНИЙ")
-                            
+            if dogmatikos:
+                copy_paragraph_before(p,dogmatikos)     
+            break         
+
     doc.save(path)
 
+def insert_kanon(path,date):
+    doc = docx.Document(path)
+    song8_end_found = False
+    week_day = date.weekday()+1
+    echos = paschalia.get_echos(date,paschalia_dates)
 
+    print(f"Inserting kanon for {date.day} {day_dic_reversed[date.weekday()+1]}")
+
+    kanon_found = False
+    song8_end_found = False
+
+    for p in doc.paragraphs:
+        
+        if re.search("Канон",p.text):
+            kanon_found = True
+            #print("---знайшли початок канону")
+            continue
+    
+        re_result = re.search ("Пісня Богородиці", p.text)
+        if re_result and kanon_found:
+            #print("---знайшли 9-ту пісню")
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][1])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][3])
+            copy_paragraph_list_before(p,kanon_litany_list[1])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][4])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][5])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][6])
+            copy_paragraph_list_before(p,kanon_litany_list[2])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][7])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][8])
+            break
+            
+        if kanon_found and not song8_end_found:
+            delete_paragraph(p)
+    
+    for p in doc.paragraphs:
+        if re.search(r"(Пісня \d|Мала .ктенія)",p.text):
+            p.style="Heading 3"
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            #p.paragraph_format.space_after = Pt(6)
+
+    #print("WARNING: не знайшли закінчення канону!")
+    doc.save(path)
 
 old_files = glob.glob('2022/*/*.doc*')
 filenames={}
@@ -884,9 +912,10 @@ templates_triodion = get_menaion_troparia_texts(glob.glob(f'тріодь-05.docx
 
 vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
 templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
-templates_kanon_dic = get_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
-litany_list = get_kanon_litany("Канон - Мала єтенія.docx")
+templates_kanon_dic = get_octoechos_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
+kanon_litany_list = get_kanon_litany("Канон - Мала єтенія.docx")
 stichera_matrix = get_stichera.get_stichera_matrix(glob.glob(f'Стихири - Мінея\\Мінея_{month_no:02}*.docx')[0])
+#dogmatika = get_stichera.get_dogmatika("Догмати.docx")
 
 
 folder_name=f'drafts\\{year_no}-{month_no:02}-{mode}'
@@ -954,18 +983,7 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     shutil.copy2(src_filename,dest_filename)
     draft_dic[d].append(dest_filename)
 
-stichos_list=[
-    "Стих: Виведи з в'язниці мою душу",
-    "Стих: Мене обступлять праведники",
-    "Стих: З глибин взиваю до тебе, Господи",
-    "Стих: Нехай будуть твої вуха уважні",
-    "Стих: Коли ти, Господи, зважатимеш на беззаконня",
-    "Стих: Задля імени твого надіюсь на тебе, Господи",
-    "Стих: Від ранньої сторожі до ночі",
-    "Стих: Бо в Господа милість і відкуплення велике в нього",
-    "Стих: Хваліте Господа всі народи",
-    "Стих: Велике бо до нас його милосердя"
-]
+
 
 #drafts = glob.glob(f'{folder_name}\\*.docx')
 for d,desc in draft_dic.items():
@@ -985,6 +1003,8 @@ for d,desc in draft_dic.items():
         insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
         #вставити тропарі на Бог Господь
         #вставити тропарі вкінці утрені
+    if desc[0] in ('октоїх') and (datetime(year_no, month_no, d).weekday()+1)!=7:
+        insert_kanon(desc[1],datetime(year_no, month_no, d))
     if desc[0]=='мінея':
         #вставити прокімен
         insert_prokimenon(desc[1], datetime(year_no, month_no, d).weekday()+1)
