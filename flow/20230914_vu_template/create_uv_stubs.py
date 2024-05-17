@@ -155,23 +155,50 @@ def get_octoechos_template_files():
     return template_dic
 
 
-def get_octoechos_templates():
-    template_dic = {}
-    all_files = glob.glob('01-Октоїх/*/*.docx')
-    for f in all_files:
-        re_result=re.search(r'01-Октоїх\\Глас_(\d)\\(\d)-(\w{2})-?.docx',f)
+irmos_list = [1,3,4,5,6,7,8,9]
+
+def get_octoechos_kanon():
+    doc = docx.Document(f)
+    matrix = {}
+    for i in range(8):
+        matrix[i+1]={}
+    for p in doc.paragraphs:
+        
+        re_result = re.search("Глас (\d)",p.text)
         if re_result:
-            #print(re_result.group(2), re_result.group(3))
-            doc = docx.Document(f)
-            if int(re_result.group(2)) not in template_dic.keys():
-                template_dic[int(re_result.group(2))]={}
-            if re_result.group(3) in day_dic.keys():
-                template_dic[int(re_result.group(2))][day_dic[re_result.group(3)]]=doc.paragraphs
-            else:
-                print("Something wrong with", f, re_result.group(3))
-        else:
-            print("None found for:", f)
-    return template_dic
+            echos = int(re_result.group(1))
+            echos_found = True
+            continue
+
+        if echos_found and re.search(f"{day_dic_string}",p.text)
+            #week_day = 
+            week_day_no = day_dic[re.search(f"{day_dic_string}",p.text).group(1)]
+            matrix[echos][week_day_no]=[]
+            week_day_no_found = True
+            echos_found = False
+            continue
+        
+        if week_day_no_found and re.search("Канон", p.text):
+            matrix[echos][week_day_no].append({"label":p.text})
+            label_found = True
+            week_day_no_found = False
+            continue
+
+        re_result=re.search("Пісня (\d)",p.text)
+        if label_found and re_result:
+            song_no = int(re_result.group(1))
+            matrix[echos][week_day_no][-1][song_no]=[]
+            label_found=False
+            song_found = True
+            continue
+
+        
+
+
+
+        re_result = 
+
+    return matrix
 
 def get_menaion_template_files():
     filenames = glob.glob(f'В,У - Мінея/{month_no:02}*/*.docx')
