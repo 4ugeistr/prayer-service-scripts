@@ -218,10 +218,17 @@ def insert_header_liturgy(doc,date):
             format_line(p_new, '')
 
 
-    if date.weekday()+1 in [6,7]:
-        print(date)
+    #if date.weekday()+1 in [6,7]:
+    if date.weekday()+1:
+        #print(date)
         p_new=doc.add_paragraph(reading_matrix[date.day-1][4])
-        print(reading_matrix[date.day-1][:5])
+        if date.weekday()+1 == 7:
+            p_new.text += f" Глас {paschalia.get_echos(date,paschalia_dates)}."
+        #print(reading_matrix[date.day-1][:5])
+
+    
+
+
     '''
     if date.weekday()+1 in [6,7]:
         #p_new = doc.add_paragraph(f"{day_name} {week_no} по П'ятидесятниці.")
@@ -232,11 +239,12 @@ def insert_header_liturgy(doc,date):
         else:
             format_line(p_new, '')
     '''
-
+    '''
     if date.weekday()+1 in [1]:
         #p_new = doc.add_paragraph(f"Тиждень {week_no} по П'ятидесятниці.")
         p_new = doc.add_paragraph(paschalia.get_day_label_legacy(date))
         format_line(p_new, '')
+    '''
     '''
     #перелік святих
     lst = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,saint_matrix[1:])
@@ -292,7 +300,7 @@ if __name__ == "__main__":
         elif d in templates_menaion.keys():
             copy_paragraph_list(new_doc,templates_menaion[d])
         else:
-            print(d, datetime(year_no, month_no, d).weekday()+1,templates_everyday[datetime(year_no, month_no, d).weekday()+1][38].text[:20])
+            #print(d, datetime(year_no, month_no, d).weekday()+1,templates_everyday[datetime(year_no, month_no, d).weekday()+1][38].text[:20])
             copy_paragraph_list(new_doc,templates_everyday[datetime(year_no, month_no, d).weekday()+1])
 
     #for p in new_doc.paragraphs:
