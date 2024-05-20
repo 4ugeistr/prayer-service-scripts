@@ -55,9 +55,10 @@ month_w_offset = list(month_dic.values())[4:]+list(month_dic.values())[:4]
 
 if mode == 'u':
     mode_suffix='Юл'
+    mode_suffix2='НЮ'
 elif mode == 'g':
     mode_suffix='Гр'
-
+    mode_suffix2='ГР'
 '''
 def copy_paragraph_before(p_to_insert_before,source_paragraph):
     target_paragraph = p_to_insert_before.insert_paragraph_before()
@@ -734,8 +735,8 @@ def insert_menaion_stichera(path,date):
         #return -2
         if stichera_gv_matrix[k][1]=='3':
             delta = 3
-        else:
-            print(f"Стихири: пропускаємо {k}, бо субота і стихир {stichera_gv_matrix[k][1]}")
+        #else:
+        #    print(f"Стихири: пропускаємо {k}, бо субота і стихир {stichera_gv_matrix[k][1]}")
             #return -2
     
     if stichera_gv_matrix[k][1].isnumeric() and stichera_gv_matrix[k][1]!='0':
@@ -899,8 +900,8 @@ for m in range(1,13):
 lent_templates = glob.glob('В,У - Пісна Тріодь/*/*.docx')
 pascha_pentecost_templates = glob.glob('В,У - Квітна Тріодь/*/*.docx')
 
-ordo_matrix = get_matrix("тропарі.csv")
-stichera_gv_matrix = get_matrix("стихириМінеїГР.csv")
+ordo_matrix = get_matrix(f"тропарі{mode_suffix2}.csv")
+stichera_gv_matrix = get_matrix(f"стихириМінеї{mode_suffix2}.csv")
 dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
 saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
 templates_octoechos_dic = get_octoechos_template_files()
@@ -908,7 +909,7 @@ templates_menaion_dic = get_menaion_template_files()
 templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
 #templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
 templates_menaion = get_menaion_troparia_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
-templates_triodion = get_menaion_troparia_texts(glob.glob(f'тріодь-05.docx')[0])
+templates_triodion = get_menaion_troparia_texts(glob.glob(f'тріодь-{month_no:02}.docx')[0])
 
 vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
 templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
@@ -979,8 +980,12 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
             src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)][datetime(year_no, month_no, d).weekday()+1]
             draft_dic[d].append('октоїх')
             #print(d, "Шаблон Октоїха")
-
-    shutil.copy2(src_filename,dest_filename)
+    try:
+        shutil.copy2(src_filename,dest_filename)
+    except NameError as e:
+        print(e)
+        print("Помилка для дня ", d)
+        raise e
     draft_dic[d].append(dest_filename)
 
 
