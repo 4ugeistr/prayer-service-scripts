@@ -1,9 +1,10 @@
 import re,glob,calendar,docx,os,easygui, shutil, csv,copy
 from datetime import datetime
 from docx.shared import RGBColor, Pt
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH,WD_COLOR_INDEX
 import paschalia,get_stichera
 RGB_RED = RGBColor(0xff, 0x44, 0x00)
+
 
 #filenames= glob.glob('*/*/*.txt')
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
@@ -720,7 +721,7 @@ stichos_list=[
     "Стих: Велике бо до нас його милосердя"
 ]
 
-def insert_menaion_stichera(path,date):
+def insert_menaion_stichera(path,date,template_type):
     doc = docx.Document(path)
     stichera_no=None
     look_for_slava=False
@@ -742,10 +743,16 @@ def insert_menaion_stichera(path,date):
     if stichera_gv_matrix[k][1].isnumeric() and stichera_gv_matrix[k][1]!='0':
         #stichos_dic =init_stichera_dic(stichera_gv_matrix[k][1])
         n= int(stichera_gv_matrix[k][1])
+        '''
         if date.weekday() + 1 in (1,2,3,4,5,7):
             stichos_dic = {stichos_list[-n:][i]: i for i in range(n) }
-        if date.weekday() + 1 in (6,):
+        if date.weekday() + 1 in (6,) and template_type=="октоїх":
             stichos_dic = {stichos_list[-n - delta :-delta][i]: i for i in range(n) }
+        '''
+        if date.weekday() + 1 in (6,) and template_type=="октоїх":
+            stichos_dic = {stichos_list[-n - delta :-delta][i]: i for i in range(n) }
+        else:
+            stichos_dic = {stichos_list[-n:][i]: i for i in range(n) }
         #print(stichos_dic)
 
     else:
@@ -754,11 +761,26 @@ def insert_menaion_stichera(path,date):
     stichos_dic_string='('+'|'.join(stichos_dic.keys())+')'
     #print(date.day,stichos_dic_string)
 
-    try:
+    if not 'gv_stichera' in stichera_matrix[k] and stichera_gv_matrix[k][3]: 
+
+            stichera_matrix[k]['gv_stichera'] = generic_stichera_matrix[stichera_gv_matrix[k][3]]['gv_stichera']
+            stichera_matrix[k]['gv_doxa'] = generic_stichera_matrix[stichera_gv_matrix[k][3]]['gv_doxa']
+            stichera_matrix[k]['gv_theotokion'] = generic_stichera_matrix[stichera_gv_matrix[k][3]]['gv_theotokion']
+
+            for p in (stichera_matrix[k]['gv_stichera']+stichera_matrix[k]['gv_doxa']):
+                for r in p.runs:
+                    if re.search('(ім’я)',r.text):
+                        r.text = r.text.replace('(ім’я)', stichera_gv_matrix[k][4])
+                        r.font.highlight_color = WD_COLOR_INDEX.YELLOW
+                        r.font.italic = False
+                        r.font.color.rgb = RGBColor(0x00, 0x00, 0x00)
+
+            print(f"Стихири: використано стихири заг. служби для {k}")
+    
+    if 'gv_stichera' in stichera_matrix[k]:
         texts = stretch_texts(n,stichera_matrix[k]['gv_stichera'])
-    except KeyError as e:
+    else:
         print(f"Стихири: пропускаємо {k}, немає стихир ГВ.")
-        #print(e) 
         return -1
     
     delete_empty = False
@@ -788,7 +810,7 @@ def insert_menaion_stichera(path,date):
                 dogmatikos = p
             delete_paragraph(p)
 
-        re_result = re.search("^Вхід",p.text)
+        re_result = re.search("^(Вхід|Світло тихе)",p.text)
         if re_result:
             look_for_slava=False
             if "gv_doxa" in stichera_matrix[k]:
@@ -796,6 +818,11 @@ def insert_menaion_stichera(path,date):
                 copy_paragraph_before(p,stichera_matrix[k]["gv_doxa"][0])
             #if datetime(year_no,month_no,k).weekday()+1 in (1,2,3,4,5):
             #    copy_paragraph_before(p,doc.add_paragraph("Догмат"))
+
+            if dogmatikos:
+                if dogmatikos.runs[0].text.find("Слава")!=-1 and 'gv_doxa' in stichera_matrix[k]:
+                    dogmatikos.runs[0].text = dogmatikos.runs[0].text.replace("Слава і","І").replace("Слава, і","І").replace("Слава: І","І")
+                copy_paragraph_before(p,dogmatikos)     
             elif datetime(year_no,month_no,k).weekday()+1 in (3,5):
                 if  "gv_theotokion" in stichera_matrix[k] and len(stichera_matrix[k]["gv_theotokion"])==2:
                     #print(f"Inserted theo for {k}")
@@ -810,8 +837,6 @@ def insert_menaion_stichera(path,date):
                     #print("Warning, failed to find stichera_matrix[k]['gv_theotokion'][0]")
                     print(f"Стихири: для {k} не знайдено богородичний ГВ в файлі з стихирами")
                     p.insert_paragraph_before("БОГОРОДИЧНИЙ")
-            if dogmatikos:
-                copy_paragraph_before(p,dogmatikos)     
             break         
 
     doc.save(path)
@@ -822,7 +847,7 @@ def insert_kanon(path,date):
     week_day = date.weekday()+1
     echos = paschalia.get_echos(date,paschalia_dates)
 
-    print(f"Inserting kanon for {date.day} {day_dic_reversed[date.weekday()+1]}")
+    #print(f"Inserting kanon for {date.day} {day_dic_reversed[date.weekday()+1]}")
 
     kanon_found = False
     song8_end_found = False
@@ -916,6 +941,7 @@ templates_theotokion_dic = get_theotokion_troparia_texts('богородичні
 templates_kanon_dic = get_octoechos_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
 kanon_litany_list = get_kanon_litany("Канон - Мала єтенія.docx")
 stichera_matrix = get_stichera.get_stichera_matrix(glob.glob(f'Стихири - Мінея\\Мінея_{month_no:02}*.docx')[0])
+generic_stichera_matrix = get_stichera.get_generic_stichera_matrix('Стихири ГВ загальної служби.docx')
 #dogmatika = get_stichera.get_dogmatika("Догмати.docx")
 
 
@@ -995,7 +1021,7 @@ for d,desc in draft_dic.items():
     #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
     insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d))
     insert_dismissal(desc[1],datetime(year_no, month_no, d))
-    insert_menaion_stichera(desc[1],datetime(year_no, month_no, d))
+    insert_menaion_stichera(desc[1],datetime(year_no, month_no, d),desc[0])
 
     if desc[0] in ('неділя','октоїх','пасха','50-ця'):
         #вставити стихири ГВ
