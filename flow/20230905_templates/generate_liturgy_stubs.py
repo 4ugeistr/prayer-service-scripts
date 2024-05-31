@@ -337,7 +337,7 @@ if __name__ == "__main__":
         if day_details[0]=='pascha' and (day_details[1], day_details[3]) in templates_pascha.keys():
             copy_paragraph_list(new_doc,templates_pascha[(day_details[1], day_details[3])])
             print("template: pascha")
-        elif day_details[0]=='pentecost' and (day_details[1], day_details[3]) in templates_pascha.keys():
+        elif day_details[0]=='pentecost' and (day_details[1], day_details[3]) in templates_pentecost.keys():
             copy_paragraph_list(new_doc,templates_pentecost[(day_details[1], day_details[3])])
             print("template: pentecost")
         elif datetime(year_no, month_no, d).weekday()+1==7:

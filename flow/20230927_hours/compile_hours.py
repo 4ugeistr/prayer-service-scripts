@@ -7,17 +7,11 @@ mode_dic = {'НЮ':'u',
             'ГР':'g',}
 mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 
-#if paschalia.mode!=mode:
-#    raise Exception(f"ERROR. Вибраний {mode}, але пакет paschalia налаштований як {paschalia.mode}")
-
-#paschalia.mode = mode
-#paschalia.init_paschalia_dates(mode)
-#mode = 'u'
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-month_no = 5
-print("WARNING. Month_no OVERRIDE", month_no)
+#month_no = 6
+#print("WARNING. Month_no OVERRIDE", month_no)
 
 month_dic= {'Січень':1,
               'Лютий':2,
@@ -319,9 +313,10 @@ if __name__== "__main__":
                 if value:
                     #print('inserting kondakion')
                     copy_paragraph_before(p,value)
-                else:
+                    delete_paragraph(p)
+                elif hours_matrix[d][1]=='y':
                     print("warning kondakion",d,hour)
-                delete_paragraph(p)
+                
         doc.save(dest_filename)
             
     #for k,v in hours_matrix.items():

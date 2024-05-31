@@ -1,6 +1,7 @@
-import re, csv,easygui
+import re, csv,easygui, copy
 from thefuzz import fuzz
 from datetime import datetime
+#import paschalia
 
 #mode='u'
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
@@ -142,6 +143,7 @@ for k,v in lines_dict.items():
 
     res = re.findall(r'Єв\. (?:–|-) (.*?)(?:<br>|<i>|\n|<sup>|$)',v['readings'])
     v['array']+=normalize(res)
+    v['array_transformed']=copy.copy(v['array'])+[""]*4
 
 
 print(lines_dict[8])
@@ -171,7 +173,8 @@ for k,v in lines_dict.items():
             ratio=fuzz.token_sort_ratio(v['array'][2+i],item[0])
             if ratio==100:
                 found=True
-                v['array'][2+i]=f'#ap{item[2]:0>3}'+f'{item[3]}'
+                v['array_transformed'][2+i]=f'#ap{item[2]:0>3}'+f'{item[3]}'
+                v['array_transformed'][2+4+i]=item[4]
                 ratio_max=ratio
                 break  
             if ratio>ratio_max:
@@ -180,12 +183,13 @@ for k,v in lines_dict.items():
         
         if ratio_max>=85 and ratio_max<100:
             found=True
-            v['array'][2+i]=f'#ap{item_found[2]:0>3}{item_found[3]}'
+            v['array_transformed'][2+i]=f'#ap{item_found[2]:0>3}{item_found[3]}'
+            v['array_transformed'][2+4+i]=item[4]
             print(f"WARNING. ratio: {ratio_max}")
             print(k,2+i,v['array'][2+i], item_found[0])
             print('Input:',lines_dict[k]['readings'])  
         
-        if v['array'][2+i] and not found:
+        if v['array_transformed'][2+i] and not found:
             print(f"ERROR. ratio: {ratio_max}")
             print(k,2+i,v['array'][2+i], item_found[0])
             print('ratio:',ratio_max)
@@ -205,7 +209,8 @@ for k,v in lines_dict.items():
             #print(f"Checking {v['array'][4+i]} vs {item[0]}, ratio = {ratio}")
             if ratio==100:
                 found=True
-                v['array'][4+i]=f'#{ev_dic[item[1]]}{item[2]:0>3}{item[3]}'
+                v['array_transformed'][4+i]=f'#{ev_dic[item[1]]}{item[2]:0>3}{item[3]}'
+                v['array_transformed'][4+4+i]=item[4]
                 ratio_max=ratio
                 break
             if ratio>ratio_max:
@@ -213,7 +218,8 @@ for k,v in lines_dict.items():
                 item_found=item
         if ratio_max>=85 and ratio_max<100:
             found=True
-            v['array'][4+i]=f'#{ev_dic[item_found[1]]}{item_found[2]:0>3}{item_found[3]}'
+            v['array_transformed'][4+i]=f'#{ev_dic[item_found[1]]}{item_found[2]:0>3}{item_found[3]}'
+            v['array_transformed'][4+4+i]=item[4]
             print(f"WARNING. ratio: {ratio_max}")
             print(k,4+i,v['array'][4+i],item_found[0])
             print('Input:',lines_dict[k]['readings'])  
@@ -232,7 +238,7 @@ for k,v in lines_dict.items():
         print(k,v)
         raise ValueError
     l = [month,f'{k:0>2}.{month_dic[month]:0>2}',weekday, weekday_list[weekday]]
-    v['array']=l+[v['header']]+v['array']
+    v['array_transformed']=l+[v['header']]+v['array_transformed']
 
 #reverse dictionary search
 #month_no = list(month_list.keys())[list(month_list.values()).index(month)][0]
@@ -243,6 +249,24 @@ for k,v in lines_dict.items():
 with open(f'{year_no}-{month_no}-{mode}.csv','w', newline='', encoding='utf-8') as csvfile:
     csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"')
     for k,v in lines_dict.items():  
-        csvwriter.writerow(v['array'])
+        csvwriter.writerow(v['array_transformed'])
+
+validation_matrix=[]
+for k,item in lines_dict.items():
+    #line = item['array_transformed']
+    index_list = [0,2,1,3]
+    for i in index_list:
+        validation_line = item['array_transformed'][0:5]
+        validation_line.append(item['array'][i%2])
+        validation_line.append(item['array'][2+i])
+        validation_line.append(item['array_transformed'][7+i])
+        validation_line.append(item['array_transformed'][7+4+i])
+        if validation_line[6]:
+            validation_matrix.append(validation_line)
+
+with open(f'{year_no}-{month_no}-{mode}_VAL.csv','w', newline='', encoding='utf-8') as csvfile:
+    csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"')
+    for row in validation_matrix:  
+        csvwriter.writerow(row)
 
 print("Done!")
