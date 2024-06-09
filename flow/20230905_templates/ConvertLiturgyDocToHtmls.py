@@ -32,6 +32,9 @@ month_no = int(filedoc[:2])
 print(f'Month: {month_no}')
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
+
+
+
 if not os.path.exists('drafts'):
     os.makedirs('drafts')
 folder_name=f'drafts\\{year_no}-{month_no:02}-{mode}'
