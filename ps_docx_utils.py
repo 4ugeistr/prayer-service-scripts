@@ -1,5 +1,5 @@
 from docx.shared import RGBColor
-
+from docx.shared import Pt
 
 
 
@@ -43,6 +43,8 @@ def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
     target_paragraph = paragraph_to_insert_before.insert_paragraph_before()
     try:
         target_paragraph.style = source_paragraph.style
+        #target_paragraph.paragraph_format.space_after = source_paragraph.paragraph_format.space_after
+        target_paragraph.paragraph_format.space_after = Pt(6)
         #target_paragraph.style.font = source_paragraph.style.font.name
     except KeyError:
         print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")

@@ -1,5 +1,9 @@
-import easygui, os, docx
+import easygui, os, docx, logging
+from datetime import datetime
 import ps_docx_utils as pdu
+
+logging.basicConfig(filename=f'replace_text_{datetime.now().strftime("%H%M%S")}.log',filemode = 'w', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def find_docx_files(folder_path):
     """Finds all *.docx files in the specified folder and its subfolders.
@@ -38,28 +42,39 @@ def get_text_mapping(path):
 
 def process_file(path):
     doc = docx.Document(path)
-
+    print(f'Processing: {path}')
     for tm in text_mapping:
         found_start = False
         found_end = False
+        n=0
         i=0
+        p_buffer=[]
         for p in doc.paragraphs:
-            if i<len(tm["search"]) and p.text == tm["search"][i].text:
+            if i<len(tm["search"]) and p.text.lower().replace('  ',' ') == tm["search"][i].text.lower().replace('  ',' '):
                 if not found_start and i==0:
                     found_start = True
                 if found_start:
-                    pdu.delete_paragraph(p)
+                    p_buffer.append(p)
                 i+=1
-            elif found_start:
+            elif found_start and i==len(tm["search"]):
                 found_start = False
                 found_end = True
+            
+            elif found_start:
+                logger.info(f"WARNING! Not a full match for {tm['header']}. Found {i}/{len(tm["search"])}")
+                logger.info(f"{n} {p.text}")
+                logger.info(f"{n} {tm['search'][i].text}")
+                found_start = False
 
             if found_end:
+                for item in p_buffer:
+                    pdu.delete_paragraph(item)
+                p_buffer=[]
                 pdu.copy_paragraph_list_before(p,tm["replace"])
                 found_end = False
                 i=0
-                print(f'{path}: inserted {tm["header"]}')
-
+                logger.info(f'{path}: inserted {tm["header"]}')
+            n+=1
     doc.save(path)
 
 folder_path = easygui.diropenbox(title="Select Folder")    # Open folder selection dialog
@@ -74,3 +89,4 @@ if folder_path:    # Check if a folder was selected
 for filename in docx_files:
     process_file(filename)
 
+print('Done!')
