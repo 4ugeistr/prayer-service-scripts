@@ -24,8 +24,8 @@ if not os.path.exists(outpath):
     except OSError as error:
         print(error)    
 
-print('Отримуємо перелік doc')
-included_extensions = ['doc','docx']
+print('Отримуємо перелік docx')
+included_extensions = ['docx']
 doc_files = [fn for fn in os.listdir(path)
               if any(fn.endswith(ext) for ext in included_extensions)]
 print(f'   {len(doc_files)} файлів')
@@ -96,7 +96,7 @@ for filehtml in html_files:
                 if line.find('Під час 103-го псалма') != -1:
                     line = line + '<details><summary>Вечірні молитви</summary><ol>'
                     islist = True
-                if islist and line.find('<h') != -1:
+                if islist and (line.find('<h') != -1 or line.find("Велика єктенія")!=-1):
                     line = '</ol></details>\n' + line.replace('<li>', '')    
                     islist = False
                 if line.find('Пісня Богородиці') != -1:        

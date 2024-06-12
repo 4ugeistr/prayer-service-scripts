@@ -80,6 +80,11 @@ def process_file(path):
 folder_path = easygui.diropenbox(title="Select Folder")    # Open folder selection dialog
 
 text_mapping = get_text_mapping('docx_resources\\заміна-рубрики.docx')
+for tm in text_mapping:
+    for p in tm['replace']:
+        if p.text=='':
+            print(tm)
+            raise Exception
 
 if folder_path:    # Check if a folder was selected
     docx_files = find_docx_files(folder_path)
