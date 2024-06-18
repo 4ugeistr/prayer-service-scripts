@@ -217,7 +217,7 @@ month,date,day,special,тропар1,тропар2,слава,І нині,
 6,2024.06.03,1,n,,saint,,theotokos,
 6,2024.06.04,2,n,,saint,,theotokos,
 6,2024.06.05,3,n,,saint,,theotokos,треба виправити устав. в нас лиш 1 святий
-6,2024.06.06,4,n,,saint,,theotokos,
+6,2024.06.06,4,n,,saint,saint,theotokos,
 6,2024.06.07,5,y,,,,,
 6,2024.06.08,6,y,,,,,
 6,2024.06.09,7,n,,resurrection,saint,theotokos,
@@ -242,3 +242,34 @@ month,date,day,special,тропар1,тропар2,слава,І нині,
 6,2024.06.28,5,y,,,,,безср
 6,2024.06.29,6,y,,,,,ПП
 6,2024.06.30,7,n,,resurrection,saint,theotokos,
+7,2024.07.01,1,y,,saint,,theotokos,
+7,2024.07.02,2,n,,,,,Положення
+7,2024.07.03,3,y,,saint,,theotokos,
+7,2024.07.04,4,n,,,,,Євхаристії
+7,2024.07.05,5,n,,,,,Атанасія
+7,2024.07.06,6,y,,saint,,theotokos,
+7,2024.07.07,7,y,,resurrection,saint,theotokos,
+7,2024.07.08,1,y,,saint,,theotokos,
+7,2024.07.09,2,y,,saint,,theotokos,
+7,2024.07.10,3,n,,,,,Антонія
+7,2024.07.11,4,n,,,,,Ольги
+7,2024.07.12,5,n,,,,,Найсвятішого Серця
+7,2024.07.13,6,n,,,,,Сострадання
+7,2024.07.14,7,y,,resurrection,saint,theotokos,отців 6 соборів
+7,2024.07.15,1,n,,,,,Володимира
+7,2024.07.16,2,y,,saint,,theotokos,
+7,2024.07.17,3,y,,saint,,theotokos,
+7,2024.07.18,4,y,,saint,,theotokos,
+7,2024.07.19,5,y,,saint,saint,theotokos,2
+7,2024.07.20,6,n,,,,,Іллі
+7,2024.07.21,7,y,resurrection,saint,saint,theotokos,2
+7,2024.07.22,1,y,,saint,saint,theotokos,2
+7,2024.07.23,2,y,,saint,,theotokos,
+7,2024.07.24,3,n,,,,,Бориса і Гліба
+7,2024.07.25,4,n,,,,,Анни
+7,2024.07.26,5,y,,saint,saint,theotokos,2
+7,2024.07.27,6,n,,,,,Пантелеймона
+7,2024.07.28,7,y,,resurrection,saint,theotokos,
+7,2024.07.29,1,y,,saint,,theotokos,
+7,2024.07.30,2,y,,saint,,theotokos,
+7,2024.07.31,3,y,,saint,saint,theotokos,2

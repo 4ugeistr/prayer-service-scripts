@@ -10,8 +10,8 @@ mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-#month_no = 6
-#print("WARNING. Month_no OVERRIDE", month_no)
+month_no = 6
+print("WARNING. Month_no OVERRIDE", month_no)
 
 month_dic= {'Січень':1,
               'Лютий':2,
@@ -48,8 +48,6 @@ def get_matrix(csv_filename):
     with open(csv_filename, newline='', encoding='utf-8') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in spamreader:
-            #print(row)
-            #print(row[0],str(month_no))
             if row[0]==str(month_no):
                 matrix[int(row[1].split('.')[2])]=row[2:]
     return matrix
@@ -68,7 +66,6 @@ def copy_paragraph(target_doc,source_paragraph):
         new_run.font.highlight_color = run.font.highlight_color
 
 def copy_paragraph_before(paragraph,source_paragraph):
-    #print(source_paragraph)
     target_paragraph = paragraph.insert_paragraph_before()
     for run in source_paragraph.runs:
         new_run = target_paragraph.add_run(run.text)
@@ -137,7 +134,7 @@ def get_feast_template_texts(path):
 
 def get_template_files(path):
     files = glob.glob(path)
-    print(files)
+    #print(files)
     template_dic={}
     for f in files:
         re_result = re.search(r"docx_templates\\hours-template-(\d)",f)
@@ -147,7 +144,7 @@ def get_template_files(path):
 def get_hours_matrix():
     hours_matrix={}
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-        print(d)
+        #print(d)
         if ordo_matrix[d][1] =="":
             if len(templates_menaion[d])<=2:
                 hours_matrix[d] = ["","","",
@@ -176,8 +173,6 @@ def get_hours_matrix():
                 elif o =='triodion' and (i+1)%3!=0:
                     hours_matrix[d].append(troparia_lent_triodion[d][0])
                 elif o =='triodion' and (i+1)%3==0:
-                    if d==7:
-                        print(troparia_lent_triodion[d][1])
                     hours_matrix[d].append(troparia_lent_triodion[d][1])
                 elif o =='feast' and (i+1)%3!=0:
                     hours_matrix[d].append(templates_feast[d][0])
@@ -193,7 +188,7 @@ def get_hours_matrix():
                                 templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][3],
                                 templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][2],
                                 templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][3]]
-    print("paragraphs gathered")          
+    #print("paragraphs gathered")          
     '''
     for p in hours_matrix[2]:
         if type(p)==str:
@@ -206,7 +201,8 @@ def get_hours_matrix():
 if __name__== "__main__":
     ordo_matrix = get_matrix(f"Часи_{mode_dic_reversed[mode]}.csv")
     lent_triodion_templates = glob.glob('lent-triodion/*/*.docx')
-    pentecostarion_templates = glob.glob('pentecostarion/*/*.docx')
+    pentecostarion_templates = glob.glob('pentecost/*/*.docx')
+    pascha_templates = glob.glob('pascha/*/*.docx')
     templates_resurrection = get_resurrection_template_texts('воскресні.docx')
     #templates_menaion = get_menaion_troparia_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
     templates_menaion = get_menaion_template_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
@@ -224,7 +220,7 @@ if __name__== "__main__":
         os.makedirs(folder_name)
 
         
-    print(year_no, month_no)
+    #print(year_no, month_no)
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         #print(d,datetime(year_no, month_no, d).weekday()+1)
         day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
@@ -233,20 +229,27 @@ if __name__== "__main__":
         expected_pentecostarion_template_path=f"pentecost\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
 
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
-
+        template=None
         if day_details[0]=='lent' and expected_triodion_template_path in lent_triodion_templates and (day_details[3] in (1,2,3,4,5,6) or (day_details[1] in (6,7) and day_details[3]==7)):
-            shutil.copy2(expected_triodion_template_path,dest_filename)
-
-        elif day_details[0]=='pascha' and expected_pascha_template_path in pentecostarion_templates:
-            shutil.copy2(expected_pentecostarion_template_path,dest_filename)
+            template = expected_triodion_template_path
+            #shutil.copy2(expected_triodion_template_path,dest_filename)
+        elif day_details[0]=='pascha' and expected_pascha_template_path in pascha_templates:
+            template = expected_pascha_template_path
+            #shutil.copy2(expected_pentecostarion_template_path,dest_filename)
         elif day_details[0]=='pentecost' and expected_pentecostarion_template_path in pentecostarion_templates:
-            shutil.copy2(expected_pentecostarion_template_path,dest_filename)
+            template = expected_pentecostarion_template_path
+            #shutil.copy2(expected_pentecostarion_template_path,dest_filename)
 
         elif ordo_matrix[d][1]=='y' or datetime(year_no, month_no, d).weekday()+1==7:
-            shutil.copy2(template_file_list[7],dest_filename)
+            template = template_file_list[7]
+            #shutil.copy2(template_file_list[7],dest_filename)
         else:
-            shutil.copy2(template_file_list[datetime(year_no, month_no, d).weekday()+1],dest_filename)
-    print("templates created")
+            template = template_file_list[datetime(year_no, month_no, d).weekday()+1]
+            #shutil.copy2(template_file_list[datetime(year_no, month_no, d).weekday()+1],dest_filename)
+        #print(f"{d:02}", day_details, expected_pascha_template_path if day_details=='pascha' else expected_pentecostarion_template_path)
+        #print("template: ",template)
+        shutil.copy2(template,dest_filename)
+    print("Stub files created.")
 
 
 

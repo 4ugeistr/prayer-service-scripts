@@ -108,7 +108,7 @@ for filehtml in html_files:
                 if line.startswith('<li></li>'):
                     print(f'УВАГА: щось пішло не так. Перевірити {filehtml}')
                     f.close()
-                    raise Error
+                    raise Exception
                 #print(line)
                 f.write(line)
 

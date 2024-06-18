@@ -2,6 +2,9 @@ import easygui, os, docx, logging
 from datetime import datetime
 import ps_docx_utils as pdu
 
+start_time = datetime.now()
+
+
 logging.basicConfig(filename=f'replace_text_{datetime.now().strftime("%H%M%S")}.log',filemode = 'w', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -67,13 +70,14 @@ def process_file(path):
                 found_start = False
 
             if found_end:
-                for item in p_buffer:
-                    pdu.delete_paragraph(item)
-                p_buffer=[]
-                pdu.copy_paragraph_list_before(p,tm["replace"])
-                found_end = False
-                i=0
-                logger.info(f'{path}: inserted {tm["header"]}')
+                if not(i==1 and p.text == tm["search"][0].text):
+                    for item in p_buffer:
+                        pdu.delete_paragraph(item)
+                    p_buffer=[]
+                    pdu.copy_paragraph_list_before(p,tm["replace"])
+                    found_end = False
+                    i=0
+                    logger.info(f'{path}: inserted {tm["header"]}')
             n+=1
     doc.save(path)
 
@@ -95,3 +99,7 @@ for filename in docx_files:
     process_file(filename)
 
 print('Done!')
+
+end_time = datetime.now()
+elapsed_time = (end_time - start_time).total_seconds()
+print(f"Elapsed time : {elapsed_time}") 
