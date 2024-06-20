@@ -15,8 +15,9 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-month_no=6
-print(f"WARNING: MONTH OVERRIDE: {month_no}")
+#month_no=6
+#print(f"WARNING: MONTH OVERRIDE!")
+print(f"Processing month: {month_no}")
 
 day_short_dic={"ПН":1,
         "ВТ":2,
@@ -224,7 +225,7 @@ def get_menaion_template_files():
     filenames = glob.glob(f'В,У - Мінея/{month_no:02}*/*.docx')
     template_dic={}
     for f in filenames:
-        print("Checking",f)
+        #print("Checking",f)
         pattern=r'(\d{2})-__-(.*?).docx'
         #print(pattern)
         re_result = re.search(pattern,f)
@@ -512,7 +513,11 @@ def get_troparia_block(date,service):
         #    print(ordo_matrix[date.day][2:][i])
         #    print(troparia.text)        
         troparia_block.append(troparia)
+    
+    #???
+    #print(troparia_block)
     troparia_block.append(troparia_block[-1].insert_paragraph_before())        
+    #print(troparia_block)
     return troparia_block
 
 def insert_troparia(path,date):
@@ -682,7 +687,7 @@ def insert_dismissal(path,date):
 
         if shoutout_found:
             #print(date.day, "inserting")
-            p_new=p.insert_paragraph_before(dismissal_matrix[date.day][-1])
+            p_new=p.insert_paragraph_before(dismissal_matrix[date.day][9])
             #print(date.day,p_new.text)
             format_line(p_new, '')
             delete_paragraph(p)
@@ -931,12 +936,15 @@ ordo_matrix = get_matrix(f"тропарі{mode_suffix2}.csv")
 stichera_gv_matrix = get_matrix(f"стихириМінеї{mode_suffix2}.csv")
 dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
 saint_matrix = get_matrix_full("Місяцеслов-БД.csv")
+filename_triodion_matrix = get_matrix_full("Місяцеслов-БД-Тріодь.csv")
 templates_octoechos_dic = get_octoechos_template_files()
 templates_menaion_dic = get_menaion_template_files()
 templates_resurrection = get_resurrection_troparia_texts('воскресні.docx')
 #templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
+
 templates_menaion = get_menaion_troparia_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
-templates_triodion = get_menaion_troparia_texts(glob.glob(f'тріодь-{month_no:02}.docx')[0])
+if glob.glob(f'тріодь-{month_no:02}.docx'):
+    templates_triodion = get_menaion_troparia_texts(glob.glob(f'тріодь-{month_no:02}.docx')[0])
 
 vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
 templates_theotokion_dic = get_theotokion_troparia_texts('богородичні-тропарі.docx')
@@ -953,6 +961,19 @@ if not os.path.exists(folder_name):
 
 print(year_no, month_no)
 
+def get_saints_for_filename(month,day,multiline=False):
+    index = 10
+    separator = ','
+    saint_string=""
+    for row in saint_matrix[1:]:
+        if int(row[0])==month and int(row[1])==day:
+            if row[index]:
+                if saint_string:
+                    saint_string+=separator+row[index]
+                else:
+                    saint_string=row[index]
+    return saint_string
+
 
 
 paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
@@ -962,23 +983,28 @@ for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
 #for d in range(1,5):    
     draft_dic[d]=[]
     #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
-    
-    dest_filename=f'{folder_name}\\{d:02}-{day_short_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
-    if datetime(year_no, month_no, d).weekday()+1==7:
-        
-        dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)}'
-    try:
-        dest_filename+=f'-{filenames[month_no][d]}.docx'
-    #TODO: change to process as an edge case rather then exception handling
-    except KeyError as e:
-        if month_no == 2 and d == 29:
-            dest_filename+=f'-Касіана.docx'
-        else:
-            print(f"УВАГА: відсутнє коротке ім'я для {d}")
-            dest_filename+=f'-___.docx'
     day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
     #print(d, day_details)
+    filename_triodion_row = None
+    filename_menaion_string = get_saints_for_filename(month_no,d)
 
+    for row in filename_triodion_matrix:
+        if day_details[0] == row[0] and day_details[1] == int(row[1]) and day_details[3] == int(row[3]):
+            filename_triodion_row = row
+    
+    dest_filename=f'{folder_name}\\{d:02}-{day_short_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
+    
+    if datetime(year_no, month_no, d).weekday()+1==7: 
+        dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)}'
+    
+    if filename_triodion_row:
+        dest_filename+=f'-{filename_triodion_row[12]}.docx'
+    elif filename_menaion_string:
+        dest_filename+=f'-{filename_menaion_string}.docx'
+    else:
+        print(f"УВАГА: відсутнє коротке ім'я для {d}")
+        dest_filename+=f'-___.docx'
+    
     #print(expected_template_path)
     if day_details[0]=='lent':
         expected_lent_template_path = f"В,У - Пісна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"    

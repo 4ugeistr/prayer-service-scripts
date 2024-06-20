@@ -22,6 +22,20 @@ def get_saints(month,day,mode='full',multiline=False):
                 saint_string=row[index]
     return saint_string
 
+def get_saints_for_filename(month,day,multiline=False):
+    index = 10
+    separator = ','
+    saint_string=""
+    for row in saint_matrix[1:]:
+        if int(row[0])==month and int(row[1])==day:
+            if row[index]:
+                if saint_string:
+                    saint_string+=separator+row[index]
+                else:
+                    saint_string=row[index]
+    return saint_string
+
+
 def get_matrix_full(csv_filename):
     matrix=[]
     with open(csv_filename, newline='', encoding='utf-8') as csvfile:
