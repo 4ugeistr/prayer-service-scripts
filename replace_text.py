@@ -8,16 +8,10 @@ start_time = datetime.now()
 logging.basicConfig(filename=f'replace_text_{datetime.now().strftime("%H%M%S")}.log',filemode = 'w', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+'''
+Finds all *.docx files in the specified folder and its subfolders.
+'''
 def find_docx_files(folder_path):
-    """Finds all *.docx files in the specified folder and its subfolders.
-
-    Args:
-        folder_path: The path to the folder where the search should begin.
-
-    Returns:
-        A list of full paths to all the found *.docx files.
-    """
-
     docx_files = []
     for root, _, files in os.walk(folder_path):
         for filename in files:
