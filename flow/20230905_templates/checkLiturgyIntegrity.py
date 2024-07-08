@@ -18,7 +18,10 @@ month_dic_reversed = {v:k for k,v in month_dic.items()}
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
-#month_no=5
+
+month_no=7
+print("WARNING. Month_no OVERRIDE", month_no)
+
 cur_month=month_dic_reversed[month_no]
 
 if mode == 'u':
