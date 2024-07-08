@@ -10,8 +10,8 @@ mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-#month_no = 6
-#print("WARNING. Month_no OVERRIDE", month_no)
+month_no = 7
+print("WARNING. Month_no OVERRIDE", month_no)
 
 month_dic= {'Січень':1,
               'Лютий':2,
@@ -246,8 +246,8 @@ if __name__== "__main__":
         else:
             template = template_file_list[datetime(year_no, month_no, d).weekday()+1]
             #shutil.copy2(template_file_list[datetime(year_no, month_no, d).weekday()+1],dest_filename)
-        print(f"{d:02}", day_details, expected_pascha_template_path if day_details=='pascha' else expected_pentecostarion_template_path)
-        print("template: ",template)
+        #print(f"{d:02}", day_details, expected_pascha_template_path if day_details=='pascha' else expected_pentecostarion_template_path)
+        #print("template: ",template)
         shutil.copy2(template,dest_filename)
     print("Stub files created.")
 
@@ -291,7 +291,7 @@ if __name__== "__main__":
                 value=hours_matrix[d][3*hours_translate[hour]-3]
                 if not type(value)==str:
                     #print('inserting slava')
-                    copy_paragraph_before(p,value)
+                    copy_paragraph_before(p,svalue)
 
             re_result = re.search(r"^Тропар(\s)?",p.text)
             if re_result and hour and ordo_matrix[d][1]!='n':
