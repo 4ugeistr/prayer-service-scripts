@@ -269,8 +269,7 @@ if __name__== "__main__":
 
 
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-    #    print(d)
-    #for d in range(16,17):
+        #print(d)
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
         doc = docx.Document(dest_filename)
         hour=None
@@ -291,7 +290,7 @@ if __name__== "__main__":
                 value=hours_matrix[d][3*hours_translate[hour]-3]
                 if not type(value)==str:
                     #print('inserting slava')
-                    copy_paragraph_before(p,svalue)
+                    copy_paragraph_before(p,value)
 
             re_result = re.search(r"^Тропар(\s)?",p.text)
             if re_result and hour and ordo_matrix[d][1]!='n':
