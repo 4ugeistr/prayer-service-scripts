@@ -33,6 +33,17 @@ weekday_list = {
                 6:'сб',
                 7:'нд'}
 
+ev_dic = {
+    'Йо.':'iv',
+    'Лк.':'lk',
+    'Мт.':'mt',
+    'Мр.':'mr'
+    }
+
+def clean_half_words(s):
+    s=s.replace(' (від половини)','').replace(' (від полов.)','')
+    return s
+
 def clean_tags(s):
     symbol_dict={
     '#':'🕀',
@@ -146,9 +157,7 @@ for k,v in lines_dict.items():
     v['array_transformed']=copy.copy(v['array'])+[""]*4
 
 
-print(lines_dict[8])
 #convert apostol
-
 apostol_list=[]
 with open('apostol.csv', newline='', encoding='utf-8') as csvfile:
     csvreader = csv.reader(csvfile, delimiter=',', quotechar='"')
@@ -194,12 +203,11 @@ for k,v in lines_dict.items():
             print(k,2+i,v['array'][2+i], item_found[0])
             print('ratio:',ratio_max)
             #raise Exception
-ev_dic = {
-    'Йо.':'iv',
-    'Лк.':'lk',
-    'Мт.':'mt',
-    'Мр.':'mr'
-    }
+
+
+for k,v in lines_dict.items():
+    v['array']=[clean_half_words(item) for item in v['array']]
+
 for k,v in lines_dict.items():
     for i in range(2):
         found=False
