@@ -58,7 +58,7 @@ def process_file(path):
                 found_end = True
             
             elif found_start:
-                logger.info(f"WARNING! Not a full match for {tm['header']}. Found {i}/{len(tm["search"])}")
+                logger.info(f"WARNING! Not a full match for {tm['header']}. Found {i}/{len(tm['search'])}")
                 logger.info(f"{n} {p.text}")
                 logger.info(f"{n} {tm['search'][i].text}")
                 found_start = False

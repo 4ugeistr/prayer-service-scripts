@@ -487,7 +487,7 @@ def get_troparia_block(date,service):
                 else:
                     troparia=templates_menaion[date.day][saint_counter]["troparion"]
             except IndexError as e:
-                print(e)
+                print(date.day, e)
                 print("Check if troparion is in the file")
                 print("Check if menaion matrix is populated")
                 raise e
@@ -515,13 +515,18 @@ def get_troparia_block(date,service):
         troparia_block.append(troparia)
     
     #???
-    #print(troparia_block)
-    troparia_block.append(troparia_block[-1].insert_paragraph_before())        
-    #print(troparia_block)
+    
+    troparia_block.append(troparia_block[-1].insert_paragraph_before())
+    print([item.text[:16] for item in troparia_block])
+    for i in list(range(len(troparia_block))):
+        if troparia_block[i].text:
+            troparia_block[i].runs[0].text = troparia_block[i].runs[0].text.replace('Тропар ','').replace('Богородичний ','')  
+        
+    print([item.text[:16] for item in troparia_block])
     return troparia_block
 
 def insert_troparia(path,date):
-    #print(date.day)
+    print(date.day)
     doc = docx.Document(path)
     troparia_block = {"orthros": get_troparia_block(date,'orthros'),
                       "vespers": get_troparia_block(date,'vespers')}
