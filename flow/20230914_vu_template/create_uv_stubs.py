@@ -492,37 +492,35 @@ def get_troparia_block(date,service):
                 print("Check if menaion matrix is populated")
                 raise e
 
-            #troparia_block.append(troparia)
             saint_counter+=1
-        #if i==3 and ordo_matrix[date.day][2:][i] == 'saint':
-        #    troparia_block.append(templates_resurrection[date.day][troparion_count]["troparion"])
+            
         if ordo_matrix[date.day][2:][i] == 'theotokos':
-            #echos = int(re.search("(\d)",templates_resurrection[date.day][saint_counter]["troparion"]).group(1))
-            #print(troparia_block[-1], troparia_block[-1].text)
             echos = int(re.search(r"(\d)",troparia_block[-1].text).group(1))
+        
             if ordo_matrix[date.day][2:][2]:
-                #print("І нині")
                 troparia=insert_prefix_to_paragraph(get_troparia_theotokion(echos,date,service),text="І нині: ")
-                #print("to insert",troparia.text)
             else:
-                #print("Слава і нині")
-                troparia=insert_prefix_to_paragraph(get_troparia_theotokion(echos,date,service),text="Слава, і нині: ")
-                #print("to insert",troparia.text)
-        #if date.day==8:
-        #    print("inserting",i,ordo_matrix[date.day])
-        #    print(ordo_matrix[date.day][2:][i])
-        #    print(troparia.text)        
+                troparia=insert_prefix_to_paragraph(get_troparia_theotokion(echos,date,service),text="Слава, і нині: ")    
         troparia_block.append(troparia)
     
     #???
-    
     troparia_block.append(troparia_block[-1].insert_paragraph_before())
-    print([item.text[:16] for item in troparia_block])
-    for i in list(range(len(troparia_block))):
-        if troparia_block[i].text:
-            troparia_block[i].runs[0].text = troparia_block[i].runs[0].text.replace('Тропар ','').replace('Богородичний ','')  
-        
-    print([item.text[:16] for item in troparia_block])
+    #print([item.text[:36] for item in troparia_block])
+
+    for p in troparia_block:
+        re_result = re.search("^(.*?)(Богородичний |Тропар |Кондак )(\(г. \d\): )(.*)",p.text)
+        if re_result:
+            for r in p.runs:
+                delete_run(r)
+            if re_result.group(1):
+                r_new = p.add_run(re_result.group(1))
+                format_run(r_new,'b')
+            r_new = p.add_run(re_result.group(3))
+            format_run(r_new,'ri')
+            r_new = p.add_run(re_result.group(4))
+            format_run(r_new,'')
+
+    #print([item.text[:36] for item in troparia_block])
     return troparia_block
 
 def insert_troparia(path,date):
@@ -580,6 +578,17 @@ def format_line(p, handle=''):
         p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
     p.runs[0].font.name='Times New Roman'
     p.runs[0].font.size=152400
+
+def format_run(r, handle=''):
+    #handle = "bir"
+    if 'b' in handle:
+        r.font.bold = True
+    if 'i' in handle:
+        r.font.italic = True
+    if 'r' in handle:
+        r.font.color.rgb = RGBColor(0xff, 0x44, 0x00)
+    r.font.name='Times New Roman'
+    r.font.size=152400
 
 def insert_header(path,date):
     #print(date)
@@ -1054,7 +1063,8 @@ for d,desc in draft_dic.items():
     #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
     insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d))
     insert_dismissal(desc[1],datetime(year_no, month_no, d))
-    insert_menaion_stichera(desc[1],datetime(year_no, month_no, d),desc[0])
+    
+    
 
     if desc[0] in ('неділя','октоїх','пасха','50-ця'):
         #вставити стихири ГВ
@@ -1072,6 +1082,8 @@ for d,desc in draft_dic.items():
     if desc[0]=='мінея':
         #вставити прокімен
         insert_prokimenon(desc[1], datetime(year_no, month_no, d).weekday()+1)
+    else:
+        insert_menaion_stichera(desc[1],datetime(year_no, month_no, d),desc[0])    
     if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1==6:
         pass
 
