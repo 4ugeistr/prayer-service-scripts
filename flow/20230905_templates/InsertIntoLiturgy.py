@@ -25,7 +25,6 @@ docx_filename = easygui.fileopenbox(
     default="*.docx"
 )
 
-
 if mode == 'u':
     mode_suffix='Юл'
 elif mode == 'g':
@@ -231,8 +230,8 @@ def add_text(p,text, color=BLACK):
         r.italic = True
 
 for p in doc.paragraphs:
-    if re.search(f'Священик:',p.text):
-        re_result=re.search(f'^(Священик:)( .+?)(якого є храм)(.*?)$',p.text)
+    if re.search(f'Священ{1,2}ик:',p.text):
+        re_result=re.search(f'^(Священ{1,2}ик:)( .+?)(якого є храм)(.*?)$',p.text)
         p_bak=p.text
         p.clear()
 
