@@ -40,6 +40,7 @@ def get_text_mapping(path):
 def process_file(path):
     doc = docx.Document(path)
     print(f'Processing: {path}')
+    logger.info(f'Processing: {path}')
     for tm in text_mapping:
         found_start = False
         found_end = False
