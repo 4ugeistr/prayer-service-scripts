@@ -10,8 +10,8 @@ RGB_RED = RGBColor(0xff, 0x44, 0x00)
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-#month_no=7
-#print("WARNING. Month_no OVERRIDE", month_no)
+month_no=8
+print("WARNING. Month_no OVERRIDE", month_no)
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
@@ -84,6 +84,7 @@ with open(csv_filename, newline='', encoding='utf-8') as csvfile:
     spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
     for row in spamreader:
         if row[0]==cur_month:
+
             reading_matrix[int(row[1].split('.')[0])]=row[2:]
             #print(int(row[1].split('.')[0]), row[2:])
 
