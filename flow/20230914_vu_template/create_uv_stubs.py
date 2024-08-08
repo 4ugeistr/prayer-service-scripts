@@ -15,8 +15,8 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-#month_no=6
-#print(f"WARNING: MONTH OVERRIDE!")
+month_no=8
+print(f"WARNING: MONTH OVERRIDE!")
 print(f"Processing month: {month_no}")
 
 day_short_dic={"ПН":1,
@@ -508,7 +508,7 @@ def get_troparia_block(date,service):
     #print([item.text[:36] for item in troparia_block])
 
     for p in troparia_block:
-        re_result = re.search("^(.*?)(Богородичний |Тропар |Кондак )(\(г. \d\): )(.*)",p.text)
+        re_result = re.search(r"^(.*?)(Богородичний |Тропар |Кондак )(\(г. \d\): )(.*)",p.text)
         if re_result:
             for r in p.runs:
                 delete_run(r)
@@ -988,103 +988,141 @@ def get_saints_for_filename(month,day,multiline=False):
                     saint_string=row[index]
     return saint_string
 
-
-
+draft_dic={}
 paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
 
-draft_dic={}
-for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-#for d in range(1,5):    
-    draft_dic[d]=[]
-    #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
-    day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
-    #print(d, day_details)
-    filename_triodion_row = None
-    filename_menaion_string = get_saints_for_filename(month_no,d)
+def create_stubs():
+    print("commencins creation")
+    
 
-    for row in filename_triodion_matrix:
-        if day_details[0] == row[0] and day_details[1] == int(row[1]) and day_details[3] == int(row[3]):
-            filename_triodion_row = row
-    
-    dest_filename=f'{folder_name}\\{d:02}-{day_short_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
-    
-    if datetime(year_no, month_no, d).weekday()+1==7: 
-        dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)}'
-    
-    if filename_triodion_row:
-        dest_filename+=f'-{filename_triodion_row[12]}.docx'
-    elif filename_menaion_string:
-        dest_filename+=f'-{filename_menaion_string}.docx'
-    else:
-        print(f"УВАГА: відсутнє коротке ім'я для {d}")
-        dest_filename+=f'-___.docx'
-    
-    #print(expected_template_path)
-    if day_details[0]=='lent':
-        expected_lent_template_path = f"В,У - Пісна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"    
-        if expected_lent_template_path in lent_templates and day_details[3]!=7:
-            src_filename=expected_lent_template_path
-            draft_dic[d].append('піст')
-            #print(d, "Шаблон Великого Посту")
-    elif day_details[0] in ('pascha'):
-        expected_template_path = f"В,У - Квітна Тріодь\\pascha-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"
+    draft_dic={}
+    for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
+    #for d in range(1,5):    
+        draft_dic[d]=[]
+        print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
+        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
+        #print(d, day_details)
+        filename_triodion_row = None
+        filename_menaion_string = get_saints_for_filename(month_no,d)
+
+        for row in filename_triodion_matrix:
+            if day_details[0] == row[0] and day_details[1] == int(row[1]) and day_details[3] == int(row[3]):
+                filename_triodion_row = row
+        
+        dest_filename=f'{folder_name}\\{d:02}-{day_short_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
+        
+        if datetime(year_no, month_no, d).weekday()+1==7: 
+            dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)}'
+        
+        if filename_triodion_row:
+            dest_filename+=f'-{filename_triodion_row[12]}.docx'
+        elif filename_menaion_string:
+            dest_filename+=f'-{filename_menaion_string}.docx'
+        else:
+            print(f"УВАГА: відсутнє коротке ім'я для {d}")
+            dest_filename+=f'-___.docx'
+        
         #print(expected_template_path)
-        if expected_template_path in pascha_pentecost_templates:
-            src_filename=expected_template_path
-            draft_dic[d].append('пасха')
+        if day_details[0]=='lent':
+            expected_lent_template_path = f"В,У - Пісна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"    
+            if expected_lent_template_path in lent_templates and day_details[3]!=7:
+                src_filename=expected_lent_template_path
+                draft_dic[d].append('піст')
+                #print(d, "Шаблон Великого Посту")
+        elif day_details[0] in ('pascha'):
+            expected_template_path = f"В,У - Квітна Тріодь\\pascha-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"
+            #print(expected_template_path)
+            if expected_template_path in pascha_pentecost_templates:
+                src_filename=expected_template_path
+                draft_dic[d].append('пасха')
 
-    elif day_details[0] == 'pentecost':
-        expected_template_path = f"В,У - Квітна Тріодь\\pentecost-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"
-        #print(expected_template_path)
-        if expected_template_path in pascha_pentecost_templates:
-            src_filename=expected_template_path
-            draft_dic[d].append('50-ця')
+        elif day_details[0] == 'pentecost':
+            expected_template_path = f"В,У - Квітна Тріодь\\pentecost-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"
+            #print(expected_template_path)
+            if expected_template_path in pascha_pentecost_templates:
+                src_filename=expected_template_path
+                draft_dic[d].append('50-ця')
 
-        elif d in templates_menaion_dic.keys() and datetime(year_no, month_no, d).weekday()+1!=7:
-            src_filename=templates_menaion_dic[d]
-            draft_dic[d].append('мінея')
-            #print(d, "Шаблон Мінеї")
-        else:        
-            src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)][datetime(year_no, month_no, d).weekday()+1]
-            draft_dic[d].append('октоїх')
-            #print(d, "Шаблон Октоїха")
-    try:
-        shutil.copy2(src_filename,dest_filename)
-    except NameError as e:
-        print(e)
-        print("Помилка для дня ", d)
-        raise e
-    draft_dic[d].append(dest_filename)
+            elif d in templates_menaion_dic.keys() and datetime(year_no, month_no, d).weekday()+1!=7:
+                src_filename=templates_menaion_dic[d]
+                draft_dic[d].append('мінея')
+                #print(d, "Шаблон Мінеї")
+            else:        
+                src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)][datetime(year_no, month_no, d).weekday()+1]
+                draft_dic[d].append('октоїх')
+                #print(d, "Шаблон Октоїха")
+        try:
+            shutil.copy2(src_filename,dest_filename)
+        except NameError as e:
+            print(e)
+            print("Помилка для дня ", d)
+            raise e
+        draft_dic[d].append(dest_filename)
+    print("Завершено створення чернеток УВ!")
+    return draft_dic
 
 
+def update_stubs(draft_dic):
+    #drafts = glob.glob(f'{folder_name}\\*.docx')
+    for d,desc in draft_dic.items():
+        #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
+        insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d))
+        insert_dismissal(desc[1],datetime(year_no, month_no, d))
+        
+        if desc[0] in ('неділя','октоїх','пасха','50-ця'):
+            #вставити стихири ГВ
+            #вставити тропарі вечірні
+            if ordo_matrix[d][1]!='y':
+                #if d==2:
+                #    print(f'inserting troparia for {d}')
+                insert_troparia(desc[1],datetime(year_no, month_no, d))
+            #вставити глас для Бог Господь
+            insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
+            #вставити тропарі на Бог Господь
+            #вставити тропарі вкінці утрені
+        if desc[0] in ('октоїх') and (datetime(year_no, month_no, d).weekday()+1)!=7:
+            insert_kanon(desc[1],datetime(year_no, month_no, d))
+        if desc[0]=='мінея':
+            #вставити прокімен
+            insert_prokimenon(desc[1], datetime(year_no, month_no, d).weekday()+1)
+        else:
+            insert_menaion_stichera(desc[1],datetime(year_no, month_no, d),desc[0])    
+        if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1==6:
+            pass
 
-#drafts = glob.glob(f'{folder_name}\\*.docx')
-for d,desc in draft_dic.items():
-    #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
-    insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d))
-    insert_dismissal(desc[1],datetime(year_no, month_no, d))
+    print("Завершено оновлення чернеток УВ!")
     
-    
+def get_files_in_dir():
+    draft_dic={}
+    path = easygui.diropenbox()
+    file_list = glob.glob(f'{path}/*.docx')
+    #for item in file_list:
+    #    print(item)
+    for item in file_list:
+        try:
+            day=int(item.split('\\')[-1][:2])
+            draft_dic[day]=['',item]
+        except Exception as e:
+            raise e
+    return draft_dic
 
-    if desc[0] in ('неділя','октоїх','пасха','50-ця'):
-        #вставити стихири ГВ
-        #вставити тропарі вечірні
-        if ordo_matrix[d][1]!='y':
-            #if d==2:
-            #    print(f'inserting troparia for {d}')
-            insert_troparia(desc[1],datetime(year_no, month_no, d))
-        #вставити глас для Бог Господь
-        insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
-        #вставити тропарі на Бог Господь
-        #вставити тропарі вкінці утрені
-    if desc[0] in ('октоїх') and (datetime(year_no, month_no, d).weekday()+1)!=7:
-        insert_kanon(desc[1],datetime(year_no, month_no, d))
-    if desc[0]=='мінея':
-        #вставити прокімен
-        insert_prokimenon(desc[1], datetime(year_no, month_no, d).weekday()+1)
-    else:
-        insert_menaion_stichera(desc[1],datetime(year_no, month_no, d),desc[0])    
-    if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1==6:
-        pass
 
-print("Завершено створення чернеток УВ!")
+
+if __name__ == "__main__":
+    action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', ["1. Згенерувати чернетки","2. Оновити Відпусти"])
+    print(type(action))
+    print(action)
+    if action[0]=="1":
+        print("chose 1")
+        draft_dic = create_stubs()
+        #print(draft_dic[1])
+        update_stubs(draft_dic)
+    elif action[0]=="2":
+        draft_dic=get_files_in_dir()
+        #print(len(draft_dic))
+        #print(draft_dic[1])
+        for d,desc in draft_dic.items():
+            insert_dismissal(desc[1],datetime(year_no, month_no, d))
+        print("Завершено оновлення відпустів")
+    print("All done!")
+
