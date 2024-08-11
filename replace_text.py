@@ -41,15 +41,36 @@ def process_file(path):
     doc = docx.Document(path)
     print(f'Processing: {path}')
     logger.info(f'Processing: {path}')
+    file_changed=False
+
+    #dbg
+    prok = False
+
     for tm in text_mapping:
+
+        #dbg
+        if 'Псалом' in tm['search'][0].text:
+            logger.info(f"___Probing {tm['search'][0].text}")
+            logger.info(f"___Strings qty = {len(tm['search'])}")
+            prok = True
+            #logger.info
         found_start = False
         found_end = False
         n=0
         i=0
         p_buffer=[]
         for p in doc.paragraphs:
-            if i<len(tm["search"]) and p.text.lower().replace('  ',' ') == tm["search"][i].text.lower().replace('  ',' '):
+            #logger.info(p.text)
+
+            if prok and i ==0:
+                logger.info(p.text.lower().replace('  ',' ').strip())
+                logger.info(tm["search"][i].text.lower().replace('  ',' ').strip())
+                logger.info(p.text.lower().replace('  ',' ').strip() == tm["search"][i].text.lower().replace('  ',' ').strip())
+
+
+            if i<len(tm["search"]) and p.text.lower().replace('  ',' ').strip() == tm["search"][i].text.lower().replace('  ',' ').strip():
                 if not found_start and i==0:
+                    logger.info("NEW START"+p.text)
                     found_start = True
                 if found_start:
                     p_buffer.append(p)
@@ -60,11 +81,14 @@ def process_file(path):
             
             elif found_start:
                 logger.info(f"WARNING! Not a full match for {tm['header']}. Found {i}/{len(tm['search'])}")
-                logger.info(f"{n} {p.text}")
-                logger.info(f"{n} {tm['search'][i].text}")
+                #logger.info(f"{n} {p.text}")
+                #logger.info(f"{n} {tm['search'][i].text}")
                 found_start = False
+                p_buffer=[]
+                i=0
 
             if found_end:
+                file_changed=True
                 if not(i==1 and p.text == tm["search"][0].text):
                     for item in p_buffer:
                         pdu.delete_paragraph(item)
@@ -74,16 +98,30 @@ def process_file(path):
                     i=0
                     logger.info(f'{path}: inserted {tm["header"]}')
             n+=1
-    doc.save(path)
+        #dbg
+        prok = False
+    if file_changed:
+        doc.save(path)
+
+def sanitize_spaces(path):
+    found = False
+    doc = docx.Document(path)
+    for p in doc.paragraphs:
+        for r in p.runs:
+            if '\xa0' in r.text:
+                found = True
+                r.text = r.text.replace('\xa0',' ')
+    if found:
+        doc.save(path)
 
 folder_path = easygui.diropenbox(title="Select Folder")    # Open folder selection dialog
 
 text_mapping = get_text_mapping('docx_resources\\заміна-рубрики.docx')
 for tm in text_mapping:
-    for p in tm['replace']:
-        if p.text=='':
-            print(tm)
-            raise Exception
+    #for p in tm['replace']:
+    if tm['replace'][-1].text=='':
+        print(tm)
+        raise Exception
 
 if folder_path:    # Check if a folder was selected
     docx_files = find_docx_files(folder_path)
@@ -91,6 +129,7 @@ if folder_path:    # Check if a folder was selected
     #    print(docx_files)
 
 for filename in docx_files:
+    sanitize_spaces(filename)
     process_file(filename)
 
 print('Done!')

@@ -231,8 +231,9 @@ def add_text(p,text, color=BLACK):
         r.italic = True
 
 for p in doc.paragraphs:
-    if re.search(f'Священ{1,2}ик:',p.text):
-        re_result=re.search(f'^(Священ{1,2}ик:)( .+?)(якого є храм)(.*?)$',p.text)
+    if re.search(r'Священ{1,2}ик:',p.text):
+        #print('found dissmissal',p.text[:40])
+        re_result=re.search(r'^(Священ{1,2}ик:)( .+?)(якого є храм)(.*?)$',p.text)
         p_bak=p.text
         p.clear()
 
@@ -243,7 +244,7 @@ for p in doc.paragraphs:
                 add_text(p,re_result.group(3),color=RED)
                 add_text(p,re_result.group(4))
             else:
-                re_result=re.search(f'^(Священик:)(.*?)$',p_bak)
+                re_result=re.search(r'^(Священ{1,2}ик:)(.*?)$',p_bak)
                 add_text(p,re_result.group(1),color=RED)
                 add_text(p,re_result.group(2))
         except:

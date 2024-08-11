@@ -702,6 +702,7 @@ def insert_dismissal(path,date):
         if shoutout_found:
             #print(date.day, "inserting")
             p_new=p.insert_paragraph_before(dismissal_matrix[date.day][9])
+            p_new.paragraph_format.space_after = Pt(6)
             #print(date.day,p_new.text)
             format_line(p_new, '')
             delete_paragraph(p)
@@ -1106,11 +1107,15 @@ def get_files_in_dir():
             raise e
     return draft_dic
 
-
+def sanitize_spaces(path):
+    doc = docx.Document(path)
+    for p in doc.paragraphs:
+        for r in p.runs:
+            r.text = r.text.replace('\xa0',' ')
+    doc.save(path)
 
 if __name__ == "__main__":
     action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', ["1. Згенерувати чернетки","2. Оновити Відпусти"])
-    print(type(action))
     print(action)
     if action[0]=="1":
         print("chose 1")
