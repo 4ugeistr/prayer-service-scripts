@@ -15,7 +15,7 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-month_no=8
+month_no=9
 print(f"WARNING: MONTH OVERRIDE!")
 print(f"Processing month: {month_no}")
 
@@ -266,15 +266,15 @@ def get_resurrection_troparia_texts(path):
     return template_dic
 
 def get_menaion_troparia_texts(path):
-    #print("in")
+    #print("Building Menaion Troparia matrix")
     template_dic={}
     doc = docx.Document(path)
     key = None #cur_day
     saint={}
     for p in doc.paragraphs:
-        re_result = re.search(r"^(\d+) (.*)",p.text)
+        re_result = re.search(r"^(\d+)( |\.)(.*)",p.text)
         if re_result:
-            #print("found")
+            #print(f"found day {re_result.group(1)}")
             key=int(re_result.group(1))
             cur_day_heading = re_result.group(2)
             template_dic[key]=[]
@@ -993,9 +993,8 @@ draft_dic={}
 paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
 
 def create_stubs():
-    print("commencins creation")
+    print("commencing creation")
     
-
     draft_dic={}
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     #for d in range(1,5):    
@@ -1129,5 +1128,7 @@ if __name__ == "__main__":
         for d,desc in draft_dic.items():
             insert_dismissal(desc[1],datetime(year_no, month_no, d))
         print("Завершено оновлення відпустів")
+    else:
+        print("Нічого не вибрано.")
     print("All done!")
 
