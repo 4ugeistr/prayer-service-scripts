@@ -127,30 +127,11 @@ with open(filehtm,'r',encoding='utf-8') as f:
 # Розбиваємо тимчасовий файл по днях 
 file = None
 
-# ANMA - розбивка по послідовності індексів. Чутлива до пропущених днів, коли набрі днів не послідовний.
-'''
-file_index = 0
-for line in file_lines: 
-    line1 = line.strip()
-    if line1.startswith('<ustav'):
-        #file_index = int(line.rsplit(" ")[1])
-        file_index = file_index + 1
-        if file:
-            file.close() 
-        file = open(dirs+'/b{:02d}.html'.format(file_index), 'w',encoding='utf-8') 
-
-    if file:    
-        file.writelines(line)
-        
-    if line.startswith('</vidpust'):
-        file.close()
-        file = None
-'''
-
 #ANDU - розбивка на базі значення дати, зчитаної в описі дня
 #потрібно слідкувати за mode = (u|g), може бути чутливе до зміни формату
 cur_date=None
 liturgy_template=None
+
 for line in file_lines:
     re_result=re.search(f'^(?:<p>|<h\d>)(?:<i>)?(?:<b>)?{month_list_string} (<b>)?(\d+)(</b>)?',line)
     if re_result:
@@ -168,7 +149,6 @@ for line in file_lines:
             raise e
     if file:    
         file.writelines(line)
-        
     if line.startswith('</vidpust'):
         if lit_template=='liz_pascha':
             file.writelines([
@@ -176,8 +156,12 @@ for line in file_lines:
             '<p>I нам дарував життя вічне, поклоняємось Його тридневному воскресінню.</p>'])
         file.close()
         file = None
-
 if file:
     file.close()
+
+for d in "кількість днів в місяці":
+    прочитати файл
+    змодифікувати файл
+    запис
 
 print("Файли успішно сконвертовані!")
