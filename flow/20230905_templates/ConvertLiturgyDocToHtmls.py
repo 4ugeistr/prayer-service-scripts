@@ -1,8 +1,11 @@
 import sys, re, mammoth
 from glob import glob
 from datetime import datetime
+from bs4 import BeautifulSoup
+import calendar
 import os
 import easygui
+
 
 CLEANA = re.compile('<a.*?</a>')
 CLEANR = re.compile('<.*?>')
@@ -68,31 +71,34 @@ lit_template_list='(liz_pascha|liz|lvv)'
 
 month_list_string='('+'|'.join(month_list.keys())+')'
 
+
 # Конвертуємо док в тичасовий великий хтмл
 with open(filedoc, "rb") as docx_file:
-    result = mammoth.convert_to_html(docx_file, style_map=style_map)
+    result = mammoth.convert_to_html(docx_file, style_map=style_map).value
+
+
 with open(filehtm, "w",encoding='utf-8') as html_file:
-    html_file.write(result.value)
+    html_file.write(result)
 
 # Розбиваємо файл на стрічки, попутно міняємо кутові дужки та видаляємо всі <br /> 
 with open(filehtm, 'r',encoding='utf-8') as f:
-    file_lines = [''.join([x
-                           .replace('<p>', '\n<p>')
-                           .replace('<h1>', '\n<h1>')
-                           .replace('&lt;','<')
-                           .replace('&gt;','>')
-                           .replace('<br />','')
-                           .replace('liturgia=iz','liturgia=liz')
-                           .replace('liturgia=vv','liturgia=lvv')
-                           .replace('<h2>','\n<h2>')
-                           .replace(chr(160),chr(32))
-                           ]) for x in f.readlines()]
+    text = f.read().replace('<p>', '\n<p>')\
+                   .replace('<h1>', '\n<h1>')\
+                   .replace('&lt;','<')\
+                   .replace('&gt;','>')\
+                   .replace('<br />','')\
+                   .replace('liturgia=iz','liturgia=liz')\
+                   .replace('liturgia=vv','liturgia=lvv')\
+                   .replace('<h2>','\n<h2>')\
+                   .replace(chr(160),chr(32))
+
 with open(filehtm, 'w',encoding='utf-8') as f:
-    f.writelines(file_lines)
+    f.writelines(text)
 
 # Очищуємо усі кастомні теги та коди від <p>, записуємо тільки непорожні рядки
 with open(filehtm,'r',encoding='utf-8') as f:
     file_lines = f.readlines()
+    
 with open(filehtm, 'w',encoding='utf-8') as f:
     for line in file_lines:
         if not line.isspace():
@@ -106,7 +112,7 @@ with open(filehtm, 'w',encoding='utf-8') as f:
 with open(filehtm,'r',encoding='utf-8') as f:
     with open(filehtm+'bak', 'w',encoding='utf-8') as f2:
         f2.write(f.read())
-
+        
 def check_for_broken_tags(filehtm):
     with open(filehtm,'r',encoding='utf-8') as f:
         lines = f.readlines()
@@ -121,6 +127,26 @@ def check_for_broken_tags(filehtm):
             raise Exception("Увага: в строках вище помилки в користувацьких html мітках.")
         
 check_for_broken_tags(filehtm)
+
+
+#робимо весь чорний шрифт жирним.
+black_list_set = {'i','b','vidpust'}
+with open(filehtm,'r',encoding='utf-8') as f:
+    file_lines = f.readlines()
+    for line in range(len(file_lines)):
+        if file_lines[line].startswith('<p>') and not file_lines[line].startswith('<p><i>Священ'):
+            #print(len(file_lines[line]),file_lines[line][-1],ord(file_lines[line][-1]))
+            soup = BeautifulSoup(file_lines[line], 'html.parser')
+            for tag in soup.find_all(string=True):
+                if not (len(str(tag))==1 and ord(str(tag))==10):                    
+                    parent_tags_set = {x.name for x in tag.parents}
+                    if not (black_list_set & parent_tags_set):
+                        tag.wrap(soup.new_tag('b'))                        
+            file_lines[line] = str(soup)
+with open(filehtm,'w',encoding='utf-8') as f:
+    f.writelines(file_lines)
+
+
 
 with open(filehtm,'r',encoding='utf-8') as f:
     file_lines = f.readlines()
@@ -158,10 +184,5 @@ for line in file_lines:
         file = None
 if file:
     file.close()
-
-for d in "кількість днів в місяці":
-    прочитати файл
-    змодифікувати файл
-    запис
 
 print("Файли успішно сконвертовані!")
