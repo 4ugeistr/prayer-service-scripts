@@ -1,17 +1,27 @@
 import re, docx, csv, easygui, glob, os, calendar, shutil
 from datetime import datetime
 import paschalia
+from docx.shared import RGBColor, Pt
+RGB_RED = RGBColor(0xff, 0x44, 0x00)
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 mode_dic = {'НЮ':'u',
             'ГР':'g',}
+
+if mode == 'u':
+    mode_suffix='Юл'
+    mode_suffix2='НЮ'
+elif mode == 'g':
+    mode_suffix='Гр'
+    mode_suffix2='ГР'
+
 mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-#month_no = 7
-#print("WARNING. Month_no OVERRIDE", month_no)
+month_no = 8
+print("WARNING. Month_no OVERRIDE", month_no)
 
 month_dic= {'Січень':1,
               'Лютий':2,
@@ -198,6 +208,80 @@ def get_hours_matrix():
     '''
     return hours_matrix
 
+
+def format_line(p, handle=''):
+    #handle = "bir"
+    if 'b' in handle:
+        p.runs[0].font.bold = True
+    if 'i' in handle:
+        p.runs[0].font.italic = True
+    if 'r' in handle:
+        p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
+    p.runs[0].font.name='Times New Roman'
+    p.runs[0].font.size=152400
+
+# робимо всі "Священик" червоними та italic
+BLACK='b'
+RED='r'   
+def add_text(p,text, color=BLACK):
+    r = p.add_run(text)
+    r.font.name='Times New Roman'
+    r.font.size=152400
+    if color == RED:
+        r.font.color.rgb = RGB_RED
+        r.italic = True
+
+
+def get_dismissal_matrix(dismissal_csv_filename,cur_month):
+    matrix={}
+    with open(dismissal_csv_filename, newline='', encoding='utf-8') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in spamreader:
+            if row[0]==month_dic_reversed[cur_month]:                matrix[int(row[1].split('.')[0])]=row[2:]
+    return matrix
+
+def insert_dismissal(path,date):
+    doc = docx.Document(path)
+    shoutout_found = None
+    for p in doc.paragraphs:
+        re_result=re.search(r"\. Благослови\.",p.text)
+        if re_result:
+            shoutout_found = True
+            #print(date.day, "found!")
+            continue
+
+        if shoutout_found:
+            print(date.day, "inserting")
+            p_new=p.insert_paragraph_before(dismissal_matrix[date.day][9])
+            p_new.paragraph_format.space_after = Pt(6)
+            print(date.day,p_new.text)
+            format_line(p_new, '')
+            delete_paragraph(p)
+            shoutout_found = False
+
+    for p in doc.paragraphs:
+        if re.search(f'Священик:',p.text):
+            re_result=re.search(f'^(Священик:)( .+?)(якого є храм)(.*?)$',p.text)
+            p_bak=p.text
+            p.clear()
+
+            try:
+                if re_result:
+                    add_text(p,re_result.group(1),color=RED)
+                    add_text(p,re_result.group(2))
+                    add_text(p,re_result.group(3),color=RED)
+                    add_text(p,re_result.group(4))
+                else:
+                    re_result=re.search(f'^(Священик:)(.*?)$',p_bak)
+                    add_text(p,re_result.group(1),color=RED)
+                    add_text(p,re_result.group(2))
+            except:
+                print(p_bak)
+                raise
+    doc.save(path)
+
+
+
 if __name__== "__main__":
     ordo_matrix = get_matrix(f"Часи_{mode_dic_reversed[mode]}.csv")
     lent_triodion_templates = glob.glob('lent-triodion/*/*.docx')
@@ -209,6 +293,8 @@ if __name__== "__main__":
     templates_feast = get_feast_template_texts(f'свято-{month_no:02}-{mode_dic_reversed[mode]}.docx')
     troparia_lent_triodion = get_feast_template_texts(f'піст-тріодь-{month_no:02}-{mode_dic_reversed[mode]}.docx')
     template_file_list = get_template_files('docx_templates/hours-template-*.docx')
+
+    dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
 
     paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
     hours_matrix = get_hours_matrix()
@@ -318,8 +404,12 @@ if __name__== "__main__":
                     delete_paragraph(p)
                 elif hours_matrix[d][1]=='y':
                     print("warning kondakion",d,hour)
-                
+
+
+
         doc.save(dest_filename)
+
+        insert_dismissal(dest_filename,datetime(year_no,month_no,d))
             
     #for k,v in hours_matrix.items():
     #    print(k,len(v))
