@@ -707,8 +707,8 @@ def insert_dismissal(path,date):
             shoutout_found = False
 
     for p in doc.paragraphs:
-        if re.search(f'Священик:',p.text):
-            re_result=re.search(f'^(Священик:)( .+?)(якого є храм)(.*?)$',p.text)
+        if re.search(f'Священник:',p.text):
+            re_result=re.search(f'^(Священник:)( .+?)(якого є храм)(.*?)$',p.text)
             p_bak=p.text
             p.clear()
 
@@ -719,7 +719,7 @@ def insert_dismissal(path,date):
                     add_text(p,re_result.group(3),color=RED)
                     add_text(p,re_result.group(4))
                 else:
-                    re_result=re.search(f'^(Священик:)(.*?)$',p_bak)
+                    re_result=re.search(f'^(Священник:)(.*?)$',p_bak)
                     add_text(p,re_result.group(1),color=RED)
                     add_text(p,re_result.group(2))
             except:

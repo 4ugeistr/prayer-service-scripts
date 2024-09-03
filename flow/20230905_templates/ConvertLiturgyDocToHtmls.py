@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import calendar
 import os
 import easygui
-
+from checkLiturgyIntegrity import checkLiturgyIntegrity
 
 CLEANA = re.compile('<a.*?</a>')
 CLEANR = re.compile('<.*?>')
@@ -34,9 +34,6 @@ mode = mode_dic[filedoc.split('.')[0][-2:]]
 month_no = int(filedoc[:2])
 print(f'Month: {month_no}')
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
-
-
-
 
 if not os.path.exists('drafts'):
     os.makedirs('drafts')
@@ -71,6 +68,10 @@ lit_template_list='(liz_pascha|liz|lvv)'
 
 month_list_string='('+'|'.join(month_list.keys())+')'
 
+
+
+# Валідуємо docx на рахунок цілісності тегів
+checkLiturgyIntegrity(filedoc)
 
 # Конвертуємо док в тичасовий великий хтмл
 with open(filedoc, "rb") as docx_file:
@@ -159,7 +160,7 @@ cur_date=None
 liturgy_template=None
 
 for line in file_lines:
-    re_result=re.search(f'^(?:<p>|<h\d>)(?:<i>)?(?:<b>)?{month_list_string} (<b>)?(\d+)(</b>)?',line)
+    re_result=re.search(r'^(?:<p>|<h\d>)(?:<i>)?(?:<b>)?'+f'{month_list_string}'+r' (<b>)?(\d+)(</b>)?',line)
     if re_result:
         cur_date = int(re_result.group(3))
     if line.startswith('<ustav'):
