@@ -20,6 +20,9 @@ def find_docx_files(folder_path):
                 docx_files.append(full_path)
     return docx_files
 
+def get_text_condensed(p_list,line_width=12):
+    return '\n'.join([p.text[:line_width] for p in p_list])
+
 def get_text_mapping(path):
     mapping = []
     state = None
@@ -35,25 +38,31 @@ def get_text_mapping(path):
             continue
         if state:
             mapping[-1][state].append(p)
+    for tm in mapping:
+        tm['search_condensed']=get_text_condensed(tm['search'])
     return mapping
 
 def process_file(path):
     doc = docx.Document(path)
+    doc_condensed= get_text_condensed(doc.paragraphs)
     print(f'Processing: {path}')
     logger.info(f'Processing: {path}')
     file_changed=False
 
     #dbg
-    prok = False
+    prokimen = False
 
     for tm in text_mapping:
+        if not tm['search_condensed'] in doc_condensed:
+            #print(f'Ruled out >>> {tm['search_condensed'][:40]}.')
+            continue
 
         #dbg
-        if 'Псалом' in tm['search'][0].text:
-            logger.info(f"___Probing {tm['search'][0].text}")
-            logger.info(f"___Strings qty = {len(tm['search'])}")
-            prok = True
-            #logger.info
+        #if 'Псалом' in tm['search'][0].text:
+        #    logger.info(f"___Probing {tm['search'][0].text}")
+        #    logger.info(f"___Strings qty = {len(tm['search'])}")
+        #    prokimen = True
+        #    #logger.info
         found_start = False
         found_end = False
         n=0
@@ -62,7 +71,7 @@ def process_file(path):
         for p in doc.paragraphs:
             #logger.info(p.text)
 
-            if prok and i ==0:
+            if prokimen and i ==0:
                 logger.info(p.text.lower().replace('  ',' ').strip())
                 logger.info(tm["search"][i].text.lower().replace('  ',' ').strip())
                 logger.info(p.text.lower().replace('  ',' ').strip() == tm["search"][i].text.lower().replace('  ',' ').strip())
@@ -117,11 +126,12 @@ def sanitize_spaces(path):
 folder_path = easygui.diropenbox(title="Select Folder")    # Open folder selection dialog
 
 text_mapping = get_text_mapping('docx_resources\\заміна-рубрики.docx')
+
 for tm in text_mapping:
     #for p in tm['replace']:
     if tm['replace'][-1].text=='':
-        print(tm)
-        raise Exception
+        print("Found empty line:",tm)
+        #raise Exception
 
 if folder_path:    # Check if a folder was selected
     docx_files = find_docx_files(folder_path)
@@ -129,6 +139,8 @@ if folder_path:    # Check if a folder was selected
     #    print(docx_files)
 
 for filename in docx_files:
+    if filename.startswith("~"):
+        continue
     sanitize_spaces(filename)
     process_file(filename)
 

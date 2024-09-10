@@ -155,18 +155,19 @@ with open(filehtm,'r',encoding='utf-8') as f:
 file = None
 
 #ANDU - розбивка на базі значення дати, зчитаної в описі дня
-#потрібно слідкувати за mode = (u|g), може бути чутливе до зміни формату
 cur_date=None
 liturgy_template=None
 
 for line in file_lines:
+    #print(line[:40])
     re_result=re.search(r'^(?:<p>|<h\d>)(?:<i>)?(?:<b>)?'+f'{month_list_string}'+r' (<b>)?(\d+)(</b>)?',line)
     if re_result:
         cur_date = int(re_result.group(3))
-    if line.startswith('<ustav'):
-        lit_template=re.search(f'liturgia={lit_template_list}',line).group(1)
         if file:
             file.close()
+
+    if line.startswith('<ustav'):
+        lit_template=re.search(f'liturgia={lit_template_list}',line).group(1)
         try:
             file = open(folder_name+'/b{:02d}.html'.format(cur_date), 'w',encoding='utf-8')
             print('/b{:02d}.html'.format(cur_date))
@@ -174,15 +175,17 @@ for line in file_lines:
             print(line)
             print(cur_date)
             raise e
-    if file:    
+    if file and not file.closed:    
         file.writelines(line)
     if line.startswith('</vidpust'):
-        if lit_template=='liz_pascha':
-            file.writelines([
-            '<p><i>Тоді співаємо кінцеве:</i> Христос воскрес: <i>тричі, цілий тропар.</i> <i>А потім закінчуємо:</i></p>',
-            '<p>I нам дарував життя вічне, поклоняємось Його тридневному воскресінню.</p>'])
-        file.close()
-        file = None
+        #OBSOLETE
+        #if lit_template=='liz_pascha':
+        #    file.writelines([
+        #    '<p><i>Тоді співаємо кінцеве:</i> Христос воскрес: <i>тричі, цілий тропар.</i> <i>А потім закінчуємо:</i></p>',
+        #    '<p>I нам дарував життя вічне, поклоняємось Його тридневному воскресінню.</p>'])
+        
+        #file.close()
+        #file = None
 if file:
     file.close()
 
