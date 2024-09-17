@@ -175,17 +175,10 @@ for line in file_lines:
             print(line)
             print(cur_date)
             raise e
+            
     if file and not file.closed:    
         file.writelines(line)
-    if line.startswith('</vidpust'):
-        #OBSOLETE
-        #if lit_template=='liz_pascha':
-        #    file.writelines([
-        #    '<p><i>Тоді співаємо кінцеве:</i> Христос воскрес: <i>тричі, цілий тропар.</i> <i>А потім закінчуємо:</i></p>',
-        #    '<p>I нам дарував життя вічне, поклоняємось Його тридневному воскресінню.</p>'])
-        
-        #file.close()
-        #file = None
+
 if file:
     file.close()
 
