@@ -20,7 +20,7 @@ mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-month_no = 9
+month_no = 10
 print("WARNING. Month_no OVERRIDE", month_no)
 
 month_dic= {'Січень':1,
@@ -251,10 +251,10 @@ def insert_dismissal(path,date):
             continue
 
         if shoutout_found:
-            print(date.day, "inserting")
+            #print(date.day, "inserting")
             p_new=p.insert_paragraph_before(dismissal_matrix[date.day][9])
             p_new.paragraph_format.space_after = Pt(6)
-            print(date.day,p_new.text)
+            #print(date.day,p_new.text)
             format_line(p_new, '')
             delete_paragraph(p)
             shoutout_found = False

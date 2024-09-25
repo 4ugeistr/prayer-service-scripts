@@ -15,7 +15,7 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-month_no=9
+month_no=10
 print(f"WARNING: MONTH OVERRIDE!")
 print(f"Processing month: {month_no}")
 
@@ -412,9 +412,31 @@ def insert_boh_hospod_echos(path,date):
                 if '???' in r.text:
                     #print(r.text)
                     r.font.highlight_color=None
-                    r.text = r.text.replace('???',str(echos))
-                    
+                    r.text = r.text.replace('???',str(echos))     
             break
+    doc.save(path)
+
+def insert_gv_echos(path,date):
+    #print(date.day)
+    doc = docx.Document(path)
+    found_sticheron = False
+    first_gv_echos = None
+    for p in doc.paragraphs:
+        re_result = re.search("Стихири",p.text)
+        if re_result:
+            found_sticheron = True
+            continue
+
+        re_result = re.search('\(г. (\d)',p.text)
+        if re_result:
+            first_gv_echos=re_result.group(1)
+            break
+
+    for p in doc.paragraphs:
+        if first_gv_echos and 'Два перші стихи 140-го псалма' in p.text:
+            p.runs[0].text = re.sub('Два перші стихи 140-го псалма, на глас \d.',f'Два перші стихи 140-го псалма, на глас {first_gv_echos}.',p.runs[0].text )
+            break
+
     doc.save(path)
 
 def insert_prefix_to_paragraph(p,text="Слава: ",formatting='b'):
@@ -671,11 +693,6 @@ def stretch_texts(qty_of_verses_requested, texts):
     else:
         return texts[:qty_of_verses_requested]
 
-
-
-
-
-
 # робимо всі "Священик" червоними та italic
 BLACK='b'
 RED='r'   
@@ -688,17 +705,18 @@ def add_text(p,text, color=BLACK):
         r.italic = True
         
 def insert_dismissal(path,date):
+    #print("Searching for dismissal")
     doc = docx.Document(path)
     shoutout_found = None
     for p in doc.paragraphs:
-        re_result=re.search(r"\. Благослови\.",p.text)
+        re_result=re.search(r"\(3 р\.\)(\.)? Благослов(и|и́)\.",p.text)
         if re_result:
             shoutout_found = True
-            #print(date.day, "found!")
+            #print(date.day, "Благослови found!")
             continue
 
         if shoutout_found:
-            #print(date.day, "inserting")
+            #print(date.day, "Відпуст inserting")
             p_new=p.insert_paragraph_before(dismissal_matrix[date.day][9])
             p_new.paragraph_format.space_after = Pt(6)
             #print(date.day,p_new.text)
@@ -741,6 +759,19 @@ stichos_list=[
     "Стих: Велике бо до нас його милосердя"
 ]
 
+stichos_list=[
+    "Стих: Ви́веди з в’язни́ці мою́ ду́шу",
+    "Стих: Мене́ обсту́плять пра́ведники",
+    "Стих: З глиби́н взива́ю до Те́бе, Го́споди",
+    "Стих: Неха́й бу́дуть Твої́ ву́ха ува́жні",
+    "Стих: Коли́ Ти, Го́споди, зважа́тимеш на беззако́ння, ",
+    "Стих: За́для І́мени Твого́ наді́юсь на Те́бе",
+    "Стих: Від ра́нньої сторо́жі до но́чі",
+    "Стих: Бо в Го́спода ми́лість і відку́плення вели́ке в Ньо́го",
+    "Стих: Хвалі́те Го́спода всі наро́ди",
+    "Стих: Вели́ке бо до нас Його́ милосе́рдя"
+]
+
 def insert_menaion_stichera(path,date,template_type):
     doc = docx.Document(path)
     stichera_no=None
@@ -769,7 +800,7 @@ def insert_menaion_stichera(path,date,template_type):
         if date.weekday() + 1 in (6,) and template_type=="октоїх":
             stichos_dic = {stichos_list[-n - delta :-delta][i]: i for i in range(n) }
         '''
-        if date.weekday() + 1 in (6,) and template_type=="октоїх":
+        if date.weekday() + 1 in (6,) and template_type=="октоїх" and stichera_gv_matrix[k][1]=='3':
             stichos_dic = {stichos_list[-n - delta :-delta][i]: i for i in range(n) }
         else:
             stichos_dic = {stichos_list[-n:][i]: i for i in range(n) }
@@ -866,6 +897,16 @@ def insert_kanon(path,date):
     song8_end_found = False
     week_day = date.weekday()+1
     echos = paschalia.get_echos(date,paschalia_dates)
+    kanon_no = 1
+    #визначаємо № канону дня, що беремо
+    #в піст - 0
+    #в інші дні - 1
+    '''
+    if date>datetime(2024,11,15) == 5:
+        kanon_no == 0
+    else:
+        kanon_no == 1
+    '''
 
     #print(f"Inserting kanon for {date.day} {day_dic_reversed[date.weekday()+1]}")
 
@@ -882,15 +923,18 @@ def insert_kanon(path,date):
         re_result = re.search ("Пісня Богородиці", p.text)
         if re_result and kanon_found:
             #print("---знайшли 9-ту пісню")
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][1])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][3])
+
+            
+
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][1])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][3])
             copy_paragraph_list_before(p,kanon_litany_list[1])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][4])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][5])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][6])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][4])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][5])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][6])
             copy_paragraph_list_before(p,kanon_litany_list[2])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][7])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][0][8])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][7])
+            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][8])
             break
             
         if kanon_found and not song8_end_found:
@@ -1075,6 +1119,7 @@ def update_stubs(draft_dic):
                 #    print(f'inserting troparia for {d}')
                 insert_troparia(desc[1],datetime(year_no, month_no, d))
             #вставити глас для Бог Господь
+            insert_gv_echos(desc[1],datetime(year_no, month_no, d))
             insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
             #вставити тропарі на Бог Господь
             #вставити тропарі вкінці утрені

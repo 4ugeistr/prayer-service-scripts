@@ -31,7 +31,7 @@ def get_stichera_matrix(path):
             stichera_dic[day] = {"label":re_result.group(2)}
             #do we need a flag?
             handle='gv'
-            #st_dound=False
+            #st_found=False
             #stichera_dic[day]["gv_stichera"]=[]
             continue
 
@@ -54,6 +54,9 @@ def get_stichera_matrix(path):
 
         if handle in ('gv','st') and p.text:
             #print("   found stichera",handle)
+            if not f"{handle}_stichera" in stichera_dic[day]:
+                if 'тихири' in p.text:
+                    continue
             stichera_dic[day].setdefault(f"{handle}_stichera", []).append(p)
         
             
@@ -111,7 +114,7 @@ def get_generic_stichera_matrix(path):
 
         
 if __name__ == "__main__":
-    #menaion_stichera_matrix = get_stichera_matrix(files[0])
+    menaion_stichera_matrix = get_stichera_matrix(files[0])
     generic_stichera_matrix = get_generic_stichera_matrix("Стихири ГВ загальної служби.docx")
     print("DONE")
 
