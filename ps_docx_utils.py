@@ -8,8 +8,14 @@ def delete_paragraph(paragraph):
     p.getparent().remove(p)
     p._p = p._element = None
 
+def delete_run(run):
+    p = run._element
+    p.getparent().remove(p)
+    p._p = p._element = None
+
 def copy_run(target_paragraph,run):
     new_run = target_paragraph.add_run(run.text)
+    new_run.style = run.style.name
 
     new_run.bold = run.bold
     new_run.italic = run.italic
@@ -22,9 +28,16 @@ def copy_run(target_paragraph,run):
     new_run.font.highlight_color = run.font.highlight_color
 
 
-
 def copy_paragraph(target_doc,source_paragraph):
     target_paragraph = target_doc.add_paragraph()
+
+    try:
+        target_paragraph.style = source_paragraph.style
+        target_paragraph.paragraph_format.space_after = Pt(6)
+    except KeyError:
+        print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
+    target_paragraph.alignment = source_paragraph.alignment
+
     for run in source_paragraph.runs:
         new_run = target_paragraph.add_run(run.text)
         new_run.bold = run.bold

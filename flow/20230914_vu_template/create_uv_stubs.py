@@ -127,6 +127,7 @@ def copy_paragraph(target_doc,source_paragraph):
     target_paragraph = target_doc.add_paragraph()
     try:
         target_paragraph.style = source_paragraph.style
+        target_paragraph.paragraph_format.space_after = Pt(6)
     except KeyError:
         print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
     target_paragraph.alignment = source_paragraph.alignment
