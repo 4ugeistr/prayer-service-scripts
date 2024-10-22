@@ -1,22 +1,43 @@
-import docx, re
-import csv
+import docx, re, easygui, csv
 from datetime import datetime, timedelta
 from docx.shared import RGBColor
+from thefuzz import fuzz
+import paschalia
+
 RGB_RED = RGBColor(255, 0, 0)
 RGB_BLACK = RGBColor(0, 0, 0)
 RGB_GRAY = RGBColor(0x3c, 0x40, 0x43)
 
-docx_filename='Календар_2023.docx'
+
+mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+
+if mode == 'u':
+    docx_filename='Календар УГКЦ з читаннями 2025.docx'
+    csvfilename='calendar25.txt'
+elif mode == 'g':
+    docx_filename='Календар УГКЦ з читаннями 2025 (григоріанський).docx'
+    csvfilename='calendar25n.txt'
+
+csv_reading_validation_filename = 'reading_validation.csv'
+
+
+
+
 doc = docx.Document(docx_filename)
 
-csvfilename='c2023_NJ.txt'
+
 
 #for 2023
 #previous_pascha =  datetime(2022,4,24)
 #pascha = datetime(2023,4,16)
 #for 2024
-previous_pascha =  datetime(2023,4,16)
-pascha = datetime(2024,5,5)
+#previous_pascha =  datetime(2023,4,16)
+#pascha = datetime(2024,5,5)
+#for 2025
+#previous_pascha = datetime(2024,5,5)
+#pascha = datetime(2024,4,20)
+
+#mode='u'
 
 month_list = {'Січень':1,
               'Лютий':2,
@@ -70,88 +91,11 @@ reverse_symbol_hierarchy = {v:k for k,v in symbol_hierarchy.items()}
 symbol_list=['🕀','🕁','🕂','🕃']
 notched_color=['🕃r','🕃b']
 
-special_day_list = [
-            "Субота перед Різдвом",
-            "Навечір.я Різдва",
-            "Субота по Різдві",
-            "Субота перед Богоявленням",
-            "Субота по Богоявленні",
-            "Субота заупокійна",
-            "Субота сиропусна",
-            "Субота Лазарева",
-            "Великий понеділок",
-            "Великий вівторок",
-            "Велика середа",
-            "Великий четвер",
-            "Велика п.ятниця",
-            "Велика субота",
-            "Світлий понеділок",
-            "Світлий вівторок",
-            "Світла середа",
-            "Світлий четвер",
-            "Світла п.ятниця",
-            "Світла субота",
-            "Понеділок Святого Духа",
-            "Субота перед Воздвиженням",
-            "Субота по Воздвиженні"
-            ]
-
 holidays=[]
 with open('holiday_dictionary.csv', newline='',encoding='utf8') as csvfile:
     spamreader = csv.reader(csvfile, delimiter=';', quotechar='"')
     for row in spamreader:
         holidays.append(row)
-    
-
-# 0 - previous, 1 - current
-paschalia = [{},{}]
-paschalia[0]["pascha"]=previous_pascha
-paschalia[1]["pascha"]=pascha
-
-for p in paschalia:
-    p["meatfare_sunday"]=p["pascha"]-timedelta(days=7*8)
-    p["cheesefare_sunday"]=p["pascha"]-timedelta(days=7*7)
-    p["palm_sunday"]=p["pascha"]-timedelta(days=7)
-    #lent_start = pascha - timedelta(days=7*7-1)
-    p["pentecost"] = p["pascha"] + timedelta(days=7*7)
-    
-def get_week(cur_date, day_title,day_type):
-    # пропускаємо номер тижня для 🕀 свят
-    #if day_type=="#":
-    #    return "***"
-    
-    # пропускаємо номер тижня для неділь (покривається наступним блоком)
-    if cur_date.weekday()==6:
-        return "***"
-    # пропускаємо номер тижня для спеціальних днів
-    for word in special_day_list:
-        if re.search(word,day_title):
-            return "***"
-
-    # дні від 1.01 до 31.12, в залежності від дат Пасхи на цей і на минулий рік
-    if cur_date < paschalia[1]["meatfare_sunday"]-timedelta(days=7):
-        weeks = (cur_date - paschalia[0]["pentecost"]).days // 7 + 1
-        return f"{weeks:02}d"
-    elif  cur_date > paschalia[1]["meatfare_sunday"]-timedelta(days=7) and cur_date < paschalia[1]["meatfare_sunday"]:
-        return f"00m"
-
-    elif cur_date > paschalia[1]["meatfare_sunday"] and cur_date < paschalia[1]["cheesefare_sunday"]:
-        return f"00s"
-                               
-    elif cur_date > paschalia[1]["cheesefare_sunday"] and cur_date < paschalia[1]["palm_sunday"]:
-        weeks = (cur_date - paschalia[1]["cheesefare_sunday"]).days // 7 + 1
-        return f"{weeks:02}p"
-    elif cur_date > paschalia[1]["pascha"] + timedelta(days=7) and cur_date < paschalia[1]["pentecost"]:
-        weeks = (cur_date - paschalia[1]["pascha"]).days // 7 + 1
-        return f"{weeks:02}e"
-
-    elif cur_date > paschalia[1]["pentecost"]:
-        weeks = (cur_date - paschalia[1]["pentecost"]).days // 7 + 1 
-        return f"{weeks:02}d"
-    else:
-        print("Warning:")
-        print(f"Week number not found for {cur_date}, {day_title}")
-        return "err"
 
 def process_title(day_title):
     for row in holidays:
@@ -167,7 +111,7 @@ def process_title(day_title):
             #symbol = re_result.group(1) if re_result.group(1) else ""
             #replace_string=f"<{row[1]}>{symbol}{row[0]}</{row[1]}>"
             day_title=day_title.replace(row[0],f"<{row[1]}>{row[0]}</{row[1]}>")
-    re_result = re.search(f"(🕀|🕁|🕂|\+|🕃r|🕃b)( )?(<(?:span|strong|em|i)>)",day_title)
+    re_result = re.search(r"(🕀|🕁|🕂|\+|🕃r|🕃b)( )?(<(?:span|strong|em|i)>)",day_title)
     if re_result:
         #print(re_result.groups())
         #print(day_title)
@@ -202,8 +146,8 @@ def get_lent_params(date,day_symbol,day_title):
     if re.search("всесвітнє .оздвиження",day_title.lower()) or re.search("всемірне .оздвиження",day_title.lower()) or re.search("усікновення чесної",day_title.lower()):
         return 1, 1
     #Великий піст
-    if (date>=paschalia[1]["cheesefare_sunday"]+timedelta(days=1) and date<paschalia[1]["pascha"]) and date.weekday()+1 in workday_list and not is_holiday:
-        if date==paschalia[1]["cheesefare_sunday"]+timedelta(days=1) or date==paschalia[1]["pascha"]-timedelta(days=2):
+    if (date>=paschalia.paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) and date<paschalia.paschalia_dates[1]["pascha"]) and date.weekday()+1 in workday_list and not is_holiday:
+        if date==paschalia.paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) or date==paschalia.paschalia_dates[1]["pascha"]-timedelta(days=2):
             lent_symbol = 2
         elif date.weekday()+1 in [1,3,5]:
             lent_symbol = 1
@@ -211,7 +155,7 @@ def get_lent_params(date,day_symbol,day_title):
             lent_symbol = 0
         return 1, lent_symbol
     #Петрівка
-    if (date> paschalia[1]["pentecost"]+timedelta(days=7) and date<datetime(date.year,6,29)) and date.weekday()+1 in workday_list and not is_holiday:
+    if (date> paschalia.paschalia_dates[1]["pentecost"]+timedelta(days=7) and date<datetime(date.year,6,29)) and date.weekday()+1 in workday_list and not is_holiday:
         return 1, 1 if date.weekday()+1 in [3,5] else 0
     #Спасівка
     if (date> datetime(date.year,6,29) and date<datetime(date.year,6,29)) and date.weekday()+1 in workday_list and not is_holiday:
@@ -225,7 +169,60 @@ def get_lent_params(date,day_symbol,day_title):
     #Якщо не вийшли з функції на одній з минулих перевірок, отже не піст
     return 0,0
 
+#шукаємо блок з читанням
 
+reading_indicator_list = ['Єв\. – ',
+                            'Ап\. – ',
+                            'Єв\. - ',
+                            'Ап\. - ',
+                            'Читання на Шостому часі:',
+                            'Час Шостий:',
+                            'На \d-му часі',
+                            'Літ.:',
+                            'Вечірня з Літургією св. Василія Великого.',
+                            'На Літургії св. Василія Великого з вечірнею.',
+                            'Літургія Передосвячених Дарів.',
+                            'Літургія св. Йоана Золотоустого.',
+                            'Літургія св. Івана Золотоустого.',
+                            'Літургія св. Василія Великого.',
+                            'Божественної Літургії не служимо.',
+                            'На вечірні:',
+                            'Вечірня:',
+                            'Утр:',
+                            'Утр.:',
+                            'На освячення води',
+                            'На вмиванні:',
+                            'По вмиванні:',
+                            'Ряд.:',
+                            'Ап.:',
+                            'Апп.:',
+                            'Рівноап.:',
+                            'Предтечі:',
+                            'Новоліттю:',
+                            'Св.:',
+                            'Прп.:',
+                            'Ісп.:',
+                            'Свщнмч:',
+                            'Свщмч:',
+                            'Свщмч.:',
+                            'Свщнмчч.:',
+                            'Мчч.:',
+                            'Влкмч.:',
+                            'Отців:',
+                            'Отцям:',
+                            'Богородиці:',
+                            'Собору:',
+                            'Оновлення:',
+                            'Анни:',
+                            'Св. Миколая:',
+                            'Свята:',
+                            'Суботи:',
+                            'Всім святим:',
+                            'За упокій:',
+                        ]
+
+reading_indicator_string='('+'|'.join(reading_indicator_list)+')'
+reading_indicator_string_for_beautify='('+'|'.join(reading_indicator_list[4:])+')'
 
 holidays_godmother = [
     [9,8],#Різдво
@@ -240,18 +237,36 @@ def get_day_color(date,day_symbol):
             return 3
     return 1 if date.weekday()+1==7 or day_symbol=="#" else 0
 
+
+def beautify_reading(reading):
+    reading = re.sub(reading_indicator_string_for_beautify,r'<i>\g<1></i>',reading)
+    return reading
+
+
 def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
+    
     month=month_list[cur_month.capitalize()]
-    date=datetime.strptime(f'{cur_year}-{month:02}-{cur_day:02}','%Y-%m-%d')
+    try:
+        date=datetime.strptime(f'{cur_year}-{month:02}-{cur_day:02}','%Y-%m-%d')
+    except ValueError as e:
+        print(f'ERROR with {cur_year}-{month:02}-{cur_day:02}')
+        raise e
+    paschalia.paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
     day_symbol= symbol_dict_w_space[find_highest_symbol(day_title)]
     day_color = get_day_color(date,day_symbol)
-    week_string=get_week(date,day_title,day_symbol)
+    #week_string=get_week(date,day_title,day_symbol)
+    week_code=paschalia.get_week_code(date,day_title)
     #day_title=day_title.replace("🕃b","🕃")
     #lent_icon = get_lent_icon(date,day_symbol, day_title)
     lent_color,lent_icon = get_lent_params(date,day_symbol,day_title)
+
+    
     if date.weekday()+1 !=7 and glas and glas!="*":
-        print(glas, date)
-        glas = re.search("(Глас \d)",glas).group(1)
+        #???
+        #print(glas, date)
+        glas = re.search(r"(Глас \d)",glas).group(1)
+
+
     '''
     try:
         weekday_no=date.weekday()+1
@@ -284,16 +299,26 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
 
     
     row=[f'{cur_year}{month:02}{cur_day:02}',
-         get_week(date,day_title,day_symbol),
+         week_code,
          date.weekday()+1,
          day_color,
          lent_color,
          lent_icon,
          day_symbol,
          process_title(day_title),
-         day_readings,
+         beautify_reading(day_readings),
          glas]
+    '''
+    row=[f'{cur_year}{month:02}{cur_day:02}',
+         week_code,
+         date.weekday()+1,
+         beautify_reading(day_readings),
+    ]
+    '''
     return row
+
+
+
 
 def check_day_qty(rows):
     start_date = datetime(int(rows[0][0][:4]),int(rows[0][0][4:6]), int(rows[0][0][6:]))
@@ -331,7 +356,7 @@ def check_day_qty(rows):
 
 
 
-cur_year=''
+cur_year='2025'
 cur_month=''
 cur_day=''
 day_title=''
@@ -360,6 +385,8 @@ for p in doc.paragraphs:
     i+=1            
 i=-1
 rows=[]
+reading_validation_matrix=[]
+cur_month = None
 for p in doc.paragraphs:
     re_result=None
     i+=1
@@ -394,27 +421,33 @@ for p in doc.paragraphs:
         cur_month=re_result.group(1)
         #print(cur_year, cur_month)
         continue
+    
+    #пропускаємо вступ з календарем посту.
+    #починаємо працювати від першого місяця
+    if not cur_month:
+        continue
+
 
     #День, початок тайтлу
-    re_result=re.search(f'^(\d+) (.*)',p.text)
+    re_result=re.search(r'^(\d+)( )?(.*)',p.text)
     if re_result:
         #print("Day found",i, p.text)
         cur_day=int(re_result.group(1))
         #print("cur_day =", cur_day)
         #if cur_day=='40':
         #    print(p.text)
-        day_title=re_result.group(2)
+        day_title=re_result.group(3)
         flag_title=True
 
         #Глас. Воскресне Євангеліє
-        re_result=re.search('(Глас \d\. Єв\. \d{1,2}\.)',p.text)
+        re_result=re.search(r'(Глас \d\. Єв\. \d{1,2}\.)',p.text)
         if re_result:
             glas=re_result.group(1)
             day_title=day_title.replace(glas,"")
             re_result=None
         #else:
         #    glas='*'
-        re_result=re.search('Гл. (\d\. Єв\. \d{1,2}\.)',p.text)
+        re_result=re.search(r'Гл. (\d\. Єв\. \d{1,2}\.)',p.text)
         if re_result:
             glas = "Глас "+re_result.group(1)
 
@@ -424,54 +457,7 @@ for p in doc.paragraphs:
     
     
     
-    #шукаємо блок з читанням
-    reading_indicator_string = '(Єв\. –|'\
-                                'Ап\. –|'\
-                                'Єв\. -|'\
-                                'Ап\. -|'\
-                                'Читання на Шостому часі:|'\
-                                'Час Шостий:|'\
-                                'Літ.:|'\
-                                'Вечірня з Літургією св. Василія Великого.|'\
-                                'На Літургії св. Василія Великого з вечірнею.|'\
-                                'Літургія Передосвячених Дарів.|'\
-                                'Літургія св. Йоана Золотоустого.|'\
-                                'Літургія св. Василія Великого.|'\
-                                'На вечірні:|'\
-                                'Вечірня:|'\
-                                'Утр:|'\
-                                'Утр.:|'\
-                                'На освячення води|'\
-                                'На вмиванні:|'\
-                                'По вмиванні:|'\
-                                'Ряд.:|'\
-                                'Ап.:|'\
-                                'Апп.:|'\
-                                'Рівноап.:|'\
-                                'Предтечі:|'\
-                                'Новоліттю:|'\
-                                'Св.:|'\
-                                'Прп.:|'\
-                                'Ісп.:|'\
-                                'Свщнмч:|'\
-                                'Свщмч:|'\
-                                'Свщмч.:|'\
-                                'Свщнмчч.:|'\
-                                'Мчч.:|'\
-                                'Влкмч.:|'\
-                                'На \d-му часі|'\
-                                'Отців:|'\
-                                'Отцям:|'\
-                                'Богородиці:|'\
-                                'Собору:|'\
-                                'Оновлення:|'\
-                                'Анни:|'\
-                                'Св. Миколая:|'\
-                                'Свята:|'\
-                                'Суботи:|'\
-                                'Всім святим:|'\
-                                'За упокій:'\
-                                ')'
+
     
     re_result=re.search(reading_indicator_string,p.text)
     if re_result:
@@ -486,7 +472,7 @@ for p in doc.paragraphs:
 
     #якщо в строці лише день - закриваємо попередній "день"
     re_result=re.search(f'^{day_list_string}$',p.text)
-    if re_result and flag_reading:
+    if re_result and day_title: #and flag_reading:
         #print('APPENDING ROWS!',flag_reading)
         rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
         flag_reading=False
@@ -501,19 +487,117 @@ for p in doc.paragraphs:
     if flag_title:
         day_title+="<br>"+p.text
     else:
-        print(f'Щось не так {i}:\n',p.text)
+        print(f'Щось не так {i}:\n',p.text, f'(дата {cur_month}-{cur_day})')
 
 #цикл не обробить закінчення останнього дня, викликаємо явно
 rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
 
 
 
+def read_csv(path):
+    lst=[]
+    with open(path, newline='', encoding='utf-8') as csvfile:
+        csvreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in csvreader:
+            lst+=[row]
+    return lst
+
+apostol_list = read_csv('apostol.csv')
+evanhelie_list= read_csv('evanhelie.csv')
+
+
+
+
+
+def break_readings_segment(str):
+    lst = []
+    res = re.findall(r'(Ап\. (?:–|-) .*?)(?:<br>|<i>|\n|\||<sup>|$)',str)
+    res2=[]
+    for item in res:
+        if ' Єв.' in item:
+            #print('found', res)
+            res2+=item.split(' Єв. – ')
+            res2[-1]='Єв. – '+res2[-1]
+            #res.remove(item)
+            #print('edited', res)
+        else:
+            res2.append(item)
+    lst+=res2
+    res = re.findall(r'(Єв\. (?:–|-) .*?)(?:<br>|<i>|\n|\|<sup>|$)',str)
+    lst+=res
+    return lst
+
+def process_reading(str,reading_list):
+    found=False
+    ratio_max=0
+    item_found=None
+    for item in reading_list:
+        ratio=fuzz.token_sort_ratio(str,item[0])
+        if ratio==100:
+            found=True
+            item_found=item
+            #return  f'#ap{item[2]:0>3}'+f'{item[3]}'
+            return [item_found[0],item_found[4]]
+                        
+        if ratio>ratio_max:
+            ratio_max=ratio
+            item_found=item
+    
+    if ratio_max>=85 and ratio_max<100:
+        found=True
+        print(f"WARNING. ratio: {ratio_max}")
+        print(str, item_found[0])
+        print('Input:',str)  
+        #return f'#ap{item_found[2]:0>3}{item_found[3]}',item_found[4]
+        return [item_found[0],item_found[4]]
+
+    if not found:
+        print(f"ERROR. ratio: {ratio_max}")
+        print(str)
+        print('ratio:',ratio_max)
+        return 'crit_err',''
+        #raise Exception
+
+def clean_half_words(s):
+    s=s.replace(' (від половини)','').replace(' (від полов.)','')
+    return s
+
+
+def validate_readings(rows):
+    for row in rows:
+        row.append(break_readings_segment(row[8]))
+
+    for row in rows:
+        row.append([])
+        for item in row[10]:
+            reading_details=None
+
+            if item.startswith('Ап.'):
+                reading_details =  process_reading(clean_half_words(item[6:]),apostol_list)
+            elif item.startswith('Єв.'):
+                reading_details =  process_reading(clean_half_words(item[6:]),evanhelie_list)
+
+            if reading_details:
+                row[11].append(reading_details[0])
+                reading_validation_matrix.append([row[0],row[1],row[2],row[7],item,reading_details[1]])
+            else:
+                row[11].append('err')
+            
+            
+validate_readings(rows)
+
+
 #with open('c1test.txt','a',encoding='utf8') as f:
 csvfile = open(csvfilename,'w',newline='',encoding='utf8')
 spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+#for row in rows:
+#    row = row[0:1]+row[8:9]+row[10:]
+
 for row in rows:
     try:
         #print(row[7])
+        #spamwriter.writerow(row[:10])
         spamwriter.writerow(row)
     except Exception as e:
         print(f'Error, p={i}: ',p.text)
@@ -522,6 +606,13 @@ for row in rows:
     
 csvfile.close()
 
+with open(csv_reading_validation_filename,'w',newline='',encoding='utf8') as csvfile:
+    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    spamwriter.writerows(reading_validation_matrix)
+
+
 #перевіряємо кількість днів
 #print(len(rows), rows[0])
 check_day_qty(rows)
+
+print("Done!")

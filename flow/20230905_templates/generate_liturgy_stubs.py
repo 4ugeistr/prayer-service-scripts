@@ -204,7 +204,7 @@ def get_triodion_template_texts(path):
 
     for p in doc.paragraphs:
         
-        re_result=re.search(f'^Тиждень (\d), День (\d)',p.text)
+        re_result=re.search(r'^Тиждень (\d), День (\d)',p.text)
         if re_result:
             triodion_week = int(re_result.group(1))
             triodion_day = int(re_result.group(2))
