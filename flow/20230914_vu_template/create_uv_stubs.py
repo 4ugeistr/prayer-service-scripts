@@ -15,8 +15,8 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-month_no=10
-print(f"WARNING: MONTH OVERRIDE!")
+#month_no=10
+#print(f"WARNING: MONTH OVERRIDE!")
 print(f"Processing month: {month_no}")
 
 day_short_dic={"ПН":1,
@@ -604,10 +604,20 @@ def format_run(r, handle=''):
     #handle = "bir"
     if 'b' in handle:
         r.font.bold = True
+    else:
+        r.font.bold = False
+        
     if 'i' in handle:
         r.font.italic = True
+    else:
+        r.font.italic = False
+
     if 'r' in handle:
         r.font.color.rgb = RGBColor(0xff, 0x44, 0x00)
+    else:
+        r.font.color.rgb = RGBColor(0x00, 0x00, 0x00)
+
+    r.font.highlight_color=None
     r.font.name='Times New Roman'
     r.font.size=152400
 
@@ -950,6 +960,50 @@ def insert_kanon(path,date):
     #print("WARNING: не знайшли закінчення канону!")
     doc.save(path)
 
+def insert_resurrection_gospel_parts(path,date):
+    paschalia_dates = paschalia.get_prev_next_pascha(date, mode)
+    doc = docx.Document(path)
+    
+    gospel_no = paschalia.get_resurrection_gospel(date,paschalia_dates)
+
+    gospel_stichera_label_found = None
+
+    for p in doc.paragraphs:
+
+        re_result = re.search("Священик: Від ВКАЗАТИ святого Євангелія читання.",p.text)
+        if re_result:
+            for r in p.runs:
+                if r.text == "ВКАЗАТИ":
+                    r.text = resurrection_gospel_matrix[gospel_no]['gospel_apostle']
+                    format_run(r,'')
+            continue
+        
+        re_result = re.search("ТЕКСТ ЄВАНГЕЛІЯ",p.text)
+        if re_result:
+            copy_paragraph_list_before(p,resurrection_gospel_matrix[gospel_no]['gospel'])
+            delete_paragraph(p)
+            continue
+
+        re_result = re.search("ВСТАВИТИ СВІТИЛЬНИЙ",p.text)
+        if re_result:
+            copy_paragraph_list_before(p,resurrection_gospel_matrix[gospel_no]['exapostolarion'])
+            delete_paragraph(p)
+            continue
+
+        re_result = re.search("Стихира євангельська",p.text)
+        if re_result:
+            gospel_stichera_label_found=True
+            continue
+        
+        re_result = re.search(r"Слава \(г. \): ",p.text)
+        if gospel_stichera_label_found and re_result:
+            copy_paragraph_list_before(p,resurrection_gospel_matrix[gospel_no]['stichera'])
+            delete_paragraph(p)
+            gospel_stichera_label_found = None
+            continue
+
+    doc.save(path)
+
 old_files = glob.glob('2022/*/*.doc*')
 filenames={}
 
@@ -1010,6 +1064,7 @@ templates_kanon_dic = get_octoechos_kanon_texts('05a_ОКТОЇХ_КАНОНИ.d
 kanon_litany_list = get_kanon_litany("Канон - Мала єтенія.docx")
 stichera_matrix = get_stichera.get_stichera_matrix(glob.glob(f'Стихири - Мінея\\Мінея_{month_no:02}*.docx')[0])
 generic_stichera_matrix = get_stichera.get_generic_stichera_matrix('Стихири ГВ загальної служби.docx')
+resurrection_gospel_matrix = get_stichera.get_resurrection_gospel_matrix("11-ВОСКРЕСНІ ЄВАНГЕЛІЯ.docx")
 #dogmatika = get_stichera.get_dogmatika("Догмати.docx")
 
 
@@ -1114,15 +1169,19 @@ def update_stubs(draft_dic):
         
         if desc[0] in ('неділя','октоїх','пасха','50-ця'):
             #вставити стихири ГВ
-            #вставити тропарі вечірні
+            #вставити тропарі вечірні, утрені
             if ordo_matrix[d][1]!='y':
                 #if d==2:
                 #    print(f'inserting troparia for {d}')
                 insert_troparia(desc[1],datetime(year_no, month_no, d))
-            #вставити глас для Бог Господь
+            #вставити глас для Господи Воззвах
             insert_gv_echos(desc[1],datetime(year_no, month_no, d))
+            #вставити глас для Бог Господь
             insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
-            #вставити тропарі на Бог Господь
+            
+            if datetime(year_no, month_no, d).weekday()+1==7:
+                insert_resurrection_gospel_parts(desc[1],datetime(year_no, month_no, d))
+
             #вставити тропарі вкінці утрені
         if desc[0] in ('октоїх') and (datetime(year_no, month_no, d).weekday()+1)!=7:
             insert_kanon(desc[1],datetime(year_no, month_no, d))
@@ -1156,6 +1215,7 @@ def sanitize_spaces(path):
         for r in p.runs:
             r.text = r.text.replace('\xa0',' ')
     doc.save(path)
+
 
 if __name__ == "__main__":
     action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', ["1. Згенерувати чернетки","2. Оновити Відпусти"])
