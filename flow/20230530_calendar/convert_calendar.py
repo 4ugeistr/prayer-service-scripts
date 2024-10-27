@@ -250,6 +250,10 @@ def compile_echo_gospel(date,paschalia_dates):
 
     echo = paschalia.get_echos(date,paschalia_dates)
     gospel = paschalia.get_resurrection_gospel(date,paschalia_dates)
+
+    if date>=paschalia_dates[0]['pascha']+timedelta(days=7) and date< paschalia_dates[0]['pascha']+timedelta(days=7*2): 
+        echo=None
+
     lst=[]
     if echo:
         echo_str = f"Гл. {echo}"

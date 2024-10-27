@@ -1,4 +1,4 @@
-import re,easygui
+import re
 from datetime import datetime, timedelta
 from operator import itemgetter
 
@@ -191,43 +191,13 @@ def get_week_from_lent_start(cur_date,paschalia_dates):
 
 def get_echos(cur_date,paschalia_dates):
     echos_list = [1,2,3,4,5,6,7,8]
-
-    if cur_date>=paschalia_dates[1]['palm_sunday']:
-        return None
-
-    days_from_pascha = (cur_date-paschalia_dates[0]['pascha']).days
-    match days_from_pascha:
-        case 0:
-            return 1
-        case 1:
-            return 2
-        case 2:
-            return 3
-        case 3:
-            return 4
-        case 4:
-            return 5
-        case 5:
-            return 6
-        case 6:
-            return 8
-
-    if days_from_pascha >=7 and days_from_pascha < 7*2:
-        return None 
-
+    #додати повернення None для дат які не мають Гласу?
     return echos_list[get_week_from_pascha(cur_date,paschalia_dates)%8-2]
     
 def get_resurrection_gospel(cur_date,paschalia_dates):
     gospel_list = [1,2,3,4,5,6,7,8,9,10,11]
-
-    if cur_date>=paschalia_dates[1]['palm_sunday']:
-        return None
-    
-    if cur_date == paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=7*5):
-        return f"Неділя 6-та Великого посту."
-    
     match get_week_from_pascha(cur_date,paschalia_dates):
-        case 0: #Пасха
+        case 1: #Пасха
             return None
         case 2: #Антипасха
             return 1
@@ -245,6 +215,8 @@ def get_resurrection_gospel(cur_date,paschalia_dates):
             return None
         case _: #по 50-ці
             return gospel_list[get_week_from_50(cur_date,paschalia_dates)%11-1]
+                
+            
 
 '''
 period = {lent|pascha|pentecost}
@@ -254,23 +226,31 @@ weekday
 
 '''
 
-def get_day_details(cur_date,paschalia_dates):
-
-    weeks_till_lent = None
-    if cur_date >= paschalia_dates[0]["pentecost"] and cur_date < paschalia_dates[1]["lent_start"]:
+def get_day_details(cur_date):
+    paschalia_dates = get_prev_next_pascha(cur_date)
+    weeks_till_lent = day = None
+    if cur_date < paschalia_dates[1]["lent_start"] or cur_date > paschalia_dates[1]["pentecost"]:
         period = 'pentecost'
         week = get_week_from_50(cur_date, paschalia_dates)
         weeks_till_lent = ((paschalia_dates[1]["lent_start"] - cur_date).days - 1) //7 +1
-        weeks_till_lent = None if weeks_till_lent > 5 else weeks_till_lent
-    elif cur_date > paschalia_dates[1]["cheesefare_sunday"] and cur_date <= paschalia_dates[1]["pascha"]:
+        weeks_till_lent = None if weeks_till_lent > 5 or weeks_till_lent < 0 else weeks_till_lent
+    elif cur_date == paschalia_dates[1]["pentecost"]:
+        #print("Check")
+        period = 'pentecost'
+        week = 1
+        day = 0
+    elif cur_date <= paschalia_dates[1]["pascha"]:
         period = 'lent'
         week = ((cur_date - paschalia_dates[1]["cheesefare_sunday"]).days - 1) // 7 + 1
     else:
         period = 'pascha'
         week = get_week_from_pascha(cur_date, paschalia_dates)
-
-    day = cur_date.weekday()+1
-
+    #print(day)
+    if not day and day!=0:
+        day = cur_date.weekday()+1
+        if period=="pascha" and day ==7:
+            day=0
+    #print(period, week, weeks_till_lent, day)
     return period, week, weeks_till_lent, day
 
 '''
@@ -507,8 +487,9 @@ def get_week_related_label(cur_date):
         return "err"
 '''
 if __name__ == "__main__":
-    mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
-    cur_date=datetime(2025,4,20)
-    paschalia_dates = get_prev_next_pascha(cur_date, mode)
-    print(get_day_details(cur_date,paschalia_dates))
-    print(get_echos(cur_date,paschalia_dates))
+    #paschalia_dates = get_prev_next_pascha(datetime.now(), mode='u')
+    #print(get_day_details(datetime(2025,1,1),paschalia_dates))
+    #print(get_day_details(datetime.now()))
+    #print(get_week_code(datetime.now(),''))
+    print(get_week_code(datetime(2025,4,27),''))
+    pass
