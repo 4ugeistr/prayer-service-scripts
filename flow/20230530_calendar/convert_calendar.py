@@ -138,7 +138,7 @@ def find_highest_symbol(title):
                 print(ch)
     return reverse_symbol_hierarchy[cur_rank]
     
-def get_lent_params(date,day_symbol,day_title):
+def get_lent_params(date,day_symbol,day_title,paschalia_dates):
     # return lent_color, lent_symbol
     
     is_holiday = True if day_symbol=="#" else False
@@ -146,8 +146,8 @@ def get_lent_params(date,day_symbol,day_title):
     if re.search("всесвітнє .оздвиження",day_title.lower()) or re.search("всемірне .оздвиження",day_title.lower()) or re.search("усікновення чесної",day_title.lower()):
         return 1, 1
     #Великий піст
-    if (date>=paschalia.paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) and date<paschalia.paschalia_dates[1]["pascha"]) and date.weekday()+1 in workday_list and not is_holiday:
-        if date==paschalia.paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) or date==paschalia.paschalia_dates[1]["pascha"]-timedelta(days=2):
+    if (date>=paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) and date<paschalia_dates[1]["pascha"]) and date.weekday()+1 in workday_list and not is_holiday:
+        if date==paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) or date==paschalia_dates[1]["pascha"]-timedelta(days=2):
             lent_symbol = 2
         elif date.weekday()+1 in [1,3,5]:
             lent_symbol = 1
@@ -155,7 +155,7 @@ def get_lent_params(date,day_symbol,day_title):
             lent_symbol = 0
         return 1, lent_symbol
     #Петрівка
-    if (date> paschalia.paschalia_dates[1]["pentecost"]+timedelta(days=7) and date<datetime(date.year,6,29)) and date.weekday()+1 in workday_list and not is_holiday:
+    if (date> paschalia_dates[1]["pentecost"]+timedelta(days=7) and date<datetime(date.year,6,29)) and date.weekday()+1 in workday_list and not is_holiday:
         return 1, 1 if date.weekday()+1 in [3,5] else 0
     #Спасівка
     if (date> datetime(date.year,6,29) and date<datetime(date.year,6,29)) and date.weekday()+1 in workday_list and not is_holiday:
@@ -230,6 +230,7 @@ holidays_godmother = [
     [11,21],#Введення
     [12,9],#Зачаття
     [12,26]#Собор
+
 ]
 def get_day_color(date,day_symbol):
     for d in holidays_godmother:
@@ -242,6 +243,23 @@ def beautify_reading(reading):
     reading = re.sub(reading_indicator_string_for_beautify,r'<i>\g<1></i>',reading)
     return reading
 
+def compile_echo_gospel(date,paschalia_dates):
+
+    if date>=paschalia_dates[1]['palm_sunday']:
+        return "*"
+
+    echo = paschalia.get_echos(date,paschalia_dates)
+    gospel = paschalia.get_resurrection_gospel(date,paschalia_dates)
+    lst=[]
+    if echo:
+        echo_str = f"Гл. {echo}"
+        lst.append(echo_str)
+    if gospel and date.weekday()+1 == 7:
+        gospel_str = f"Єв. {gospel}"
+        lst.append(gospel_str)
+    return '. '.join(lst)
+
+
 
 def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     
@@ -251,14 +269,14 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     except ValueError as e:
         print(f'ERROR with {cur_year}-{month:02}-{cur_day:02}')
         raise e
-    paschalia.paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
+    paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
     day_symbol= symbol_dict_w_space[find_highest_symbol(day_title)]
     day_color = get_day_color(date,day_symbol)
     #week_string=get_week(date,day_title,day_symbol)
     week_code=paschalia.get_week_code(date,day_title)
     #day_title=day_title.replace("🕃b","🕃")
     #lent_icon = get_lent_icon(date,day_symbol, day_title)
-    lent_color,lent_icon = get_lent_params(date,day_symbol,day_title)
+    lent_color,lent_icon = get_lent_params(date,day_symbol,day_title,paschalia_dates)
 
     
     if date.weekday()+1 !=7 and glas and glas!="*":
@@ -266,7 +284,7 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
         #print(glas, date)
         glas = re.search(r"(Глас \d)",glas).group(1)
 
-
+    glas = compile_echo_gospel(date,paschalia_dates)
     '''
     try:
         weekday_no=date.weekday()+1
@@ -597,8 +615,8 @@ spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MIN
 for row in rows:
     try:
         #print(row[7])
-        #spamwriter.writerow(row[:10])
-        spamwriter.writerow(row)
+        spamwriter.writerow(row[:10])
+        #spamwriter.writerow(row)
     except Exception as e:
         print(f'Error, p={i}: ',p.text)
         print(row)

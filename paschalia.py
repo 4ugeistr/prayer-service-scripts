@@ -1,4 +1,4 @@
-import re
+import re,easygui
 from datetime import datetime, timedelta
 
 
@@ -25,6 +25,9 @@ paschalia_dates_table = [
     {"mode":"u",
      "year":2024,
      "pascha":datetime(2024,5,5)},
+    {"mode":"u",
+     "year":2025,
+     "pascha":datetime(2025,4,20)},
     {"mode":"u",
      "year":2025,
      "pascha":datetime(2025,4,20)},
@@ -153,11 +156,41 @@ def get_week_from_pascha(cur_date,paschalia_dates):
 
 def get_echos(cur_date,paschalia_dates):
     echos_list = [1,2,3,4,5,6,7,8]
-    #додати повернення None для дат які не мають Гласу?
+
+    if cur_date>=paschalia_dates[1]['palm_sunday']:
+        return None
+
+    days_from_pascha = (cur_date-paschalia_dates[0]['pascha']).days
+    match days_from_pascha:
+        case 0:
+            return 1
+        case 1:
+            return 2
+        case 2:
+            return 3
+        case 3:
+            return 4
+        case 4:
+            return 5
+        case 5:
+            return 6
+        case 6:
+            return 8
+
+    if days_from_pascha >=7 and days_from_pascha < 7*2:
+        return None 
+
     return echos_list[get_week_from_pascha(cur_date,paschalia_dates)%8-2]
     
 def get_resurrection_gospel(cur_date,paschalia_dates):
     gospel_list = [1,2,3,4,5,6,7,8,9,10,11]
+
+    if cur_date>=paschalia_dates[1]['palm_sunday']:
+        return None
+    
+    if cur_date == paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=7*5):
+        return f"Неділя 6-та Великого посту."
+    
     match get_week_from_pascha(cur_date,paschalia_dates):
         case 0: #Пасха
             return None
@@ -441,5 +474,7 @@ def get_week_related_label(cur_date):
 
 if __name__ == "__main__":
     mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
-    paschalia_dates = get_prev_next_pascha(datetime.now(), mode)
-    print(get_day_details(datetime(2024,3,3),paschalia_dates))
+    cur_date=datetime(2025,4,21)
+    paschalia_dates = get_prev_next_pascha(cur_date, mode)
+    print(get_day_details(cur_date,paschalia_dates))
+    print(get_echos(cur_date,paschalia_dates))

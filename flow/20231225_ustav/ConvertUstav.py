@@ -6,15 +6,16 @@ logging.basicConfig(filename='dates.log', filemode='w', format='%(message)s', le
 python ConvertUstav.py u Грудень Устав-Грудень.docx
 '''
 
-MONTH = 'Січень'
-YEAR = 2024
+#MONTH = 'Січень'
+YEAR = 2025
 mode= 'g'
 filehtm = f"temp_{YEAR}_{mode}.html"
 #filedoc = f'ustav-{YEAR}-{mode}.docx'
 #filedoc = 
-filedoc = "2024 (ГР) Календар з уставом.docx"
-#filedoc = f'2023 - КАЛЕНДАР УГКЦ З УСТАВОМ_20221031.docx'
+filedoc = "Календар з уставом 2025 (григоріанський).docx"
+#filedoc = 'Календар з уставом 2025 (новоюліанський).docx'
 
+'''
 if len(sys.argv)>1:
     assert sys.argv[1]=='u' or sys.argv[1]=='g' 
     mode=sys.argv[1]
@@ -22,7 +23,9 @@ if len(sys.argv)>1:
         MONTH=sys.argv[2]
     if sys.argv[3]:
         filedoc=sys.argv[3]
-    
+'''
+
+
 # [0] - pattern, [1] - replacement pattern
 re_pattern={
     "u":[
@@ -192,6 +195,7 @@ with open(filehtm,'r',encoding='utf-8') as f:
 
 
 # Формування fallout.html з вийнятками
+
 if mode=='g':
     fallout_no = get_fallout(filehtm,
               word="(<p>)\s*?(<i>)?\s*?(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)",
@@ -317,26 +321,32 @@ if file:
 '''
 # Розбиваємо тимчасовий файл по днях - всі місяці
 try:
-    os.mkdir(f'{mode}')
+    mode_modifier = 'n' if mode == 'g' else ''
+    year_folder = f'{YEAR}{mode_modifier}'
+
+    os.mkdir(year_folder)
 except FileExistsError:
     #print(f'Directory {i+1:02} already exists.')
     pass
 for i in range(12):
     try:
-        os.mkdir(f'{mode}\\{i+1:02}')
+        os.mkdir(f'{year_folder}\\{i+1:02}')
     except FileExistsError:
         #print(f'Directory {i+1:02} already exists.')
         pass
-file = None
+
 with open(filehtm,'r',encoding='utf-8') as f:
     file_lines = f.readlines()
 
+file = None
+month = None
+
 if mode =="u" or mode=='g':
     for line in file_lines:        
-        re_result = re.search('<h1>'+month_list_string,line)
+        re_result = re.search('<h1>(?:<b>)?'+month_list_string,line)
         if re_result:
             month = month_list[re_result.group(1)]
-            print("found month", month, line)
+            print("Found month", month, line)
             if file:
                 file.close()
                 #print("closing month")
@@ -346,14 +356,17 @@ if mode =="u" or mode=='g':
             file.close()
             #print("closing named_day")
 
-        re_result= re.search('^<p>(\d{1,2})',line)
-        if re_result:        
-            #print("found day", line)
-            day = int(re.search('^<p>(\d{1,2})',line)[1])
+        re_result= re.search('^<p>(?:<b>)?(\d{1,2})',line)
+        if re_result and month:        
+            #print("Found day", line)
+            day = int(re.search('^<p>(?:<b>)?(\d{1,2})(.*)',line)[1])
+            header = re.search('^<p>(?:<b>)?(\d{1,2})(.*)',line)[2].strip()
             if file:
                 file.close()
                 #print("closing day")
-            file = open(f'{mode}\\{month:02}\\u{day:02}.html', 'w',encoding='utf-8')
+            file = open(f'{year_folder}\\{month:02}\\u{day:02}.html', 'w',encoding='utf-8')
+            file.writelines(header)
+            continue
         if file and not file.closed:
             file.writelines(line)
 '''
