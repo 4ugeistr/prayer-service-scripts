@@ -2,7 +2,7 @@ import sys, re, mammoth
 from glob import glob
 from datetime import datetime
 from bs4 import BeautifulSoup
-import calendar
+#import calendar
 import os
 import easygui
 from checkLiturgyIntegrity import checkLiturgyIntegrity

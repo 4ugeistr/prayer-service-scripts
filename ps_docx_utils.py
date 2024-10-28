@@ -70,7 +70,10 @@ def copy_paragraph_list_before(p_to_insert_before,paragraph_list):
     for p in paragraph_list:
         copy_paragraph_before(p_to_insert_before,p)
 
-def format_line(p, handle=''):
+#
+#mode = whatever | html
+#html - turns red to italics
+def format_line(p, handle='', mode=''):
     #handle = "bir"
     if 'b' in handle:
         p.runs[0].font.bold = True
@@ -78,5 +81,8 @@ def format_line(p, handle=''):
         p.runs[0].font.italic = True
     if 'r' in handle:
         p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
+    if 'r' in handle and mode == 'html':
+        p.runs[0].font.italic = True
+
     p.runs[0].font.name='Times New Roman'
     p.runs[0].font.size=152400

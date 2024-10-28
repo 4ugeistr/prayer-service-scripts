@@ -1,13 +1,18 @@
-import paschalia, calendar, docx, easygui, csv
+import paschalia, calendar, docx, easygui, csv, mammoth
 from datetime import datetime
 
 import ps_date_utils as du
 from ps_docx_utils import format_line
 
 #mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
-year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
+#year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
+year_no = 2025
 
-
+style_map = """
+i => i
+b => b
+h2 => p
+"""
 
 def get_matrix_full(csv_filename):
     matrix=[]
@@ -18,7 +23,7 @@ def get_matrix_full(csv_filename):
     return matrix
 
 def insert_header_liturgy(doc,date):
-    day_name = dt.day_dic_reversed[date.weekday()+1]
+    day_name = du.day_dic_reversed[date.weekday()+1]
     #month_name = month_dic_reversed[month_no]
     week_no=paschalia.get_week(date,"","")[:2]
 
@@ -60,6 +65,41 @@ def insert_header_liturgy(doc,date):
         p_new=doc.add_paragraph(l[9])
         format_line(p_new, ''.join(l[2:5]))
 
+
+
+def get_special_day_strings(date):
+    day_name = du.day_dic_reversed[date.weekday()+1]
+    #month_name = month_dic_reversed[month_no]
+    #week_no=paschalia.get_week(date,"","")[:2]
+
+    #Субота, Неділя, Тиждень etc...
+    special_dates=[{"date":datetime(year_no,12,25),
+                     "holiday":"Різдво",
+                     "holiday_relative":"Різдва",
+                     "holiday_locative":"Різдві",
+                     "holiday_instrumental":"Різдвом"},
+                    {"date":datetime(year_no,1,6),
+                     "holiday":"Богоявленні",
+                     "holiday_relative":"Богоявлення",
+                     "holiday_locative":"Богоявленні",
+                     "holiday_instrumental":"Богоявленням"}]
+    res = None
+    for sd in special_dates:
+        diff = (sd["date"]-date).days
+        if abs(diff)<=7 and date.weekday()+1 in [6,7]:
+            if diff>0:
+                txt = f"{day_name} перед {sd['holiday_instrumental']}"
+            else:
+                txt = f"{day_name} по {sd['holiday_locative']}"
+            res = [{'text':txt,'format':'ir'}]
+        '''
+        if diff == 1:
+            txt2 = f"Навечір`я перед {sd['holiday_relative']}"
+            if txt2:
+                res.append({'text':txt2,'format':'ir'})
+        '''
+    return res
+
 def get_triodion_strings(date):
     lines = []
     triodion_params = paschalia.get_day_details(date)
@@ -75,14 +115,35 @@ def get_triodion_strings(date):
     return lines
 
 
-def get_menaion_strings(date):
+def get_menaion_strings(date,short = False):
+    fetch_index = 8 if short else 9
     lines = []
     matrix = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,day_headers_menaion[1:])
     for l in matrix:
-        lines.append({"text":l[9], "format":''.join(l[2:5])})
+        lines.append({"text":l[fetch_index], "format":''.join(l[2:5])})
         #p_new=doc.add_paragraph(l[9])
         #format_line(p_new, ''.join(l[2:5]))
     return lines
+
+def convert_db_entries_to_paragraphs(doc, lst, mode = ''):
+    for line in lst:
+        #print(line["text"])
+        p=doc.add_paragraph(line["text"])
+        format_line(p,line["format"],mode)        
+
+def convert_db_entries_to_html(lst):
+    doc = docx.Document()
+    convert_db_entries_to_paragraphs(doc, lst,mode='html')
+    doc.save('tmp.docx')
+
+    with open('tmp.docx', "rb") as docx_file:
+        result = mammoth.convert_to_html(docx_file, style_map=style_map).value
+    result = result.replace("</p><p>","<br>")
+    result = result.replace("<p>","")
+    result = result.replace("</p>","")
+    return result
+
+
 
 if __name__ == "__main__":
 
@@ -108,6 +169,8 @@ if __name__ == "__main__":
             
             
            #doc.add_paragraph(f"{d}")
+            
+            #GET MENAION DAY HEADING
             first_line = f"{d} "
             for line in get_menaion_strings(datetime(year_no,month_no,d)):
                 text = first_line+ line["text"]
@@ -116,7 +179,7 @@ if __name__ == "__main__":
                     first_line=""
                 format_line(p,line["format"])
             
-            #GET MENAION DAY HEADING
+            
             #GET SPECIAL DAY HEADING
             #GET TRIODION DAY HEADING
             
@@ -125,6 +188,6 @@ if __name__ == "__main__":
 
     doc_filename = f"{year_no}_Календар_{mode}.docx"
     doc.save(doc_filename)
-    print("Done!")
+    print(f"Generated {doc_filename}")
 
     

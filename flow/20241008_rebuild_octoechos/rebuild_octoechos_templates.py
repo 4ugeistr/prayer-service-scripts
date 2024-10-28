@@ -67,6 +67,8 @@ def build_template(path,day,echos):
     doc = docx.Document()
     partlist = sunday_part_list if day==7 else everyday_part_list
     for item in partlist:
+        #TBD
+        pass
         
 
 if __name__ == "__main__":
