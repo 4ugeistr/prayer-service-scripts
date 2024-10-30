@@ -66,6 +66,19 @@ def insert_header_liturgy(doc,date):
         format_line(p_new, ''.join(l[2:5]))
 
 
+def get_sunday_header(date):
+
+    week = paschalia.get_week_from_50(date,paschalia.get_prev_next_pascha(date,mode))
+    #while True:
+    ending =''
+    for k,v in paschalia.ending_fem_dic.items():
+        if str(week).endswith(k):
+            ending = v
+            break
+    res = f"Неділя {week}-{ending} по Зісланні Святого Духа."
+    return [{'text':f'{res}','format':'ri'}]
+
+
 
 def get_special_day_strings(date):
     day_name = du.day_dic_reversed[date.weekday()+1]
@@ -73,12 +86,12 @@ def get_special_day_strings(date):
     #week_no=paschalia.get_week(date,"","")[:2]
 
     #Субота, Неділя, Тиждень etc...
-    special_dates=[{"date":datetime(year_no,12,25),
+    special_dates=[{"date":datetime(date.year,12,25),
                      "holiday":"Різдво",
                      "holiday_relative":"Різдва",
                      "holiday_locative":"Різдві",
                      "holiday_instrumental":"Різдвом"},
-                    {"date":datetime(year_no,1,6),
+                    {"date":datetime(date.year,1,6),
                      "holiday":"Богоявленні",
                      "holiday_relative":"Богоявлення",
                      "holiday_locative":"Богоявленні",
@@ -131,6 +144,30 @@ def convert_db_entries_to_paragraphs(doc, lst, mode = ''):
         p=doc.add_paragraph(line["text"])
         format_line(p,line["format"],mode)        
 
+def compile_header(date,short=True):
+    lst = []
+    if get_special_day_strings(date):
+        lst += get_special_day_strings(date)
+    elif not lst and date.weekday()+1==7:
+        lst += get_sunday_header(date)
+    
+    lst += get_menaion_strings(date,short)
+    
+    lst[0]['text'] = f'{date.day} '+lst[0]['text']
+    return lst
+
+def prepare_header_for_docx():
+    #TBD
+    pass
+
+def prepare_header_for_html():
+    #TBD
+    pass
+
+
+'''
+#поганий підхід
+
 def convert_db_entries_to_html(lst):
     doc = docx.Document()
     convert_db_entries_to_paragraphs(doc, lst,mode='html')
@@ -142,7 +179,7 @@ def convert_db_entries_to_html(lst):
     result = result.replace("<p>","")
     result = result.replace("</p>","")
     return result
-
+'''
 
 
 if __name__ == "__main__":
