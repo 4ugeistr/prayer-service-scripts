@@ -632,6 +632,12 @@ with open(csv_reading_validation_filename,'w',newline='',encoding='utf8') as csv
     spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
     spamwriter.writerows(reading_validation_matrix)
 
+with open('og_header.html','w',newline='',encoding='utf8') as csvfile:
+    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    spamwriter.writerows([[x[1],x[7]] for x in rows])
+
+
+
 
 #перевіряємо кількість днів
 #print(len(rows), rows[0])

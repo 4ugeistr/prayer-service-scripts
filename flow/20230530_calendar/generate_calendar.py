@@ -156,25 +156,12 @@ def compile_header(date,short=True):
     lst[0]['text'] = f'{date.day} '+lst[0]['text']
     return lst
 
-
-def format_line_for_html(s, handle=''):
-    #handle = "bir"
-    if 'b' in handle:
-        s=f"<b>{s}</b>"
-    if 'i' in handle and not 'r' in handle:
-        s=f"<em>{s}</em>"
-    if 'r' in handle:
-        s=f"<em>{s}</em>"
-
-def prepare_header_for_docx(lst):
+def prepare_header_for_docx():
     #TBD
     pass
 
-def prepare_header_for_html(date):
-    lst = compile_header(date)
-    res=""
-    for item in lst:
-        pass
+def prepare_header_for_html():
+    #TBD
     pass
 
 
