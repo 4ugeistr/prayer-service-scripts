@@ -160,11 +160,19 @@ def compile_header(date,mode,short=True):
 def format_line_for_html(s, handle='',symbol=''):
     #handle = "bir"
     if symbol:
-        s = symbol+' '+s[2:]
-    if 'b' in handle:
-        s=f"<b>{s}</b>"
+        s = symbol+s[2:]
+    
     if 'i' in handle and not 'r' in handle:
         s=f"<em>{s}</em>"
+        return s
+    if 'r' in handle and not 'i' in handle and not 'b' in handle:
+        s=f"<span>{s}</span>"
+        return s
+    if 'r' in handle and not 'i' in handle and not 'b' in handle:
+        s=f"<strong>{s}</strong>"
+        return s
+    if 'b' in handle:
+        s=f"<b>{s}</b>"
     if 'r' in handle:
         s=f"<i>{s}</i>"
     return s
