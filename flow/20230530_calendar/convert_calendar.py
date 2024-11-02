@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from docx.shared import RGBColor
 from thefuzz import fuzz
 import paschalia
+import generate_calendar
 
 RGB_RED = RGBColor(255, 0, 0)
 RGB_BLACK = RGBColor(0, 0, 0)
@@ -327,7 +328,8 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
          lent_color,
          lent_icon,
          day_symbol,
-         process_title(day_title),
+         generate_calendar.prepare_header_for_html(date,mode),
+         #process_title(day_title),
          beautify_reading(day_readings),
          glas]
     '''
