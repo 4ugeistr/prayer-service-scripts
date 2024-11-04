@@ -66,7 +66,7 @@ def insert_header_liturgy(doc,date):
         format_line(p_new, ''.join(l[2:5]))
 
 
-def get_sunday_header(date):
+def get_sunday_header(date,mode):
 
     week = paschalia.get_week_from_50(date,paschalia.get_prev_next_pascha(date,mode))
     #while True:
@@ -133,7 +133,7 @@ def get_menaion_strings(date,short = False):
     lines = []
     matrix = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,day_headers_menaion[1:])
     for l in matrix:
-        lines.append({"text":l[fetch_index], "format":''.join(l[2:5])})
+        lines.append({"text":l[fetch_index], "format":''.join(l[2:5]),'arbitrary_symbol':l[6]})
         #p_new=doc.add_paragraph(l[9])
         #format_line(p_new, ''.join(l[2:5]))
     return lines
@@ -144,25 +144,53 @@ def convert_db_entries_to_paragraphs(doc, lst, mode = ''):
         p=doc.add_paragraph(line["text"])
         format_line(p,line["format"],mode)        
 
-def compile_header(date,short=True):
+def compile_header(date,mode,short=True):
     lst = []
     if get_special_day_strings(date):
         lst += get_special_day_strings(date)
     elif not lst and date.weekday()+1==7:
-        lst += get_sunday_header(date)
+        lst += get_sunday_header(date,mode) 
     
     lst += get_menaion_strings(date,short)
     
-    lst[0]['text'] = f'{date.day} '+lst[0]['text']
+    #lst[0]['text'] = f'{date.day} '+lst[0]['text']
     return lst
 
-def prepare_header_for_docx():
+
+def format_line_for_html(s, handle='',symbol=''):
+    #handle = "bir"
+    if symbol:
+        s = symbol+s[2:]
+    
+    if 'i' in handle and not 'r' in handle:
+        s=f"<em>{s}</em>"
+        return s
+    if 'r' in handle and not 'i' in handle and not 'b' in handle:
+        s=f"<span>{s}</span>"
+        return s
+    if 'r' in handle and not 'i' in handle and not 'b' in handle:
+        s=f"<strong>{s}</strong>"
+        return s
+    if 'b' in handle:
+        s=f"<b>{s}</b>"
+    if 'r' in handle:
+        s=f"<i>{s}</i>"
+    return s
+
+def prepare_header_for_docx(lst):
     #TBD
     pass
 
-def prepare_header_for_html():
-    #TBD
-    pass
+def prepare_header_for_html(date,mode):
+    lst = compile_header(date,mode)
+    res=""
+    lst_formatted = []
+    for item in lst:
+        lst_formatted.append(format_line_for_html(item['text'],handle = item['format'],symbol=item.get('arbitrary_symbol')))
+    
+
+    res = '<br>'.join(lst_formatted)
+    return res
 
 
 '''
@@ -180,6 +208,8 @@ def convert_db_entries_to_html(lst):
     result = result.replace("</p>","")
     return result
 '''
+day_headers_menaion = get_matrix_full("Місяцеслов-БД.csv")
+day_headers_triodion = get_matrix_full("Дні-Тріодь.csv")
 
 
 if __name__ == "__main__":

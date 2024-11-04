@@ -133,7 +133,7 @@ def get_menaion_strings(date,short = False):
     lines = []
     matrix = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,day_headers_menaion[1:])
     for l in matrix:
-        lines.append({"text":l[fetch_index], "format":''.join(l[2:5])})
+        lines.append({"text":l[fetch_index], "format":''.join(l[2:5]),'arbitrary_symbol':l[6]})
         #p_new=doc.add_paragraph(l[9])
         #format_line(p_new, ''.join(l[2:5]))
     return lines
@@ -149,22 +149,25 @@ def compile_header(date,short=True):
     if get_special_day_strings(date):
         lst += get_special_day_strings(date)
     elif not lst and date.weekday()+1==7:
-        lst += get_sunday_header(date)
+        lst += get_sunday_header(date) 
     
     lst += get_menaion_strings(date,short)
     
-    lst[0]['text'] = f'{date.day} '+lst[0]['text']
+    #lst[0]['text'] = f'{date.day} '+lst[0]['text']
     return lst
 
 
-def format_line_for_html(s, handle=''):
+def format_line_for_html(s, handle='',symbol=''):
     #handle = "bir"
+    if symbol:
+        s = symbol+' '+s[2:]
     if 'b' in handle:
         s=f"<b>{s}</b>"
     if 'i' in handle and not 'r' in handle:
         s=f"<em>{s}</em>"
     if 'r' in handle:
-        s=f"<em>{s}</em>"
+        s=f"<i>{s}</i>"
+    return s
 
 def prepare_header_for_docx(lst):
     #TBD
@@ -173,9 +176,13 @@ def prepare_header_for_docx(lst):
 def prepare_header_for_html(date):
     lst = compile_header(date)
     res=""
+    lst_formatted = []
     for item in lst:
-        pass
-    pass
+        lst_formatted.append(format_line_for_html(item['text'],handle = item['format'],symbol=item.get('arbitrary_symbol')))
+    
+
+    res = '<br>'.join(lst_formatted)
+    return res
 
 
 '''
