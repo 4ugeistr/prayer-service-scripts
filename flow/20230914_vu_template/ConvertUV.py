@@ -37,7 +37,11 @@ for filedoc in doc_files:
     file_ext = split_tup[1]
     if file_ext.startswith('.doc'):
         with open(path+'/'+filedoc, "rb") as docx_file:
-            result = mammoth.convert_to_html(docx_file, style_map=style_map)
+            try:
+                result = mammoth.convert_to_html(docx_file, style_map=style_map)
+            except Exception as e:
+                print(f"Error with file: {docx_file}")
+                raise e
         with open(temppath+'/'+file_name+'.html', "w", encoding='utf-8') as html_file:
             html_file.write(result.value)    
 
@@ -119,7 +123,7 @@ for filehtml in html_files:
 
     fileV = None
     fileU = None
-    print(filehtml)
+    #print(filehtml)
     file_index = int(filehtml.split('-')[0].split('.')[0])
 
     for line in file_lines:

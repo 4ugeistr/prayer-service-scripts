@@ -15,8 +15,8 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-#month_no=10
-#print(f"WARNING: MONTH OVERRIDE!")
+month_no=11
+print(f"WARNING: MONTH OVERRIDE!")
 print(f"Processing month: {month_no}")
 
 day_short_dic={"ПН":1,
