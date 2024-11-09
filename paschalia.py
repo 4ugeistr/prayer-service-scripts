@@ -161,12 +161,22 @@ def get_prev_next_pascha(cur_date, mode='u'):
 0111111|122
 '''
 def get_week_from_50(cur_date,paschalia_dates):
+    #obsolete - pentecost period is always [0]
+    '''
     if cur_date > paschalia_dates[1]["pentecost"]:
         days = (cur_date - paschalia_dates[1]["pentecost"]).days
     else:
         days = (cur_date - paschalia_dates[0]["pentecost"]).days
-    modifier = 0 if days%7==0 else 1
-    weeks = days // 7 + modifier    
+    '''
+
+    days = (cur_date - paschalia_dates[0]["pentecost"]).days
+
+    if days == 0:
+        weeks = 1
+    else:
+        modifier = 0 if days%7==0 else 1
+        weeks = days // 7 + modifier    
+
     return weeks
 
 '''
@@ -174,10 +184,8 @@ def get_week_from_50(cur_date,paschalia_dates):
 0000000|222
 '''     
 def get_week_from_pascha(cur_date,paschalia_dates):
-    if cur_date > paschalia_dates[1]["pascha"]:
-        days = (cur_date - paschalia_dates[1]["pascha"]).days
-    else:
-        days = (cur_date - paschalia_dates[0]["pascha"]).days
+
+    days = (cur_date - paschalia_dates[0]["pascha"]).days    
     #modifier = 0 if days // 7==0 else 1
     modifier = 1
     weeks = days // 7 + modifier
@@ -267,6 +275,7 @@ def get_day_details(cur_date,paschalia_dates):
     if cur_date >= paschalia_dates[0]["pentecost"] and cur_date < paschalia_dates[1]["lent_start"]:
         period = 'pentecost'
         week = get_week_from_50(cur_date, paschalia_dates)
+
         weeks_till_lent = ((paschalia_dates[1]["lent_start"] - cur_date).days - 1) //7 +1
         weeks_till_lent = None if weeks_till_lent > 5 else weeks_till_lent
     elif cur_date > paschalia_dates[1]["cheesefare_sunday"] and cur_date <= paschalia_dates[1]["pascha"]:
@@ -276,7 +285,18 @@ def get_day_details(cur_date,paschalia_dates):
         period = 'pascha'
         week = get_week_from_pascha(cur_date, paschalia_dates)
 
-    day = cur_date.weekday()+1
+    #порядок днів в Пасхальний період: 
+    #0 - неділя
+    #123456 - з понеділка по суботу
+
+    #порядок днів в інший період: 
+    #123456 - з понеділка по суботу
+    #7 - неділя
+
+    if (period == 'pascha') and cur_date.weekday()+1==7 or cur_date == paschalia_dates[0]["pentecost"]:
+        day=0
+    else:
+        day = cur_date.weekday()+1         
 
     return period, week, weeks_till_lent, day
 

@@ -21,21 +21,26 @@ def get_matrix_full(csv_filename):
         for row in spamreader:
             matrix.append(row)
     return matrix
-
+'''
 def insert_header_liturgy(doc,date):
     day_name = du.day_dic_reversed[date.weekday()+1]
     #month_name = month_dic_reversed[month_no]
     week_no=paschalia.get_week(date,"","")[:2]
 
     #Субота, Неділя, Тиждень etc...
-    special_dates=[{"date":datetime(year_no,12,25),
+    special_dates=[{"date":datetime(year_no,9,14),
+                     "holiday":"Воздвиженні",
+                     "holiday_locative":"Воздвиженні",
+                     "holiday_instrumental":"Воздвиженям"},
+                     {"date":datetime(year_no,12,25),
                      "holiday":"Різдво",
                      "holiday_locative":"Різдві",
                      "holiday_instrumental":"Різдвом"},
-                    {"date":datetime(year_no+1,1,6),
+                    {"date":datetime(year_no,1,6),
                      "holiday":"Богоявленні",
                      "holiday_locative":"Богоявленні",
-                     "holiday_instrumental":"Богоявленням"}]
+                     "holiday_instrumental":"Богоявленням"},
+                     ]
     for sd in special_dates:
         diff = (sd["date"]-date).days
         if abs(diff)<=7 and date.weekday()+1 in [6,7]:
@@ -64,7 +69,7 @@ def insert_header_liturgy(doc,date):
     for l in lst:
         p_new=doc.add_paragraph(l[9])
         format_line(p_new, ''.join(l[2:5]))
-
+'''
 
 def get_sunday_header(date,mode):
 
@@ -86,43 +91,61 @@ def get_special_day_strings(date):
     #week_no=paschalia.get_week(date,"","")[:2]
 
     #Субота, Неділя, Тиждень etc...
-    special_dates=[{"date":datetime(date.year,12,25),
+    special_dates=[{"date":datetime(year_no,9,14),
+                     "holiday":"Воздвиженні",
+                     "holiday_locative":"Воздвиженні",
+                     "holiday_instrumental":"Воздвиженям"},
+                     {"date":datetime(year_no,12,25),
                      "holiday":"Різдво",
-                     "holiday_relative":"Різдва",
                      "holiday_locative":"Різдві",
                      "holiday_instrumental":"Різдвом"},
-                    {"date":datetime(date.year,1,6),
+                    {"date":datetime(year_no,1,6),
                      "holiday":"Богоявленні",
-                     "holiday_relative":"Богоявлення",
                      "holiday_locative":"Богоявленні",
-                     "holiday_instrumental":"Богоявленням"}]
-    res = None
+                     "holiday_instrumental":"Богоявленням"},
+                     ]
+    res = []
     for sd in special_dates:
         diff = (sd["date"]-date).days
-        if abs(diff)<=7 and date.weekday()+1 in [6,7]:
+        if abs(diff)<=7 and diff>0 and date.weekday()+1 in [6,7]:
             if diff>0:
                 txt = f"{day_name} перед {sd['holiday_instrumental']}"
             else:
                 txt = f"{day_name} по {sd['holiday_locative']}"
-            res = [{'text':txt,'format':'ir'}]
+            res.append({'text':txt,'format':'ir'})
         '''
         if diff == 1:
             txt2 = f"Навечір`я перед {sd['holiday_relative']}"
             if txt2:
                 res.append({'text':txt2,'format':'ir'})
         '''
+    
+    #Hardcode - Соборів в листопаді, Жовтні
+    if date == datetime(date.year,7,13):
+        res.append({'text':"Неділя 5-та, святих отців шести Вселенських Соборів.",'format':'ir'})
+    if date == datetime(date.year,10,12):        
+        res.append({'text':"Неділя 18-та, cвятих отців Сьомого Вселенського Собору.",'format':'ir'})
+    if date == datetime(date.year,12,14):        
+        res.append({'text':"Неділя 27-ма, святих Праотців",'format':'ir'})
+        
     return res
 
-def get_triodion_strings(date):
+def get_triodion_strings(date,mode):
     lines = []
-    triodion_params = paschalia.get_day_details(date)
+    paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
+    triodion_params = paschalia.get_day_details(date,paschalia_dates)
     
+    matrix = []
+    
+    if triodion_params[0] in ('pentecost') and triodion_params[2]:
+        matrix += list(filter(lambda l:l[0]==triodion_params[0] and l[2] and int(l[2])==triodion_params[2] and int(l[3])==triodion_params[3],day_headers_triodion))
+    elif triodion_params[0] in ('lent','pascha'):
+        matrix += list(filter(lambda l:l[0]==triodion_params[0] and int(l[1])==triodion_params[1] and int(l[3])==triodion_params[3],day_headers_triodion))
+    else:
+        matrix += list(filter(lambda l:l[0]==triodion_params[0] and l[1] and int(l[1])==triodion_params[1] and int(l[3])==triodion_params[3],day_headers_triodion))
 
-    matrix = filter(lambda l:int(l[0])==date.month and int(l[1])==date.day,day_headers_menaion[1:])
-    
-    
     for l in matrix:
-        lines.append({"text":l[9], "format":''.join(l[2:5])})
+        lines.append({"text":l[10], "format":''.join(l[4:7]),'arbitrary_symbol':l[8]})
         #p_new=doc.add_paragraph(l[9])
         #format_line(p_new, ''.join(l[2:5]))
     return lines
@@ -146,8 +169,14 @@ def convert_db_entries_to_paragraphs(doc, lst, mode = ''):
 
 def compile_header(date,mode,short=True):
     lst = []
-    if get_special_day_strings(date):
-        lst += get_special_day_strings(date)
+
+    strings = get_special_day_strings(date)
+    if strings:
+        lst += strings
+
+    strings = get_triodion_strings(date,mode)
+    if strings:
+        lst += strings
     elif not lst and date.weekday()+1==7:
         lst += get_sunday_header(date,mode) 
     
@@ -161,21 +190,25 @@ def format_line_for_html(s, handle='',symbol=''):
     #handle = "bir"
     if symbol:
         s = symbol+s[2:]
-    
-    if 'i' in handle and not 'r' in handle:
+        if symbol == '#':
+            s=f"<strong>{s}</strong>"
+            return s    
+
+    if 'i' in handle and not 'r' in handle and not 'b' in handle:
         s=f"<em>{s}</em>"
         return s
     if 'r' in handle and not 'i' in handle and not 'b' in handle:
         s=f"<span>{s}</span>"
         return s
-    if 'r' in handle and not 'i' in handle and not 'b' in handle:
-        s=f"<strong>{s}</strong>"
+    if 'r' in handle and 'i' in handle and not 'b' in handle:
+        s=f"<i>{s}</i>"
         return s
     if 'b' in handle:
         s=f"<b>{s}</b>"
     if 'r' in handle:
         s=f"<i>{s}</i>"
     return s
+
 
 def prepare_header_for_docx(lst):
     #TBD
@@ -188,7 +221,6 @@ def prepare_header_for_html(date,mode):
     for item in lst:
         lst_formatted.append(format_line_for_html(item['text'],handle = item['format'],symbol=item.get('arbitrary_symbol')))
     
-
     res = '<br>'.join(lst_formatted)
     return res
 
@@ -208,6 +240,7 @@ def convert_db_entries_to_html(lst):
     result = result.replace("</p>","")
     return result
 '''
+
 day_headers_menaion = get_matrix_full("Місяцеслов-БД.csv")
 day_headers_triodion = get_matrix_full("Дні-Тріодь.csv")
 

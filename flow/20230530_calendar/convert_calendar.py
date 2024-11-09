@@ -143,32 +143,57 @@ def get_lent_params(date,day_symbol,day_title,paschalia_dates):
     # return lent_color, lent_symbol
     
     is_holiday = True if day_symbol=="#" else False
+
     #Великі свята, в які піст
     if re.search("всесвітнє .оздвиження",day_title.lower()) or re.search("всемірне .оздвиження",day_title.lower()) or re.search("усікновення чесної",day_title.lower()):
-        return 1, 1
+        return (1, 1)
+    
+    #Навечір'я Різва, Богоявлення
+    if (date == datetime(date.year,1,5) or date == datetime(date.year,12,24)) and date.weekday()+1 != 7:
+        return (1, 1)
+
     #Великий піст
     if (date>=paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) and date<paschalia_dates[1]["pascha"]) and date.weekday()+1 in workday_list and not is_holiday:
+        #Початок Вел. Посту, Велика П'ятниця
         if date==paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) or date==paschalia_dates[1]["pascha"]-timedelta(days=2):
-            lent_symbol = 2
+            return (2,2)
+        #Звичайні дні Вел. Посту - пн, ср, пт
         elif date.weekday()+1 in [1,3,5]:
-            lent_symbol = 1
+            return (1,1)
+        #Звичайні дні Вел. Посту - вт, чт
         else:
-            lent_symbol = 0
-        return 1, lent_symbol
+            return (1,0)
+
+    is_workday = date.weekday()+1 in workday_list
     #Петрівка
-    if (date> paschalia_dates[1]["pentecost"]+timedelta(days=7) and date<datetime(date.year,6,29)) and date.weekday()+1 in workday_list and not is_holiday:
-        return 1, 1 if date.weekday()+1 in [3,5] else 0
+    is_petrivka = paschalia_dates[0]["pentecost"].year == date.year and date> paschalia_dates[0]["pentecost"]+timedelta(days=7) and date<datetime(date.year,6,29)
     #Спасівка
-    if (date> datetime(date.year,6,29) and date<datetime(date.year,6,29)) and date.weekday()+1 in workday_list and not is_holiday:
-        return 1, 1 if date.weekday()+1 in [3,5] else 0
+    is_spasivka = date> datetime(date.year,6,29) and date<datetime(date.year,6,29)
     #Пилипівка
-    if (date> datetime(date.year,11,15) and date<datetime(date.year,12,24)) and date.weekday()+1 in workday_list and not is_holiday:
-        return 1,1 if date.weekday()+1 in [3,5] else 0
+    is_pylypivka = date> datetime(date.year,11,15) and date<datetime(date.year,12,24)
+
+    if (is_petrivka or is_spasivka or is_pylypivka) and is_workday and not is_holiday:
+        lent_color = 1
+        lent_symbol = 1 if date.weekday()+1 in [3,5] else 0
+        return (lent_color, lent_symbol)
+    
+    #загальниця від Різдва до Богоявління (ПТ???)
+    is_rizdvo_zahalnytsja = (date >= datetime(date.year,12,26) and date<=datetime(date.year,12,31)) or (date >= datetime(date.year,1,1) and date<=datetime(date.year,1,4))
+    #загальниця між Неділею Блудного сина та Неділею Митаря та Фарисея
+    is_period_before_great_lent = (date >= paschalia_dates[1]['meatfare_sunday'] - timedelta(days=7*2-1) and date<=datetime(date.year,2,15))
+    #загальниця Світлого тижня
+    is_pascha_week = (date >= paschalia_dates[0]['pascha']+timedelta(days=1) and date<=paschalia_dates[0]['pascha']+timedelta(days=6))
+    #загальниця тижня по 50-ці
+    is_pentecost_week = (date >= paschalia_dates[0]['pentecost']+timedelta(days=1) and date<=paschalia_dates[0]['pentecost']+timedelta(days=6))
+
+    if is_rizdvo_zahalnytsja or is_period_before_great_lent or is_pascha_week or is_pentecost_week:
+        return (3,0)
+
     #П'ятниця
     if date.weekday()+1 in [5] and not is_holiday:
-        return 1,1
+        return (1, 1)
     #Якщо не вийшли з функції на одній з минулих перевірок, отже не піст
-    return 0,0
+    return (0, 0)
 
 #шукаємо блок з читанням
 
@@ -280,7 +305,8 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     #week_string=get_week(date,day_title,day_symbol)
     week_code=paschalia.get_week_code(date,day_title)
     #day_title=day_title.replace("🕃b","🕃")
-    #lent_icon = get_lent_icon(date,day_symbol, day_title)
+    
+    print(get_lent_params(date,day_symbol,day_title,paschalia_dates))
     lent_color,lent_icon = get_lent_params(date,day_symbol,day_title,paschalia_dates)
 
     
@@ -317,7 +343,7 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     v3 - день тижня (1..7)
     v4 - тип свята [0,1,3]
     5 - колір посту [0,1]
-    6 - рибка [0.1,2]
+    6 - рибка [0,1,2]
     '''
 
     
@@ -331,7 +357,9 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
          generate_calendar.prepare_header_for_html(date,mode),
          #process_title(day_title),
          beautify_reading(day_readings),
-         glas]
+         glas,
+         process_title(day_title)
+         ]
     '''
     row=[f'{cur_year}{month:02}{cur_day:02}',
          week_code,
@@ -497,7 +525,7 @@ for p in doc.paragraphs:
     #якщо в строці лише день - закриваємо попередній "день"
     re_result=re.search(f'^{day_list_string}$',p.text)
     if re_result and day_title: #and flag_reading:
-        #print('APPENDING ROWS!',flag_reading)
+        print('APPENDING ROWS!',cur_month,cur_day)
         rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
         flag_reading=False
         day_readings=""
@@ -612,32 +640,50 @@ validate_readings(rows)
 
 
 #with open('c1test.txt','a',encoding='utf8') as f:
-csvfile = open(csvfilename,'w',newline='',encoding='utf8')
-spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+with open(csvfilename,'w',newline='',encoding='utf8') as csvfile:
+    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-#for row in rows:
-#    row = row[0:1]+row[8:9]+row[10:]
+    #for row in rows:
+    #    row = row[0:1]+row[8:9]+row[10:]
 
-for row in rows:
-    try:
-        #print(row[7])
-        spamwriter.writerow(row[:10])
-        #spamwriter.writerow(row)
-    except Exception as e:
-        print(f'Error, p={i}: ',p.text)
-        print(row)
-        raise e
-    
-csvfile.close()
+    for row in rows:
+        try:
+            #print(row[7])
+            spamwriter.writerow(row[:10])
+            #spamwriter.writerow(row)
+        except Exception as e:
+            print(f'Error, p={i}: ',p.text)
+            print(row)
+            raise e
+
+with open(csvfilename,'r',newline='',encoding='utf8') as csvfile:
+    text = csvfile.readlines()
+
+#with open(csvfilename,'w',newline='',encoding='utf8') as csvfile:
+#    text = csvfile.readlines()
+
+
+
+
 
 with open(csv_reading_validation_filename,'w',newline='',encoding='utf8') as csvfile:
     spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
     spamwriter.writerows(reading_validation_matrix)
 
+
+for item in rows:
+    if item[7].startswith('+'):
+        item[7]= "'"+item[7]
+    
+    #item[7]=item[7].replace('<br>','\n')
+    #item[10]=item[10].replace('<br>','\n')
+
 with open('og_header.html','w',newline='',encoding='utf8') as csvfile:
     spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    spamwriter.writerows([[x[1],x[7]] for x in rows])
-
+    spamwriter.writerows([[x[0],x[1],x[10],x[7]] for x in rows])
+#with open('new_header.html','w',newline='',encoding='utf8') as csvfile:
+#    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+#    spamwriter.writerows([[x[0],x[1],x[7]] for x in rows])
 
 
 
