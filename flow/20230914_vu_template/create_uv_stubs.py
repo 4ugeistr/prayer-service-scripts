@@ -417,7 +417,7 @@ def insert_boh_hospod_echos(path,date):
             break
     doc.save(path)
 
-def insert_gv_echos(path,date):
+def insert_gv_echos(path):
     #print(date.day)
     doc = docx.Document(path)
     found_sticheron = False
