@@ -29,7 +29,7 @@ everyday_part_list=['вечірня',
                 'пісня_богородиці',
                 'пісня9',
                 'достойно',
-                'мала_єктенія_після_канона',
+                #'мала_єктенія_після_канона',
                 'світильний',
                 'хвалитні_будень',
                 #'решта_стихів_хвалитних',
@@ -343,7 +343,15 @@ def insert_echos_into_description(doc, text):
     else:
         print(text, 'NO PARGARAPH TO Update')
 
+folder_for_new_files = '01-Октоїх-new'
 
+
+def build_full_octoechos(folder):
+    for echos in range(1,9):
+        for day in range(1,8):
+            doc_filename = f"{folder}/Глас_{echos}/{echos}-{pdt.day_short_dic_reversed[day]}-.docx"
+            build_template(doc_filename, day,echos)
+            print(f"{datetime.now()}: Шаблон {doc_filename} побудовано!")
 
 
 
@@ -356,8 +364,10 @@ print(f"Finished building dictionaries: {(datetime.now() - start_time).total_sec
 
 if __name__ == "__main__":
     filename = 'test.docx'
-    build_template(filename, 7,1)
-    print(f"Шаблон {filename} побудовано!")
+    #build_template(filename, 7,1)
+    #print(f"Шаблон {filename} побудовано!")
+
+    build_full_octoechos('01-Октоїх-new')
 
     end_time = datetime.now()
     elapsed_time = (end_time - start_time).total_seconds()
