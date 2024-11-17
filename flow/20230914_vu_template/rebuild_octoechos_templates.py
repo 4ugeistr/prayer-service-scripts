@@ -3,6 +3,8 @@ import docx,os,re
 from datetime import datetime
 import ps_docx_utils as pdu
 import ps_date_utils as pdt
+from docx.shared import RGBColor, Pt
+RGB_RED = RGBColor(0xff, 0x44, 0x00)
 
 start_time = datetime.now()
 
@@ -267,6 +269,119 @@ def get_template_part_text(matrix, key):
     
     return -1
 
+def get_vespers_prokimenon(path):
+    template_dic={}
+    doc = docx.Document(path)
+    day=None
+    for p in doc.paragraphs:
+        re_result = re.search(f"^{pdt.day_dic_string}",p.text)
+        if re_result:
+            day=re_result.group(1)
+            template_dic[pdt.day_dic[day]]=[]
+        elif day:
+            template_dic[pdt.day_dic[day]].append(p)
+    return template_dic
+
+def insert_prokimenon(doc,day):
+    #doc = docx.Document(path)
+    #print(path)
+    service = None
+    vespers_prokimenon_found = False
+    vespers_prokimenon_end_found = True
+    for p in doc.paragraphs:
+
+        re_result = re.search("(ВЕЧІРНЯ|УТРЕНЯ)",p.text.upper())
+        if re_result:
+            service = re_result.group(1).lower()
+            #delete_paragraph(p)
+
+        re_result = re.search("Прокімен",p.text)
+        if re_result and service=="вечірня":
+            vespers_prokimenon_found = True
+            #delete_paragraph(p)
+        re_result = re.search("(Читання|Сподоби, Господи)",p.text)
+        if re_result:
+            #print(day)
+            for p1 in vespers_prokimenon[day]:
+                pdu.copy_paragraph_before(p,p1)
+            p.insert_paragraph_before()
+            break
+        elif vespers_prokimenon_found:
+            #print(f"Deleting {p.text}")
+            pdu.delete_paragraph(p)
+    #doc.save(path)
+BLACK='b'
+RED='r'   
+
+def insert_dismissal(doc,day):
+    dismissal_paragraph = list(filter(lambda x: (x['key']=="Відпусти" and x['key2']==pdt.day_dic_reversed[day]),vu_misc_variable_parts))[0]["text"][0]
+    shoutout_found = None
+    for p in doc.paragraphs:
+        re_result=re.search(r"\(3 р\.\)(\.)? Благослов(и|и́)\.",p.text)
+        if re_result:
+            shoutout_found = True
+            #print(date.day, "Благослови found!")
+            continue
+
+        if shoutout_found:
+            #print(date.day, "Відпуст inserting")
+            p_new=pdu.copy_paragraph_before(p,dismissal_paragraph)
+            p_new.paragraph_format.space_after = Pt(6)
+            #print(date.day,p_new.text)
+            pdu.format_line(p_new, '')
+            pdu.delete_paragraph(p)
+            shoutout_found = False
+
+    for p in doc.paragraphs:
+        if re.search(f'Священник:',p.text):
+            re_result=re.search(f'^(Священник:)( .+?)(якого є храм)(.*?)$',p.text)
+            p_bak=p.text
+            p.clear()
+
+            try:
+                if re_result:
+                    pdu.add_text(p,re_result.group(1),color=RED)
+                    pdu.add_text(p,re_result.group(2))
+                    pdu.add_text(p,re_result.group(3),color=RED)
+                    pdu.add_text(p,re_result.group(4))
+                else:
+                    re_result=re.search(f'^(Священник:)(.*?)$',p_bak)
+                    pdu.add_text(p,re_result.group(1),color=RED)
+                    pdu.add_text(p,re_result.group(2))
+            except:
+                print(p_bak)
+                raise
+
+
+def insert_troparion_after_vespers(doc, day):
+    paragraph = list(filter(lambda x: (x['key']=="Кінцеві тропарі вечірні" and x['key2']==pdt.day_dic_reversed[day]),vu_misc_variable_parts))[0]["text"][0]
+    header_found = False
+    for p in doc.paragraphs:
+        re_result = re.search('Після вечірні',p.text)
+        if re_result:
+            header_found = True
+            continue
+
+        if header_found:
+            p_new=p.insert_paragraph_before(paragraph)
+            p_new.paragraph_format.space_after = Pt(6)
+            pdu.delete_paragraph(p)
+            return 0
+        
+    pass
+def insert_troparion_after_orthros(doc, day):
+    paragraph = list(filter(lambda x: (x['key']=="Кінцеві тропарі утрені" and x['key2']==pdt.day_dic_reversed[day]),vu_misc_variable_parts))[0]["text"][0]
+    header_found = False
+    i=0
+    for i in range(len(doc.paragraphs)):
+
+        if i == len(doc.paragraphs)-1:
+            p = doc.paragraphs[i]
+            p_new = doc.add_paragraph("Після утрені",style="Heading 3")
+            pdu.copy_paragraph(doc,paragraph)
+            return 0 
+
+
 def build_template(path,day,echos):
     
     octoechos_texts =get_vu_octoechos_variable_parts_from_template(day,echos)
@@ -303,6 +418,12 @@ def build_template(path,day,echos):
     if day == 7:
         insert_echos_into_description(doc, "Бог Господь... (Пс. 117)")
         insert_echos_into_description(doc, "Два перших стихи хвалитних")
+
+    insert_prokimenon(doc,day)
+    insert_dismissal(doc,day)
+    
+    insert_troparion_after_orthros(doc, day)
+    insert_troparion_after_vespers(doc,day)
 
     doc.save(path)
 
@@ -357,6 +478,8 @@ def build_full_octoechos(folder):
 
 vu_template_parts = get_vu_template_parts('vu_template_parts.docx')
 vu_misc_variable_parts = get_vu_misc_variable_parts('vu_template_misc_variable_parts.docx')
+vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
+
 
 #vu_octoechos_parts = build_octoechos_part_matrix_full('01-Октоїх')
 
@@ -364,10 +487,10 @@ print(f"Finished building dictionaries: {(datetime.now() - start_time).total_sec
 
 if __name__ == "__main__":
     filename = 'test.docx'
-    #build_template(filename, 7,1)
-    #print(f"Шаблон {filename} побудовано!")
+    build_template(filename, 7,1)
+    print(f"Шаблон {filename} побудовано!")
 
-    build_full_octoechos('01-Октоїх-new')
+    #build_full_octoechos('01-Октоїх-new')
 
     end_time = datetime.now()
     elapsed_time = (end_time - start_time).total_seconds()

@@ -1,6 +1,6 @@
 from docx.shared import RGBColor
 from docx.shared import Pt
-
+RGB_RED = RGBColor(0xff, 0x44, 0x00)
 
 
 def delete_paragraph(paragraph):
@@ -69,6 +69,16 @@ def copy_paragraph_list_before(p_to_insert_before,paragraph_list):
     #print("qty of p to insert:",len(paragraph_list))
     for p in paragraph_list:
         copy_paragraph_before(p_to_insert_before,p)
+
+BLACK='b'
+RED='r' 
+def add_text(p,text, color=BLACK):
+    r = p.add_run(text)
+    r.font.name='Times New Roman'
+    r.font.size=152400
+    if color == RED:
+        r.font.color.rgb = RGB_RED
+        r.italic = True
 
 #
 #mode = whatever | html

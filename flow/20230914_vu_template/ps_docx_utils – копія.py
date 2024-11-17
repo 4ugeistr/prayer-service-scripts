@@ -1,6 +1,6 @@
 from docx.shared import RGBColor
 from docx.shared import Pt
-RGB_RED = RGBColor(0xff, 0x44, 0x00)
+
 
 
 def delete_paragraph(paragraph):
@@ -37,7 +37,11 @@ def copy_paragraph(target_doc,source_paragraph):
     except KeyError:
         print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
     target_paragraph.alignment = source_paragraph.alignment
+    
+    for run in source_paragraph.runs:
+        copy_run(target_paragraph,run)
 
+    '''
     for run in source_paragraph.runs:
         new_run = target_paragraph.add_run(run.text)
         new_run.bold = run.bold
@@ -47,6 +51,7 @@ def copy_paragraph(target_doc,source_paragraph):
         new_run.font.name = run.font.name
         new_run.font.color.rgb = run.font.color.rgb
         new_run.font.highlight_color = run.font.highlight_color
+        '''
 
 def copy_paragraph_list(target_doc,paragraph_list):
     for p in paragraph_list:
@@ -70,20 +75,7 @@ def copy_paragraph_list_before(p_to_insert_before,paragraph_list):
     for p in paragraph_list:
         copy_paragraph_before(p_to_insert_before,p)
 
-BLACK='b'
-RED='r' 
-def add_text(p,text, color=BLACK):
-    r = p.add_run(text)
-    r.font.name='Times New Roman'
-    r.font.size=152400
-    if color == RED:
-        r.font.color.rgb = RGB_RED
-        r.italic = True
-
-#
-#mode = whatever | html
-#html - turns red to italics
-def format_line(p, handle='', mode=''):
+def format_line(p, handle=''):
     #handle = "bir"
     if 'b' in handle:
         p.runs[0].font.bold = True
@@ -91,8 +83,5 @@ def format_line(p, handle='', mode=''):
         p.runs[0].font.italic = True
     if 'r' in handle:
         p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
-    if 'r' in handle and mode == 'html':
-        p.runs[0].font.italic = True
-
     p.runs[0].font.name='Times New Roman'
     p.runs[0].font.size=152400

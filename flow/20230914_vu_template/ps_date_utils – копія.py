@@ -7,6 +7,7 @@ day_dic = {"Понеділок":1,
             "Неділя":7}
 day_dic_reversed = {v:k for k,v in day_dic.items()}
 day_dic_string='('+'|'.join(day_dic.keys())+')'
+day_dic["П’ятниця"]=5
 
 day_short_dic={"ПН":1,
         "ВТ":2,
@@ -17,6 +18,9 @@ day_short_dic={"ПН":1,
         "НД":7}
 day_short_dic_reversed = {v:k for k,v in day_short_dic.items()}
 day_short_dic_string='('+'|'.join(day_short_dic.keys())+')'
+
+
+
 
 month_dic= {'Січень':1,
               'Лютий':2,
