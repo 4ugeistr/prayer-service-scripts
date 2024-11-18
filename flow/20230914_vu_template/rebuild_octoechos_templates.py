@@ -4,6 +4,7 @@ from datetime import datetime
 import ps_docx_utils as pdu
 import ps_date_utils as pdt
 from docx.shared import RGBColor, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 RGB_RED = RGBColor(0xff, 0x44, 0x00)
 
 start_time = datetime.now()
@@ -41,6 +42,12 @@ everyday_part_list=['вечірня',
                 'потрійна_єктенія_утрені',
                 'середній_відпуст',
 ]
+
+saturday_part_list= everyday_part_list.copy()
+for i in range(len(saturday_part_list)):
+    if saturday_part_list[i]=='середній_відпуст':
+        saturday_part_list[i]='великий_відпуст'
+
 sunday_part_list=['вечірня',
                   'блажен_муж',
                 'господи_взиваю',
@@ -53,6 +60,7 @@ sunday_part_list=['вечірня',
                 'нині_відпускаєш',
                 'тропарі_седмиця_вечірня',
                 'великий_відпуст',
+                'тропар_вкінці_вечірня',
                 'утреня',
                 'тропарі_седмиця_утреня',
                 'сідальний1',
@@ -301,10 +309,12 @@ def insert_prokimenon(doc,day):
             #delete_paragraph(p)
         re_result = re.search("(Читання|Сподоби, Господи)",p.text)
         if re_result:
-            #print(day)
-            for p1 in vespers_prokimenon[day]:
-                pdu.copy_paragraph_before(p,p1)
-            p.insert_paragraph_before()
+            print("Found prokimenon",day)
+            #for p1 in vespers_prokimenon[day]:
+            #    pdu.copy_paragraph_list_before(p,p1)
+            pdu.copy_paragraph_list_before(p,vespers_prokimenon[day])
+            #p.insert_paragraph_before()
+            vespers_prokimenon_found = False
             break
         elif vespers_prokimenon_found:
             #print(f"Deleting {p.text}")
@@ -353,18 +363,31 @@ def insert_dismissal(doc,day):
                 raise
 
 
+days_troparion_after_vespers = {
+    1:"Понеділок",
+    2:"Будень",
+    3:"Будень",
+    4:"Будень",
+    5:"Будень",
+    6:"Будень",
+    7:"Неділя",
+}
+
+
 def insert_troparion_after_vespers(doc, day):
-    paragraph = list(filter(lambda x: (x['key']=="Кінцеві тропарі вечірні" and x['key2']==pdt.day_dic_reversed[day]),vu_misc_variable_parts))[0]["text"][0]
+    paragraph = list(filter(lambda x: (x['key']=="Кінцеві тропарі вечірні" and x['key2']==days_troparion_after_vespers[day]),vu_misc_variable_parts))[0]["text"][0]
     header_found = False
     for p in doc.paragraphs:
         re_result = re.search('Після вечірні',p.text)
         if re_result:
             header_found = True
+            print(f"deleting: {p.text}")
             continue
 
         if header_found:
-            p_new=p.insert_paragraph_before(paragraph)
+            p_new=pdu.copy_paragraph_before(p, paragraph)
             p_new.paragraph_format.space_after = Pt(6)
+            print(f"deleting: {p.text}")
             pdu.delete_paragraph(p)
             return 0
         
@@ -376,8 +399,14 @@ def insert_troparion_after_orthros(doc, day):
     for i in range(len(doc.paragraphs)):
 
         if i == len(doc.paragraphs)-1:
-            p = doc.paragraphs[i]
+            #p = doc.paragraphs[i]
             p_new = doc.add_paragraph("Після утрені",style="Heading 3")
+            pdu.format_line(p_new,handle = 'rib')
+            p_new.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+            #p_new.runs[0].font.italic = True
+            #p_new.runs[0].font.color.rgb = RGBColor(0xff, 0x00, 0x00)
+            
             pdu.copy_paragraph(doc,paragraph)
             return 0 
 
@@ -387,12 +416,20 @@ def build_template(path,day,echos):
     octoechos_texts =get_vu_octoechos_variable_parts_from_template(day,echos)
 
     doc = docx.Document()
-    partlist = sunday_part_list if day==7 else everyday_part_list
+    match day:
+        case 6:
+            partlist = saturday_part_list
+        case 7:
+            partlist = sunday_part_list
+        case _:
+            partlist = everyday_part_list
+    #if day == 7
+    #partlist = sunday_part_list if day==7 else everyday_part_list
 
     try:
         for item in partlist:
             
-            #p = doc.add_paragraph(f'#{item}')
+            #p = doc.add_paragrangph(f'#{item}')
             #pdu.format_line(p,handle='ri')
 
             #octoechos_texts = list(filter(lambda d: d['echos']==echos and d['day']==day ,vu_octoechos_parts))[0]['texts']
@@ -421,9 +458,10 @@ def build_template(path,day,echos):
 
     insert_prokimenon(doc,day)
     insert_dismissal(doc,day)
-    
-    insert_troparion_after_orthros(doc, day)
+
     insert_troparion_after_vespers(doc,day)
+    insert_troparion_after_orthros(doc, day)
+    
 
     doc.save(path)
 

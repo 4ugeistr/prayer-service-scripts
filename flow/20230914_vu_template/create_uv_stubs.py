@@ -3,7 +3,7 @@ from datetime import datetime
 from docx.shared import RGBColor, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH,WD_COLOR_INDEX
 import paschalia,get_stichera
-RGB_RED = RGBColor(0xff, 0x44, 0x00)
+RGB_RED = RGBColor(0xff, 0x00, 0x00)
 
 
 #filenames= glob.glob('*/*/*.txt')

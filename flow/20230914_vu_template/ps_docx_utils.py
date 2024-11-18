@@ -56,6 +56,7 @@ def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
     target_paragraph = paragraph_to_insert_before.insert_paragraph_before()
     try:
         target_paragraph.style = source_paragraph.style
+        target_paragraph.alignment = source_paragraph.alignment
         #target_paragraph.paragraph_format.space_after = source_paragraph.paragraph_format.space_after
         target_paragraph.paragraph_format.space_after = Pt(6)
         #target_paragraph.style.font = source_paragraph.style.font.name
@@ -90,7 +91,7 @@ def format_line(p, handle='', mode=''):
     if 'i' in handle:
         p.runs[0].font.italic = True
     if 'r' in handle:
-        p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
+        p.runs[0].font.color.rgb = RGBColor(0xff, 0x00, 0x00)
     if 'r' in handle and mode == 'html':
         p.runs[0].font.italic = True
 
