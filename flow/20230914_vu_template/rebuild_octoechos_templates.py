@@ -309,10 +309,10 @@ def insert_prokimenon(doc,day):
             #delete_paragraph(p)
         re_result = re.search("(Читання|Сподоби, Господи)",p.text)
         if re_result:
-            print("Found prokimenon",day)
+            #print("Found prokimenon",day)
             #for p1 in vespers_prokimenon[day]:
             #    pdu.copy_paragraph_list_before(p,p1)
-            pdu.copy_paragraph_list_before(p,vespers_prokimenon[day])
+            pdu.copy_paragraph_list_before(doc, p,vespers_prokimenon[day])
             #p.insert_paragraph_before()
             vespers_prokimenon_found = False
             break
@@ -335,15 +335,15 @@ def insert_dismissal(doc,day):
 
         if shoutout_found:
             #print(date.day, "Відпуст inserting")
-            p_new=pdu.copy_paragraph_before(p,dismissal_paragraph)
-            p_new.paragraph_format.space_after = Pt(6)
+            p_new=pdu.copy_paragraph_before(doc, p,dismissal_paragraph)
+            #p_new.paragraph_format.space_after = Pt(6)
             #print(date.day,p_new.text)
             pdu.format_line(p_new, '')
             pdu.delete_paragraph(p)
             shoutout_found = False
 
     for p in doc.paragraphs:
-        if re.search(f'Священник:',p.text):
+        if re.search(f'^Священник:',p.text):
             re_result=re.search(f'^(Священник:)( .+?)(якого є храм)(.*?)$',p.text)
             p_bak=p.text
             p.clear()
@@ -449,7 +449,8 @@ def build_template(path,day,echos):
         print(get_template_part_text(vu_template_parts, item))
         print(e)
         raise e
-    
+    #doc.save(path)
+
     insert_echos_into_description(doc, "Два перші стихи 140-го")
     
     if day == 7:
@@ -461,9 +462,9 @@ def build_template(path,day,echos):
 
     insert_troparion_after_vespers(doc,day)
     insert_troparion_after_orthros(doc, day)
-    
-
     doc.save(path)
+    
+    
 
 
 def build_octoechos_part_matrix_full(source_folder_path):
@@ -525,10 +526,10 @@ print(f"Finished building dictionaries: {(datetime.now() - start_time).total_sec
 
 if __name__ == "__main__":
     filename = 'test.docx'
-    build_template(filename, 7,1)
-    print(f"Шаблон {filename} побудовано!")
+    #build_template(filename, 7,1)
+    #print(f"Шаблон {filename} побудовано!")
 
-    #build_full_octoechos('01-Октоїх-new')
+    build_full_octoechos('01-Октоїх-new')
 
     end_time = datetime.now()
     elapsed_time = (end_time - start_time).total_seconds()
