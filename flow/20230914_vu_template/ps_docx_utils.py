@@ -29,8 +29,8 @@ def copy_run(target_paragraph,run):
 
 
 def copy_paragraph(target_doc,source_paragraph):
-    target_paragraph = target_doc.add_paragraph(style = source_paragraph.style.name)
-
+    #target_paragraph = target_doc.add_paragraph(style = source_paragraph.style.name)
+    target_paragraph = target_doc.add_paragraph()
     try:
         #if source_paragraph.style.name!='Normal':
         #    print(source_paragraph.style.name)

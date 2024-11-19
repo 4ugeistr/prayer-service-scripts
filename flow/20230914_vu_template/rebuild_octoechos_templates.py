@@ -23,6 +23,7 @@ everyday_part_list=['вечірня',
                 'тропар_вкінці_вечірня',
                 'утреня',
                 'тропарі_седмиця_утреня',
+                'мала_єктенія_перед_першим_сідальним',
                 'сідальний1',
                 'мала_єктенія_перед_другим_сідальним',
                 'сідальний2',
@@ -58,11 +59,12 @@ sunday_part_list=['вечірня',
                 'сподоби_господи',
                 'стиховня_вечірня',
                 'нині_відпускаєш',
-                'тропарі_седмиця_вечірня',
+                'тропарі_вечірня',
                 'великий_відпуст',
                 'тропар_вкінці_вечірня',
                 'утреня',
-                'тропарі_седмиця_утреня',
+                'тропарі_утреня',
+                'мала_єктенія_перед_першим_сідальним',
                 'сідальний1',
                 'мала_єктенія_перед_другим_сідальним',
                 'сідальний2',
@@ -93,7 +95,7 @@ sunday_part_list=['вечірня',
 octoechos_template_source_folder = '01-Октоїх'
 
 
-def find_octoechos_template(day,echos, folder=octoechos_template_source_folder):
+def find_octoechos_template(echos,day, folder=octoechos_template_source_folder):
 
     #tmp
     hyphen = '' if day==7 else '-'
@@ -111,9 +113,11 @@ list_of_lines_that_end_parts = ['Світло тихе',
                                 'Сподоби, Господи', #кінець прокімена седмичного дня
                                 'Господеві помолімся.', #кінець прокімена неділі
                                 'Пісня Симеона', #кінець стиховні вечірні
+                                "Великий відпуст", #кінець тропарів вечірні
                                 "Утреня", #кінець вечірні
                                 "УТРЕНЯ", #кінець вечірні
                                 "Тропарі", #кінець початку утрені
+                                "По тропарях читає читець чергову катизму, після якої диякон перед св. дверми виголошує:", #кінець тропарів 
                                 'Відтак читець читає другу чергову катизму, диякон виголошує другу малу єктенію:',
                                 'Полієлей', #кінець другого сідального
                                 'Степенна', #кінець іпакоя
@@ -142,8 +146,8 @@ dic_of_var_parts = {
 }
 '''
 
-def get_vu_octoechos_variable_parts_from_template(day,echos):
-    path = find_octoechos_template(day, echos)
+def get_vu_octoechos_variable_parts_from_template(echos,day):
+    path = find_octoechos_template(echos,day)
     doc = docx.Document(path)
     matrix = []
     service = None
@@ -175,6 +179,10 @@ def get_vu_octoechos_variable_parts_from_template(day,echos):
 
         if not key and p.text.startswith('Стихири на стиховні'):
             key = f'стиховня_{service}'
+            matrix.append({'key':key,'text':[p]})
+            continue
+        if not key and p.text.startswith('Тропарі'):
+            key = f'тропарі_{service}'
             matrix.append({'key':key,'text':[p]})
             continue
 
@@ -413,7 +421,7 @@ def insert_troparion_after_orthros(doc, day):
 
 def build_template(path,day,echos):
     
-    octoechos_texts =get_vu_octoechos_variable_parts_from_template(day,echos)
+    octoechos_texts =get_vu_octoechos_variable_parts_from_template(echos,day)
 
     doc = docx.Document()
     match day:
@@ -508,7 +516,7 @@ folder_for_new_files = '01-Октоїх-new'
 
 def build_full_octoechos(folder):
     for echos in range(1,9):
-        for day in range(1,8):
+        for day in range(1,7):
             doc_filename = f"{folder}/Глас_{echos}/{echos}-{pdt.day_short_dic_reversed[day]}-.docx"
             build_template(doc_filename, day,echos)
             print(f"{datetime.now()}: Шаблон {doc_filename} побудовано!")
