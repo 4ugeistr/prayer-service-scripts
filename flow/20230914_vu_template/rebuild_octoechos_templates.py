@@ -516,7 +516,7 @@ folder_for_new_files = '01-Октоїх-new'
 
 def build_full_octoechos(folder):
     for echos in range(1,9):
-        for day in range(1,7):
+        for day in range(1,8):
             doc_filename = f"{folder}/Глас_{echos}/{echos}-{pdt.day_short_dic_reversed[day]}-.docx"
             build_template(doc_filename, day,echos)
             print(f"{datetime.now()}: Шаблон {doc_filename} побудовано!")
