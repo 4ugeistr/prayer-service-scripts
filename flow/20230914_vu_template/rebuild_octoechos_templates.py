@@ -98,7 +98,8 @@ octoechos_template_source_folder = '01-Октоїх'
 def find_octoechos_template(echos,day, folder=octoechos_template_source_folder):
 
     #tmp
-    hyphen = '' if day==7 else '-'
+    #hyphen = '' if day==7 else '-'
+    hyphen = '-'
 
     path = folder+f'\\Глас_{echos}\\{echos}-{pdt.day_short_dic_reversed[day]}{hyphen}.docx'
     #print(path)
@@ -482,7 +483,7 @@ def build_octoechos_part_matrix_full(source_folder_path):
     for echos in range(1,9):
         for day in range(1,8):
 
-            texts = get_vu_octoechos_variable_parts_from_template(day,echos)
+            texts = get_vu_octoechos_variable_parts_from_template(echos,day)
             matrix.append({'echos':echos,'day':day,'texts':texts})
     return matrix
 
@@ -516,7 +517,7 @@ folder_for_new_files = '01-Октоїх-new'
 
 def build_full_octoechos(folder):
     for echos in range(1,9):
-        for day in range(1,8):
+        for day in range(7,8):
             doc_filename = f"{folder}/Глас_{echos}/{echos}-{pdt.day_short_dic_reversed[day]}-.docx"
             build_template(doc_filename, day,echos)
             print(f"{datetime.now()}: Шаблон {doc_filename} побудовано!")

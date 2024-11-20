@@ -15,7 +15,7 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-month_no=11
+month_no=12
 print(f"WARNING: MONTH OVERRIDE!")
 print(f"Processing month: {month_no}")
 
@@ -736,7 +736,7 @@ def insert_dismissal(path,date):
             shoutout_found = False
 
     for p in doc.paragraphs:
-        if re.search(f'Священник:',p.text):
+        if re.search(f'^Священник:',p.text):
             re_result=re.search(f'^(Священник:)( .+?)(якого є храм)(.*?)$',p.text)
             p_bak=p.text
             p.clear()
@@ -1175,7 +1175,7 @@ def update_stubs(draft_dic):
                 #    print(f'inserting troparia for {d}')
                 insert_troparia(desc[1],datetime(year_no, month_no, d))
             #вставити глас для Господи Воззвах
-            insert_gv_echos(desc[1],datetime(year_no, month_no, d))
+            insert_gv_echos(desc[1])
             #вставити глас для Бог Господь
             insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
             
