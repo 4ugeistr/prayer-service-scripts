@@ -2,7 +2,7 @@ import docx,re,csv, easygui,paschalia
 from glob import glob
 from docx.shared import RGBColor
 from datetime import datetime
-RGB_RED = RGBColor(0xff, 0x44, 0x00)
+RGB_RED = RGBColor(0xff, 0x00, 0x00)
 
 #docx_filename='2023-07-Літургії-Гр.docx'
 #mode='g'

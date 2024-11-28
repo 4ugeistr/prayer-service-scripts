@@ -336,21 +336,21 @@ if __name__ == "__main__":
         #print(dismissal_matrix[d][2])
         if day_details[0]=='pascha' and (day_details[1], day_details[3]) in templates_pascha.keys():
             copy_paragraph_list(new_doc,templates_pascha[(day_details[1], day_details[3])])
-            print("template: pascha")
+            #print("template: pascha")
         elif day_details[0]=='pentecost' and (day_details[1], day_details[3]) in templates_pentecost.keys():
             copy_paragraph_list(new_doc,templates_pentecost[(day_details[1], day_details[3])])
-            print("template: pentecost")
+            #print("template: pentecost")
         elif datetime(year_no, month_no, d).weekday()+1==7:
             #print(d, "copied sunday ", get_echos(datetime(year_no,month_no,d)))
             copy_paragraph_list(new_doc,templates_resurrection[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)])
-            print("template: resurrection")
+            #print("template: resurrection")
         elif d in templates_menaion.keys():
             copy_paragraph_list(new_doc,templates_menaion[d])
-            print("template: menaion")
+            #print("template: menaion")
         else:
             #print(d, datetime(year_no, month_no, d).weekday()+1,templates_everyday[datetime(year_no, month_no, d).weekday()+1][38].text[:20])
             copy_paragraph_list(new_doc,templates_everyday[datetime(year_no, month_no, d).weekday()+1])
-            print("template: everyday")
+            #print("template: everyday")
 
     #for p in new_doc.paragraphs:
     #    re_result = re.search('',p.text)
