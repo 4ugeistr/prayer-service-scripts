@@ -1,7 +1,7 @@
 import re,glob,calendar,docx,os,easygui, shutil, csv,copy
 from datetime import datetime
 from docx.shared import RGBColor, Pt
-from docx.enum.text import WD_ALIGN_PARAGRAPH,WD_COLOR_INDEX
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX
 import paschalia,get_stichera
 RGB_RED = RGBColor(0xff, 0x00, 0x00)
 
@@ -410,10 +410,10 @@ def insert_boh_hospod_echos(path,date):
                 echos = int(re.search(r"(\d)",templates_menaion[date.day][0]['troparion'].text).group(1))
 
             for r in p.runs:
-                if '???' in r.text:
+                if '?' in r.text:
                     #print(r.text)
                     r.font.highlight_color=None
-                    r.text = r.text.replace('???',str(echos))     
+                    r.text = re.sub('(\?+)',str(echos),r.text)     
             break
     doc.save(path)
 
@@ -970,11 +970,11 @@ def insert_resurrection_gospel_parts(path,date):
 
     for p in doc.paragraphs:
 
-        re_result = re.search("Священик: Від ВКАЗАТИ святого Євангелія читання.",p.text)
+        re_result = re.search("Священ{1,2}ик: Від ВКАЗАТИ святого Євангелія читання.",p.text)
         if re_result:
             for r in p.runs:
-                if r.text == "ВКАЗАТИ":
-                    r.text = resurrection_gospel_matrix[gospel_no]['gospel_apostle']
+                if "ВКАЗАТИ" in r.text:
+                    r.text = r.text.replace("ВКАЗАТИ",resurrection_gospel_matrix[gospel_no]['gospel_apostle'])
                     format_run(r,'')
             continue
         
@@ -1003,7 +1003,9 @@ def insert_resurrection_gospel_parts(path,date):
             continue
 
     doc.save(path)
-
+#legacy file naming
+#switched to DB since then
+'''
 old_files = glob.glob('2022/*/*.doc*')
 filenames={}
 
@@ -1025,6 +1027,7 @@ for month, month_data in filenames.items():
     for day in month_data.keys():
         day_count+=1
     #print(month, day_count, calendar.monthrange(2023, month)[1])
+'''
 
 '''
 for month in range(1,13):
@@ -1032,14 +1035,14 @@ for month in range(1,13):
         if not day_no in filenames[month].keys():
             print("Пропущено:",month, day_no)
 '''
-
+'''
 for m in range(1,13):
     for d, data in filenames[m].items():
         if re.search('Гл', data):
             #print(m,d,data)
             filenames[m][d]=re.sub(r'Гл.\s?\d\s?-\s?','',data)
             #print(m,d,filenames[m][d])
-
+'''
 
 lent_templates = glob.glob('В,У - Пісна Тріодь/*/*.docx')
 pascha_pentecost_templates = glob.glob('В,У - Квітна Тріодь/*/*.docx')

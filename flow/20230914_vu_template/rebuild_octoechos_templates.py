@@ -19,6 +19,7 @@ everyday_part_list=['вечірня',
                 'стиховня_вечірня',
                 'нині_відпускаєш',
                 'тропарі_седмиця_вечірня',
+                'потрійна_єктенія',
                 'середній_відпуст',
                 'тропар_вкінці_вечірня',
                 'утреня',
@@ -37,6 +38,7 @@ everyday_part_list=['вечірня',
                 'світильний',
                 'хвалитні_будень',
                 #'решта_стихів_хвалитних',
+                'мале_славослов’я',
                 'прохальна_єктенія_утрені',
                 'стиховня_утреня',
                 'після_стиховні',
@@ -387,20 +389,19 @@ def insert_troparion_after_vespers(doc, day):
     paragraph = list(filter(lambda x: (x['key']=="Кінцеві тропарі вечірні" and x['key2']==days_troparion_after_vespers[day]),vu_misc_variable_parts))[0]["text"][0]
     header_found = False
     for p in doc.paragraphs:
-        re_result = re.search('Після вечірні',p.text)
+        re_result = re.search('Після Вечірні',p.text)
         if re_result:
             header_found = True
-            print(f"deleting: {p.text}")
+            #print(f"deleting: {p.text}")
             continue
 
         if header_found:
-            p_new=pdu.copy_paragraph_before(p, paragraph)
+            p_new=pdu.copy_paragraph_before(doc, p, paragraph)
             p_new.paragraph_format.space_after = Pt(6)
-            print(f"deleting: {p.text}")
+            #print(f"deleting: {p.text}")
             pdu.delete_paragraph(p)
             return 0
         
-    pass
 def insert_troparion_after_orthros(doc, day):
     paragraph = list(filter(lambda x: (x['key']=="Кінцеві тропарі утрені" and x['key2']==pdt.day_dic_reversed[day]),vu_misc_variable_parts))[0]["text"][0]
     header_found = False
@@ -437,7 +438,8 @@ def build_template(path,day,echos):
 
     try:
         for item in partlist:
-            
+            if item =='утреня':
+                doc.paragraphs[-1].runs[-1].add_break(docx.text.run.WD_BREAK.PAGE)
             #p = doc.add_paragrangph(f'#{item}')
             #pdu.format_line(p,handle='ri')
 
@@ -517,7 +519,7 @@ folder_for_new_files = '01-Октоїх-new'
 
 def build_full_octoechos(folder):
     for echos in range(1,9):
-        for day in range(7,8):
+        for day in range(1,8):
             doc_filename = f"{folder}/Глас_{echos}/{echos}-{pdt.day_short_dic_reversed[day]}-.docx"
             build_template(doc_filename, day,echos)
             print(f"{datetime.now()}: Шаблон {doc_filename} побудовано!")
