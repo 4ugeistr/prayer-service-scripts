@@ -2,7 +2,7 @@ import re, docx, csv, easygui, glob, os, calendar, shutil
 from datetime import datetime
 import paschalia
 from docx.shared import RGBColor, Pt
-RGB_RED = RGBColor(0xff, 0x44, 0x00)
+RGB_RED = RGBColor(0xff, 0x00, 0x00)
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 mode_dic = {'НЮ':'u',
