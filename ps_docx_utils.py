@@ -29,10 +29,16 @@ def copy_run(target_paragraph,run):
 
 
 def copy_paragraph(target_doc,source_paragraph):
+    #target_paragraph = target_doc.add_paragraph(style = source_paragraph.style.name)
     target_paragraph = target_doc.add_paragraph()
-
     try:
-        target_paragraph.style = source_paragraph.style
+        #if source_paragraph.style.name!='Normal':
+        #    print(source_paragraph.style.name)
+        #    print(source_paragraph.text[:40])
+        #target_paragraph.style = source_paragraph.style
+        target_paragraph.style = target_doc.styles[source_paragraph.style.name]
+        #if source_paragraph.style.name!='Normal':
+        #    print(target_paragraph.style.name)
         target_paragraph.paragraph_format.space_after = Pt(6)
     except KeyError:
         print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
@@ -47,15 +53,24 @@ def copy_paragraph(target_doc,source_paragraph):
         new_run.font.name = run.font.name
         new_run.font.color.rgb = run.font.color.rgb
         new_run.font.highlight_color = run.font.highlight_color
+    
+    #if source_paragraph.style.name!='Normal':
+    #        print(target_paragraph.style.name)
+            #print(source_paragraph.text[:40])
+   #         print("")
+
+    
 
 def copy_paragraph_list(target_doc,paragraph_list):
     for p in paragraph_list:
         copy_paragraph(target_doc,p)
 
-def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
+def copy_paragraph_before(target_doc, paragraph_to_insert_before,source_paragraph):
     target_paragraph = paragraph_to_insert_before.insert_paragraph_before()
     try:
-        target_paragraph.style = source_paragraph.style
+        #target_paragraph.style = source_paragraph.style
+        target_paragraph.style = target_doc.styles[source_paragraph.style.name]
+        target_paragraph.alignment = source_paragraph.alignment
         #target_paragraph.paragraph_format.space_after = source_paragraph.paragraph_format.space_after
         target_paragraph.paragraph_format.space_after = Pt(6)
         #target_paragraph.style.font = source_paragraph.style.font.name
@@ -65,10 +80,10 @@ def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
         copy_run(target_paragraph,run)
     return target_paragraph
 
-def copy_paragraph_list_before(p_to_insert_before,paragraph_list):
+def copy_paragraph_list_before(target_doc, p_to_insert_before,paragraph_list):
     #print("qty of p to insert:",len(paragraph_list))
     for p in paragraph_list:
-        copy_paragraph_before(p_to_insert_before,p)
+        copy_paragraph_before(target_doc, p_to_insert_before,p)
 
 BLACK='b'
 RED='r' 
@@ -90,7 +105,7 @@ def format_line(p, handle='', mode=''):
     if 'i' in handle:
         p.runs[0].font.italic = True
     if 'r' in handle:
-        p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
+        p.runs[0].font.color.rgb = RGBColor(0xff, 0x00, 0x00)
     if 'r' in handle and mode == 'html':
         p.runs[0].font.italic = True
 

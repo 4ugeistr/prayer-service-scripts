@@ -102,7 +102,7 @@ def process_file(path):
                     for item in p_buffer:
                         pdu.delete_paragraph(item)
                     p_buffer=[]
-                    pdu.copy_paragraph_list_before(p,tm["replace"])
+                    pdu.copy_paragraph_list_before(doc,p,tm["replace"])
                     found_end = False
                     i=0
                     logger.info(f'{path}: inserted {tm["header"]}')
