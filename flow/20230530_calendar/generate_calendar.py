@@ -142,7 +142,7 @@ def get_triodion_strings(date,mode):
     elif triodion_params[0] in ('lent','pascha'):
         matrix += list(filter(lambda l:l[0]==triodion_params[0] and int(l[1])==triodion_params[1] and int(l[3])==triodion_params[3],day_headers_triodion))
     else:
-        matrix += list(filter(lambda l:l[0]==triodion_params[0] and l[1] and int(l[1])==triodion_params[1] and int(l[3])==triodion_params[3],day_headers_triodion))
+        matrix += list(filter(lambda l:l[0]==triodion_params[0] and l[1] and int(l[1])==triodion_params[1] and not (l[2]) and int(l[3])==triodion_params[3],day_headers_triodion))
 
     for l in matrix:
         lines.append({"text":l[10], "format":''.join(l[4:7]),'arbitrary_symbol':l[8]})

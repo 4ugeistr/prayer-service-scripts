@@ -525,7 +525,7 @@ def get_week_related_label(cur_date):
         weeks = (cur_date - paschalia_dates[1]["pascha"]).days // 7 + 1
         return f"{weeks:02}e"
 
-    elif cur_date > paschalia_dates[1]["pentecost"]:
+    elif cur_date > paschalia_dates[1]["pentecoost"]:
         weeks = (cur_date - paschalia_dates[1]["pentecost"]).days // 7 + 1 
         return f"{weeks:02}d"
     else:
@@ -535,7 +535,7 @@ def get_week_related_label(cur_date):
 '''
 if __name__ == "__main__":
     mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
-    cur_date=datetime(2025,4,20)
+    cur_date=datetime(2025,1,19)
     paschalia_dates = get_prev_next_pascha(cur_date, mode)
     print(get_day_details(cur_date,paschalia_dates))
     print(get_echos(cur_date,paschalia_dates))

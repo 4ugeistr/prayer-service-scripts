@@ -65,7 +65,7 @@ def get_stichera_matrix(path):
         if handle in ('gv','st') and p.text:
             #print("   found stichera",handle)
             #if not f"{handle}_stichera" in stichera_dic[day]:
-            if 'тихири' in p.text:
+            if 'тихири' in p.text or len(p.text.split())<=3:
                 continue
             stichera_dic[day].setdefault(f"{handle}_stichera", []).append(p)
         

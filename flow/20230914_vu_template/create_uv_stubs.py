@@ -881,6 +881,10 @@ def insert_menaion_stichera(path,date,template_type):
             #if datetime(year_no,month_no,k).weekday()+1 in (1,2,3,4,5):
             #    copy_paragraph_before(p,doc.add_paragraph("Догмат"))
 
+
+
+            #!!!!!
+            #Некоректно заміняється приспів. віпрацвати на аних місяця
             if dogmatikos:
                 if dogmatikos.runs[0].text.find("Слава")!=-1 and 'gv_doxa' in stichera_matrix[k]:
                     dogmatikos.runs[0].text = dogmatikos.runs[0].text.replace("Слава і","І").replace("Слава, і","І").replace("Слава: І","І")

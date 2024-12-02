@@ -430,7 +430,7 @@ def build_template(path,day,echos):
 
     try:
         for item in partlist:
-            print(f"Inserting: {item}")
+            #print(f"Inserting: {item}")
 
 
             if item =='утреня':
@@ -465,15 +465,15 @@ def build_template(path,day,echos):
                 #octoechos_part = list(filter(lambda p: p['key']==item,octoechos_texts))[0]
                 pdu.copy_paragraph_list(doc, get_template_part_text(vu_template_parts, item))
                 
-                if item == "тропар_вкінці_вечірня":
-                    print(get_template_part_text(vu_template_parts, item))
-                    for x in get_template_part_text(vu_template_parts, item):
-                        print(x.text)
+                #if item == "тропар_вкінці_вечірня":
+                #    print(get_template_part_text(vu_template_parts, item))
+                #    for x in get_template_part_text(vu_template_parts, item):
+                #        print(x.text)
 
 
-            if item == "тропар_вкінці_вечірня" or item == "великий_відпуст":
-                doc.save(path)
-                return 0
+            #if item == "тропар_вкінці_вечірня" or item == "великий_відпуст":
+            #    doc.save(path)
+            #    return 0
 
     except TypeError as e:
         print(f"Warning: {item} not found")
@@ -537,8 +537,8 @@ def insert_echos_into_description(doc, text):
 folder_for_new_files = '01-Октоїх-new'
 
 def build_full_octoechos(folder):
-    for echos in range(1,2):
-        for day in range(7,8):
+    for echos in range(1,9):
+        for day in range(1,8):
             doc_filename = f"{folder}/Глас_{echos}/{echos}-{pdt.day_short_dic_reversed[day]}-.docx"
             build_template(doc_filename, day,echos)
             print(f"{datetime.now()}: Шаблон {doc_filename} побудовано!")

@@ -306,7 +306,7 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     week_code=paschalia.get_week_code(date,day_title)
     #day_title=day_title.replace("🕃b","🕃")
     
-    print(get_lent_params(date,day_symbol,day_title,paschalia_dates))
+    #print(get_lent_params(date,day_symbol,day_title,paschalia_dates))
     lent_color,lent_icon = get_lent_params(date,day_symbol,day_title,paschalia_dates)
 
     
@@ -525,7 +525,7 @@ for p in doc.paragraphs:
     #якщо в строці лише день - закриваємо попередній "день"
     re_result=re.search(f'^{day_list_string}$',p.text)
     if re_result and day_title: #and flag_reading:
-        print('APPENDING ROWS!',cur_month,cur_day)
+        #print('APPENDING ROWS!',cur_month,cur_day)
         rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
         flag_reading=False
         day_readings=""
