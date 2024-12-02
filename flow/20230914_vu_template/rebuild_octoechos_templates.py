@@ -137,7 +137,7 @@ list_of_lines_that_end_parts = ['Світло тихе',
                                 "Велике славослов'я",  #кінець хвалитних стихир
                                 'Після стиховні читаємо:', #кінець стиховні утрені седмичного дня
                                 "Тропар", #кінець Великого славослів'я
-                                "Єктенія усильного благання", #кінець воскресного тропаря
+                                "Єктенія усильного благання", #кінець воскресного тропаря, кінець веірнього прокімена
                                 
 
 ]
@@ -302,35 +302,27 @@ def get_vespers_prokimenon(path):
     return template_dic
 
 def insert_prokimenon(doc,day):
-    #doc = docx.Document(path)
-    #print(path)
     service = None
     vespers_prokimenon_found = False
-    vespers_prokimenon_end_found = True
     for p in doc.paragraphs:
 
         re_result = re.search("(ВЕЧІРНЯ|УТРЕНЯ)",p.text.upper())
         if re_result:
-            service = re_result.group(1).lower()
-            #delete_paragraph(p)
+            service = re_result.group(1).lower()  
 
         re_result = re.search("Прокімен",p.text)
         if re_result and service=="вечірня":
             vespers_prokimenon_found = True
-            #delete_paragraph(p)
-        re_result = re.search("(Читання|Сподоби, Господи)",p.text)
+    
+        re_result = re.search("(Читання|Сподоби, Господи|Єктенія усильного благання)",p.text)
         if re_result:
-            #print("Found prokimenon",day)
-            #for p1 in vespers_prokimenon[day]:
-            #    pdu.copy_paragraph_list_before(p,p1)
             pdu.copy_paragraph_list_before(doc, p,vespers_prokimenon[day])
-            #p.insert_paragraph_before()
             vespers_prokimenon_found = False
             break
+
         elif vespers_prokimenon_found:
-            #print(f"Deleting {p.text}")
             pdu.delete_paragraph(p)
-    #doc.save(path)
+    
 BLACK='b'
 RED='r'   
 
@@ -423,7 +415,7 @@ def insert_troparion_after_orthros(doc, day):
 
 def build_template(path,day,echos):
     
-    octoechos_texts =get_vu_octoechos_variable_parts_from_template(echos,day)
+    octoechos_texts = get_vu_octoechos_variable_parts_from_template(echos,day)
 
     doc = docx.Document()
     match day:
@@ -438,8 +430,25 @@ def build_template(path,day,echos):
 
     try:
         for item in partlist:
+            print(f"Inserting: {item}")
+
+
             if item =='утреня':
-                doc.paragraphs[-1].runs[-1].add_break(docx.text.run.WD_BREAK.PAGE)
+
+                try:
+                    doc.paragraphs[-1].runs[-1].add_break(docx.text.run.WD_BREAK.PAGE)
+                except Exception as e:
+                    
+                    print(len(doc.paragraphs))
+                    for x in doc.paragraphs[-10:]:
+                        print(x.text)
+
+                    print(f'No of runs in last paragraph: {doc.paragraphs[-1].runs}')
+
+                    
+                    raise e
+            #if item == "потрійна_єктенія":
+            #    print(f"Inserting: {item}")
             #p = doc.add_paragrangph(f'#{item}')
             #pdu.format_line(p,handle='ri')
 
@@ -448,12 +457,23 @@ def build_template(path,day,echos):
             #    pdu.copy_paragraph_list(doc, get_template_part_text(octoechos_texts, item))
             
             if get_template_part_text(octoechos_texts, item) != -1 :
+
                 pdu.copy_paragraph_list(doc, get_template_part_text(octoechos_texts, item))
 
             else: 
                 #octoechos_texts = list(filter(lambda d: d['echos']==echos and d['day']==day ,vu_octoechos_parts))[0]['texts']
                 #octoechos_part = list(filter(lambda p: p['key']==item,octoechos_texts))[0]
                 pdu.copy_paragraph_list(doc, get_template_part_text(vu_template_parts, item))
+                
+                if item == "тропар_вкінці_вечірня":
+                    print(get_template_part_text(vu_template_parts, item))
+                    for x in get_template_part_text(vu_template_parts, item):
+                        print(x.text)
+
+
+            if item == "тропар_вкінці_вечірня" or item == "великий_відпуст":
+                doc.save(path)
+                return 0
 
     except TypeError as e:
         print(f"Warning: {item} not found")
@@ -516,14 +536,12 @@ def insert_echos_into_description(doc, text):
 
 folder_for_new_files = '01-Октоїх-new'
 
-
 def build_full_octoechos(folder):
-    for echos in range(1,9):
-        for day in range(1,8):
+    for echos in range(1,2):
+        for day in range(7,8):
             doc_filename = f"{folder}/Глас_{echos}/{echos}-{pdt.day_short_dic_reversed[day]}-.docx"
             build_template(doc_filename, day,echos)
             print(f"{datetime.now()}: Шаблон {doc_filename} побудовано!")
-
 
 
 vu_template_parts = get_vu_template_parts('vu_template_parts.docx')
