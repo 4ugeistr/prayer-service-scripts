@@ -203,10 +203,12 @@ reading_indicator_list = ['Єв\. – ',
                             'Ап\. - ',
                             'Читання на Шостому часі:',
                             'Час Шостий:',
-                            'На \d-му часі',
+                            'На \d-му часі:',
+                            'На \d-му часі –',
                             'Літ.:',
                             'Вечірня з Літургією св. Василія Великого.',
                             'На Літургії св. Василія Великого з вечірнею.',
+                            'На Літургії св. Івана Золотоустого з вечірнею:',
                             'Літургія Передосвячених Дарів.',
                             'Літургія св. Йоана Золотоустого.',
                             'Літургія св. Івана Золотоустого.',
@@ -262,11 +264,11 @@ def get_day_color(date,day_symbol):
     for d in holidays_godmother:
         if date == datetime(date.year,d[0],d[1]):
             return 3
-    return 1 if date.weekday()+1==7 or day_symbol=="#" else 0
+    return 1 if (date.weekday()+1==7 or day_symbol in ("#","*")) else 0
 
 
 def beautify_reading(reading):
-    reading = re.sub(reading_indicator_string_for_beautify,r'<i>\g<1></i>',reading)
+    reading = re.sub(reading_indicator_string_for_beautify,r'<i>\g<1></i><br>',reading)
     return reading
 
 def compile_echo_gospel(date,paschalia_dates):
@@ -680,7 +682,8 @@ for item in rows:
 
 with open('og_header.html','w',newline='',encoding='utf8') as csvfile:
     spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    spamwriter.writerows([[x[0],x[1],x[10],x[7]] for x in rows])
+    #spamwriter.writerows([[x[0],x[1],x[10],x[7]] for x in rows])
+    spamwriter.writerows([[x[0],x[1],x[8]+'<br><br>'] for x in rows])
 #with open('new_header.html','w',newline='',encoding='utf8') as csvfile:
 #    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
 #    spamwriter.writerows([[x[0],x[1],x[7]] for x in rows])
