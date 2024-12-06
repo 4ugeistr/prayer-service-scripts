@@ -157,6 +157,9 @@ def get_lent_params(date,day_symbol,day_title,paschalia_dates):
         #Початок Вел. Посту, Велика П'ятниця
         if date==paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) or date==paschalia_dates[1]["pascha"]-timedelta(days=2):
             return (2,2)
+        #Перший тиждень Вел. Посту, Страсний Тиждень
+        if date>paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) and date<=paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=5) or date>paschalia_dates[1]["palm_sunday"] and date<paschalia_dates[1]["pascha"]-timedelta(days=2):
+            return (1,1)
         #Звичайні дні Вел. Посту - пн, ср, пт
         elif date.weekday()+1 in [1,3,5]:
             return (1,1)
@@ -191,7 +194,7 @@ def get_lent_params(date,day_symbol,day_title,paschalia_dates):
 
     #П'ятниця
     if date.weekday()+1 in [5] and not is_holiday:
-        return (1, 1)
+        return (1,1)
     #Якщо не вийшли з функції на одній з минулих перевірок, отже не піст
     return (0, 0)
 
@@ -264,6 +267,10 @@ def get_day_color(date,day_symbol):
     for d in holidays_godmother:
         if date == datetime(date.year,d[0],d[1]):
             return 3
+        
+    if (date== datetime(date.year,2,2) or date== datetime(date.year,3,25) or date== datetime(date.year,8,15)):
+        return 3
+
     return 1 if (date.weekday()+1==7 or day_symbol in ("#","*")) else 0
 
 
