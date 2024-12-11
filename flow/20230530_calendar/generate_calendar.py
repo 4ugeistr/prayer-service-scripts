@@ -120,15 +120,30 @@ def get_special_day_strings(date):
                 res.append({'text':txt2,'format':'ir'})
         '''
     
-    #Hardcode - Соборів в листопаді, Жовтні
+    #Hardcode for 2025
+    #Свято Матері Божої Неустанної Помочі
+    if date == datetime(date.year,7,6):
+        res.append({'text':"🕁 Свято Матері Божої Неустанної Помочі",'format':'ir','arbitrary_symbol':'*'})
+    #Собори в липні, Жовтні
     if date == datetime(date.year,7,13):
         res.append({'text':"Неділя 5-та, святих отців шести Вселенських Соборів.",'format':'ir'})
     if date == datetime(date.year,10,12):        
         res.append({'text':"Неділя 18-та, cвятих отців Сьомого Вселенського Собору.",'format':'ir'})
-    if date == datetime(date.year,12,14):        
-        res.append({'text':"Неділя 27-ма, святих Праотців",'format':'ir'})
+    #if date == datetime(date.year,12,14):        
+    #    res.append({'text':"Неділя 27-ма, святих Праотців",'format':'ir'})
         
     return res
+    
+
+
+def get_special_unimportant_day_strings(date):
+    res = []
+    #Hardcode for 2025
+    if date == datetime(date.year,3,26):
+        res.append({'text':"Віддання Благовіщення",'format':'i'})
+    return res
+    #іноді для Стрітення теж нестандартне віддання.
+
 
 def get_triodion_strings(date,mode):
     lines = []
@@ -192,17 +207,28 @@ def format_line_for_html(s, handle='',symbol=''):
         s = symbol+s[2:]
         if symbol == '#':
             s=f"<strong>{s}</strong>"
-            return s    
+            return s
+    
+    #додаткові строки до дванадесятого свята
+    if 'r' in handle and 'b' in handle:
+        s=f"<strong>{s}</strong>"
+        return s
 
-    if 'i' in handle and not 'r' in handle and not 'b' in handle:
+    #i - чорний курсив
+    if not 'r' in handle and 'i' in handle and  not 'b' in handle:
         s=f"<em>{s}</em>"
         return s
+    #r - червоний звичайний
     if 'r' in handle and not 'i' in handle and not 'b' in handle:
         s=f"<span>{s}</span>"
         return s
+    #ri - червоний курсив
     if 'r' in handle and 'i' in handle and not 'b' in handle:
         s=f"<i>{s}</i>"
         return s
+    
+    
+
     if 'b' in handle:
         s=f"<b>{s}</b>"
     if 'r' in handle:

@@ -89,6 +89,16 @@ symbol_hierarchy={
     '🕃b':4} #(black)
 reverse_symbol_hierarchy = {v:k for k,v in symbol_hierarchy.items()}
 
+symbol_hierarchy_simple={
+    ' ':5,
+    '#':0,
+    '*':1,
+    '+':2,
+    '@':3, #(red)
+    '&':4} #(black)
+reverse_symbol_hierarchy_simple = {v:k for k,v in symbol_hierarchy.items()}
+
+
 symbol_list=['🕀','🕁','🕂','🕃']
 notched_color=['🕃r','🕃b']
 
@@ -125,7 +135,7 @@ def process_title(day_title):
         
     return day_title
 
-def find_highest_symbol(title):
+def find_highest_symbol_bkp(title):
     if "Предсвяття Успення Богородиці" in title:
         print(title)
     cur_rank=5
@@ -138,6 +148,24 @@ def find_highest_symbol(title):
             if "Предсвяття Успення Богородиці" in title:
                 print(ch)
     return reverse_symbol_hierarchy[cur_rank]
+    
+
+
+def find_highest_symbol(title):
+    cur_rank=5
+    for i in range(len(title)):
+        ch=title[i:i+2] if title[i] == '🕃' else title[i]
+        if ch in symbol_hierarchy and symbol_hierarchy[ch]<cur_rank:
+            cur_rank=symbol_hierarchy[ch]
+    return reverse_symbol_hierarchy[cur_rank]
+
+def find_highest_symbol_simple(title):
+    cur_rank=5
+    for i in range(len(title)):
+        ch = title[i]
+        if ch in symbol_hierarchy_simple and symbol_hierarchy_simple[ch]<cur_rank:
+            cur_rank=symbol_hierarchy_simple[ch]
+    return reverse_symbol_hierarchy_simple[cur_rank]
     
 def get_lent_params(date,day_symbol,day_title,paschalia_dates):
     # return lent_color, lent_symbol
@@ -204,7 +232,10 @@ reading_indicator_list = ['Єв\. – ',
                             'Ап\. – ',
                             'Єв\. - ',
                             'Ап\. - ',
+                            'Царські часи.',
+                            'Читання на Першому часі:',
                             'Читання на Шостому часі:',
+                            'Час Перший:',
                             'Час Шостий:',
                             'На \d-му часі:',
                             'На \d-му часі –',
@@ -219,6 +250,7 @@ reading_indicator_list = ['Єв\. – ',
                             'Божественної Літургії не служимо.',
                             'На вечірні:',
                             'Вечірня:',
+                            'Єрусалимська Утреня:',
                             'Утр:',
                             'Утр.:',
                             'На освячення води',
@@ -247,6 +279,7 @@ reading_indicator_list = ['Єв\. – ',
                             'Анни:',
                             'Св. Миколая:',
                             'Свята:',
+                            'Тріоді:',
                             'Суботи:',
                             'Всім святим:',
                             'За упокій:',
@@ -255,23 +288,115 @@ reading_indicator_list = ['Єв\. – ',
 reading_indicator_string='('+'|'.join(reading_indicator_list)+')'
 reading_indicator_string_for_beautify='('+'|'.join(reading_indicator_list[4:])+')'
 
-holidays_godmother = [
+
+
+def get_nth_sunday(year, month, n):
+    # Get the first day of the month
+    first_day = datetime(year, month, 1)
+    # Find the first Sunday of the month
+    days_until_sunday = (6 - first_day.weekday()) % 7
+    first_sunday = first_day + timedelta(days=days_until_sunday)
+    # Calculate the Nth Sunday
+    nth_sunday = first_sunday + timedelta(weeks=n-1)
+    # Check if the Nth Sunday is within the same month
+    if nth_sunday.month == month:
+        return nth_sunday
+    else:
+        return None
+
+def get_closest_sunday(year, month, day):
+    """
+    Finds the closest Sunday to a given date.
+    If the date is Monday, Tuesday, or Wednesday, returns the previous Sunday.
+    If the date is Thursday, Friday, or Saturday, returns the next Sunday.
+    If the date is Sunday, returns the same date.
+    
+    Parameters:
+        year (int): The year of the date.
+        month (int): The month of the date.
+        day (int): The day of the date.
+        
+    Returns:
+        date: The closest Sunday.
+    """
+    input_date = datetime(year, month, day)
+    # Find the weekday (0 = Monday, ..., 6 = Sunday)
+    weekday = input_date.weekday()
+    # If the date is Sunday, return the same date
+    if weekday == 6:
+        return input_date
+    # For Monday (0), Tuesday (1), Wednesday (2): Get the previous Sunday
+    elif weekday in {0, 1, 2}:
+        return input_date - timedelta(days=(weekday + 1))
+    # For Thursday (3), Friday (4), Saturday (5): Get the next Sunday
+    else:
+        return input_date + timedelta(days=(6 - weekday))
+
+def get_closest_next_sunday(year, month, day):
+    """
+    Finds the closest Sunday to a given date.
+    If the date is Monday, Tuesday, or Wednesday, returns the previous Sunday.
+    If the date is Thursday, Friday, or Saturday, returns the next Sunday.
+    If the date is Sunday, returns the same date.
+    
+    Parameters:
+        year (int): The year of the date.
+        month (int): The month of the date.
+        day (int): The day of the date.
+        
+    Returns:
+        date: The closest Sunday.
+    """
+    input_date = datetime(year, month, day)
+    # Find the weekday (0 = Monday, ..., 6 = Sunday)
+    weekday = input_date.weekday()
+    # If the date is Sunday, return the same date
+    if weekday == 6:
+        return input_date
+    # For Monday (0), Tuesday (1), Wednesday (2): Get the previous Sunday
+    elif weekday in {0, 1, 2}:
+        return input_date - timedelta(days=(weekday + 1))
+    # For Monday (0) to  Saturday (5): Get the next Sunday
+    else:
+        return input_date + timedelta(days=(6 - weekday))
+
+
+def get_day_color(date,day_symbol):
+
+    holidays_godmother = [
+    [2,2],#Стрітення?
+    [3,25],#Благовіщення
+    [7,2],#Положення чесної ризи Пресвятої Владичиці нашої Богородиці у Влахерні
+    [8,15],#Успіння
+    [8,31],#Положення чесного пояса Пресвятої Владичиці нашої Богородиці
     [9,8],#Різдво
     [10,1],#Покров
     [11,21],#Введення
     [12,9],#Зачаття
     [12,26]#Собор
+    ]
 
-]
-def get_day_color(date,day_symbol):
+    #Богородичні празники
     for d in holidays_godmother:
         if date == datetime(date.year,d[0],d[1]):
             return 3
-        
-    if (date== datetime(date.year,2,2) or date== datetime(date.year,3,25) or date== datetime(date.year,8,15)):
+    
+    #Свято Мати Божої Неустанної Помочі
+    if date == get_nth_sunday(date.year,date.month,1):
+        return 3
+    
+    #Акафістова субота
+    paschalia_dates = paschalia.get_prev_next_pascha(date, mode)
+    if date == paschalia_dates[1]["lent_start"]+timedelta(days=5*7-2):
         return 3
 
-    return 1 if (date.weekday()+1==7 or day_symbol in ("#","*")) else 0
+    #Сострадання?
+
+    #Неділі та бдінні або дванадесяті
+    if (date.weekday()+1==7 or day_symbol in ("#","*")):
+        return 1
+
+    return  0
 
 
 def beautify_reading(reading):
@@ -309,7 +434,11 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
         print(f'ERROR with {cur_year}-{month:02}-{cur_day:02}')
         raise e
     paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
-    day_symbol= symbol_dict_w_space[find_highest_symbol(day_title)]
+
+    header = generate_calendar.prepare_header_for_html(date,mode)
+    #OBSOLETE:
+    #day_symbol= symbol_dict_w_space[find_highest_symbol(day_title)]
+    day_symbol= symbol_dict_w_space[find_highest_symbol_simple(header)]
     day_color = get_day_color(date,day_symbol)
     #week_string=get_week(date,day_title,day_symbol)
     week_code=paschalia.get_week_code(date,day_title)
@@ -363,7 +492,7 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
          lent_color,
          lent_icon,
          day_symbol,
-         generate_calendar.prepare_header_for_html(date,mode),
+         header,
          #process_title(day_title),
          beautify_reading(day_readings),
          glas,
