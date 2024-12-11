@@ -107,7 +107,7 @@ def get_special_day_strings(date):
     res = []
     for sd in special_dates:
         diff = (sd["date"]-date).days
-        if abs(diff)<=7 and diff>0 and date.weekday()+1 in [6,7]:
+        if abs(diff)<=7 and abs(diff)>0 and date.weekday()+1 in [6,7]:
             if diff>0:
                 txt = f"{day_name} перед {sd['holiday_instrumental']}"
             else:

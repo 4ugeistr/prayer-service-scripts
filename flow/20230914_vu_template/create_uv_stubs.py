@@ -723,7 +723,7 @@ def insert_dismissal(path,date):
         re_result=re.search(r"\(3 р\.\)(\.)? Благослов(и|и́)\.",p.text)
         if re_result:
             shoutout_found = True
-            #print(date.day, "Благослови found!")
+            print(date.day, "Благослови found!")
             continue
 
         if shoutout_found:
