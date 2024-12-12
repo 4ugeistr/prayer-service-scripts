@@ -1,4 +1,4 @@
-import docx, re, easygui, csv
+import docx, re, easygui, csv, os
 from datetime import datetime, timedelta
 from docx.shared import RGBColor
 from thefuzz import fuzz
@@ -793,6 +793,50 @@ with open(csvfilename,'w',newline='',encoding='utf8') as csvfile:
             print(f'Error, p={i}: ',p.text)
             print(row)
             raise e
+
+#folder prefix
+fp = 'calendar_monthly'
+#mode for director
+md = '' if mode =='u' else 'n'
+
+if not os.path.exists(f'{fp}\\{cur_year}{md}'):
+        os.makedirs(f'{fp}\\{cur_year}{md}')
+
+cur_month = ''
+
+#!!!!!!!!!! will fail
+csvfile = None
+for row in rows:
+    year, month, day = row[0][:4], row[0][4:6], row[0][6:8]
+
+    if month!=cur_month:
+        cur_month = month
+        if not os.path.exists(f'{fp}\\{cur_year}{md}\\{month}'):
+            os.makedirs(f'{fp}\\{cur_year}{md}\\{month}')
+        
+        if csvfile:
+            csvfile.close()
+        csvfile = open(f'{fp}\\{cur_year}{md}\\{month}\\c1.txt','w',newline='',encoding='utf8')
+        spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+    #spamwriter.writerow([day]+row[1:10])
+    row_to_insert = [day]+row[1:10]
+    str_to_insert = row_to_insert[:]
+
+    spamwriter.writerow([row[0]]+row[1:10])
+
+csvfile.close()
+
+
+    
+
+
+
+
+
+
+
+
 
 with open(csvfilename,'r',newline='',encoding='utf8') as csvfile:
     text = csvfile.readlines()
