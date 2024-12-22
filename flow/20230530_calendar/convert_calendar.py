@@ -199,7 +199,7 @@ def get_lent_params(date,day_symbol,day_title,paschalia_dates):
     #Петрівка
     is_petrivka = paschalia_dates[0]["pentecost"].year == date.year and date> paschalia_dates[0]["pentecost"]+timedelta(days=7) and date<datetime(date.year,6,29)
     #Спасівка
-    is_spasivka = date> datetime(date.year,6,29) and date<datetime(date.year,6,29)
+    is_spasivka = date> datetime(date.year,8,1) and date<datetime(date.year,8,13)
     #Пилипівка
     is_pylypivka = date> datetime(date.year,11,15) and date<datetime(date.year,12,24)
 
@@ -254,6 +254,8 @@ reading_indicator_list = ['Єв\. – ',
                             'Утр:',
                             'Утр.:',
                             'На освячення води',
+                            'Перед Богоявленням:',
+                            'По Богоявленні:',
                             'На вмиванні:',
                             'По вмиванні:',
                             'Ряд.:',
@@ -265,6 +267,7 @@ reading_indicator_list = ['Єв\. – ',
                             'Св.:',
                             'Прп.:',
                             'Ісп.:',
+                            'Первомч.:'
                             'Свщнмч:',
                             'Свщмч:',
                             'Свщмч.:',
@@ -280,13 +283,26 @@ reading_indicator_list = ['Єв\. – ',
                             'Св. Миколая:',
                             'Свята:',
                             'Тріоді:',
+                            'Перед Різдвом:',
+                            'По Різдвом:',
+                            'Перед Богоявленням:',
+                            'По Богоявленні:',
                             'Суботи:',
+                            'Суботи перед Різдвом:',
+                            'Суботи по Різдві:',
+                            'Суботи перед Богоявленням:',
+                            'Суботи по Богоявленні:',
+                            'Неділі:',
+                            'Неділі перед Різдвом:',
+                            'Неділі по Різдві:',
+                            'Неділі перед Богоявленням:',
+                            'Неділі по Богоявленні:',
                             'Всім святим:',
                             'За упокій:',
                         ]
 
 reading_indicator_string='('+'|'.join(reading_indicator_list)+')'
-reading_indicator_string_for_beautify='('+'|'.join(reading_indicator_list[4:])+')'
+reading_indicator_string_for_beautify='('+'|'.join(reading_indicator_list[4:])+')\s?'
 
 
 
@@ -363,6 +379,16 @@ def get_closest_next_sunday(year, month, day):
 
 def get_day_color(date,day_symbol):
 
+    paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
+
+    # Світлий тиждень
+    if paschalia_dates[0]["pascha"]+timedelta(days=1) <= date and date <= paschalia_dates[0]["pascha"]+timedelta(days=6):
+        return 1
+
+    # Понеділок Святого Духа
+    if paschalia_dates[0]["pentecost"]+timedelta(days=1) == date:
+        return 1
+
     holidays_godmother = [
     [2,2],#Стрітення?
     [3,25],#Благовіщення
@@ -376,13 +402,13 @@ def get_day_color(date,day_symbol):
     [12,26]#Собор
     ]
 
-    #Богородичні празники
+    #Богородичні празниpaschalia_dates[0]["pascha"]+timedelta(days=1) >= dateки
     for d in holidays_godmother:
         if date == datetime(date.year,d[0],d[1]):
             return 3
     
     #Свято Мати Божої Неустанної Помочі
-    if date == get_nth_sunday(date.year,date.month,1):
+    if date == get_nth_sunday(date.year,7,1):
         return 3
     
     #Акафістова субота
@@ -396,8 +422,8 @@ def get_day_color(date,day_symbol):
     if (date.weekday()+1==7 or day_symbol in ("#","*")):
         return 1
 
+    #інакше
     return  0
-
 
 def beautify_reading(reading):
     reading = re.sub(reading_indicator_string_for_beautify,r'<i>\g<1></i><br>',reading)
@@ -439,7 +465,10 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     #OBSOLETE:
     #day_symbol= symbol_dict_w_space[find_highest_symbol(day_title)]
     day_symbol= symbol_dict_w_space[find_highest_symbol_simple(header)]
+    
     day_color = get_day_color(date,day_symbol)
+
+
     #week_string=get_week(date,day_title,day_symbol)
     week_code=paschalia.get_week_code(date,day_title)
     #day_title=day_title.replace("🕃b","🕃")
@@ -483,7 +512,6 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     5 - колір посту [0,1]
     6 - рибка [0,1,2]
     '''
-
     
     row=[f'{cur_year}{month:02}{cur_day:02}',
          week_code,
@@ -498,6 +526,7 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
          glas,
          process_title(day_title)
          ]
+    
     '''
     row=[f'{cur_year}{month:02}{cur_day:02}',
          week_code,
@@ -804,7 +833,6 @@ if not os.path.exists(f'{fp}\\{cur_year}{md}'):
 
 cur_month = ''
 
-#!!!!!!!!!! will fail
 csvfile = None
 for row in rows:
     year, month, day = row[0][:4], row[0][4:6], row[0][6:8]
@@ -816,15 +844,15 @@ for row in rows:
         
         if csvfile:
             csvfile.close()
-        csvfile = open(f'{fp}\\{cur_year}{md}\\{month}\\c1.txt','w',newline='',encoding='utf8')
-        spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        csvfile = open(f'{fp}\\{cur_year}{md}\\{month}\\c1.txt','w',encoding='utf8')
+        #spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
     #spamwriter.writerow([day]+row[1:10])
-    row_to_insert = [day]+row[1:10]
-    str_to_insert = row_to_insert[:]
+    row_to_insert = [day]+row[2:10]
+    str_to_insert = "|".join(map(str, row_to_insert[:6])) + "|".join(map(str, row_to_insert[6:]))+'\n'
 
-    spamwriter.writerow([row[0]]+row[1:10])
-
+    #spamwriter.writerow([str_to_insert])
+    csvfile.write(str_to_insert)
 csvfile.close()
 
 

@@ -8,7 +8,7 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 #month = 'Березень'
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
-month_no = 12
+#month_no = 12
 
 month_dic= {'Січень':1,
               'Лютий':2,
@@ -36,6 +36,7 @@ weekday_list = {
 
 ev_dic = {
     'Йо.':'iv',
+    'Ів.':'iv',
     'Лк.':'lk',
     'Мт.':'mt',
     'Мр.':'mr'
@@ -128,11 +129,14 @@ for line in lines:
         
     else:
         raise Exception
-        
+
+
+
 for k,v in lines_dict.items():
-    #if k==5:
-    #    print(lines_dict[k]['readings'])
+    #if k in (17,20):
+    #print(k, lines_dict[k]['readings'])
     lines_dict[k]['readings']= transform_readings(k,v['readings'])
+    #print(k,lines_dict[k]['readings'])
     #if k==5:
     #    print(lines_dict[k]['readings'])
     
@@ -172,7 +176,15 @@ with open('evanhelie.csv', newline='', encoding='utf-8') as csvfile:
 
 #for k,v in lines_dict.items():  
 #    print(k,v['array'])
-        
+
+
+for k,v in lines_dict.items():
+    #print(k,v)
+    v['array']=[clean_half_words(item) for item in v['array']]
+    #print(k,v)
+
+
+
 for k,v in lines_dict.items():
     for i in range(2):
         #print(k,"i=",2+i)
@@ -205,9 +217,6 @@ for k,v in lines_dict.items():
             print('ratio:',ratio_max)
             #raise Exception
 
-
-for k,v in lines_dict.items():
-    v['array']=[clean_half_words(item) for item in v['array']]
 
 for k,v in lines_dict.items():
     for i in range(2):
