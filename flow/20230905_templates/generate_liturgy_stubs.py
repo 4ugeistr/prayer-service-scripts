@@ -7,7 +7,7 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 mode_dict={'u':'Юл',
            'g':'Гр'}
 
-paschalia.paschalia = paschalia.get_prev_next_pascha(datetime(2024,1,1),mode)
+#paschalia.paschalia = paschalia.get_prev_next_pascha(datetime(2024,1,1),mode)
 
 #select month
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
