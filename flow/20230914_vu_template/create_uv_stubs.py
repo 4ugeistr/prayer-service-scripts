@@ -15,9 +15,12 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
+'''
 month_no=12
 print(f"WARNING: MONTH OVERRIDE!")
 print(f"Processing month: {month_no}")
+'''
+
 
 day_short_dic={"ПН":1,
         "ВТ":2,
@@ -92,7 +95,18 @@ def delete_run(run):
 def copy_run(target_paragraph,run):
     new_run = target_paragraph.add_run(run.text)
     #KeyError: "no style with name 'Default Paragraph Font'"
-    new_run.style = run.style.name
+    '''
+    try:
+        new_run.style = run.style.name
+    except KeyError as e:
+        print("Увага, проблеми при копіюванні стилів: ", run.text)
+        #print("new_run.style.name", new_run.style.name)
+        print("run.style.name", run.style.name)
+        print(e)
+        new_run.style = 'Normal'
+        pass
+    '''
+        
     new_run.bold = run.bold
     new_run.italic = run.italic
     new_run.underline = run.underline
@@ -111,6 +125,7 @@ def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
         #target_paragraph.style.font = source_paragraph.style.font.name
     except KeyError:
         print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
+        pass
     for run in source_paragraph.runs:
         copy_run(target_paragraph,run)
     return target_paragraph
@@ -130,6 +145,7 @@ def copy_paragraph(target_doc,source_paragraph):
         target_paragraph.paragraph_format.space_after = Pt(6)
     except KeyError:
         print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
+        pass
     target_paragraph.alignment = source_paragraph.alignment
     for run in source_paragraph.runs:
         new_run = target_paragraph.add_run(run.text)
@@ -723,7 +739,7 @@ def insert_dismissal(path,date):
         re_result=re.search(r"\(3 р\.\)(\.)? Благослов(и|и́)\.",p.text)
         if re_result:
             shoutout_found = True
-            print(date.day, "Благослови found!")
+            #print(date.day, "Благослови found!")
             continue
 
         if shoutout_found:
@@ -1111,7 +1127,7 @@ def create_stubs():
         filename_menaion_string = get_saints_for_filename(month_no,d)
 
         for row in filename_triodion_matrix:
-            if day_details[0] == row[0] and day_details[1] == int(row[1]) and day_details[3] == int(row[3]):
+            if day_details[0] == row[0] and day_details[1] == int(row[1]) and day_details[2] == int(row[2]) and day_details[3] == int(row[3]):
                 filename_triodion_row = row
         
         dest_filename=f'{folder_name}\\{d:02}-{day_short_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
