@@ -192,12 +192,14 @@ def get_hours_matrix():
                 elif o =='saint' and (i+1)%3!=0:
                     hours_matrix[d].append(templates_menaion[d][0])
                 elif o =='saint' and (i+1)%3==0:
-                    hours_matrix[d].append(templates_menaion[d][1])    
+                    hours_matrix[d].append(templates_menaion[d][1])
+        '''    
         if month_no == 1 and d==1:
             hours_matrix[d] =   [templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][2],
                                 templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][3],
                                 templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][2],
                                 templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][3]]
+        '''
     #print("paragraphs gathered")          
     '''
     for p in hours_matrix[2]:
