@@ -135,6 +135,10 @@ for filehtml in html_files:
         if line.find('ВЕЧІРНЯ') != -1:
             line = line.replace('p>', 'h1>')
             fileV = open(outpath+'/'+'t{:02d}v.html'.format(file_index), 'w',encoding='utf-8') 
+        
+        if line.find('ВЕЛИКЕ ПОВЕЧ') != -1:
+            line = line.replace('p>', 'h1>')
+            fileV = open(outpath+'/'+'t{:02d}n.html'.format(file_index), 'w',encoding='utf-8') 
             
         if line.find('УТРЕНЯ') != -1:
             line = line.replace('p>', 'h1>')
