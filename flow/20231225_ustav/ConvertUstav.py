@@ -1,4 +1,4 @@
-import sys, os, re, mammoth, logging
+import sys, os, re, mammoth, logging, zipfile
 logging.basicConfig(filename='dates.log', filemode='w', format='%(message)s', level=logging.DEBUG)
 
 '''
@@ -8,7 +8,7 @@ python ConvertUstav.py u Грудень Устав-Грудень.docx
 
 #MONTH = 'Січень'
 YEAR = 2025
-mode= 'g'
+mode= 'u'
 filehtm = f"temp_{YEAR}_{mode}.html"
 #filedoc = f'ustav-{YEAR}-{mode}.docx'
 #filedoc = 
@@ -398,3 +398,21 @@ elif mode=="g":
 '''
 if file:
     file.close()        
+
+
+
+def zip_html_files(YEAR, mode_modifier):
+    
+    for month_no in range(12):
+        folder_path = f'{YEAR}{mode_modifier}\\{month_no+1:02}'
+        with zipfile.ZipFile(f'{folder_path}\\files.zip', 'w') as zipf:
+            for root, _, files in os.walk(folder_path):
+                for file in files:
+                    if file.endswith('.html'):
+                        file_path = os.path.join(root, file)
+                        zipf.write(file_path, os.path.relpath(file_path, folder_path))
+        print("Zipped", f'{folder_path}\\files.zip')
+
+zip_html_files(YEAR, mode_modifier)
+
+print("Done.")
