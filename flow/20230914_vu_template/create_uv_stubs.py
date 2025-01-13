@@ -15,11 +15,11 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-'''
-month_no=12
-print(f"WARNING: MONTH OVERRIDE!")
-print(f"Processing month: {month_no}")
-'''
+
+#month_no=1
+#print(f"WARNING: MONTH OVERRIDE!")
+#print(f"Processing month: {month_no}")
+
 
 
 day_short_dic={"ПН":1,
@@ -1132,10 +1132,11 @@ def create_stubs():
         
         dest_filename=f'{folder_name}\\{d:02}-{day_short_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
         
+        
         if datetime(year_no, month_no, d).weekday()+1==7: 
             dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)}'
         
-        if filename_triodion_row:
+        if filename_triodion_row and filename_triodion_row[12]:
             dest_filename+=f'-{filename_triodion_row[12]}.docx'
         elif filename_menaion_string:
             dest_filename+=f'-{filename_menaion_string}.docx'
@@ -1144,7 +1145,15 @@ def create_stubs():
             dest_filename+=f'-___.docx'
         
         #print(expected_template_path)
-        if day_details[0]=='lent':
+
+        #Сирні Середа, П'ятниця
+        if day_details[0]=='pentecost' and day_details[3]in (3,5) and day_details[2]==1:
+            expected_lent_template_path = f"В,У - Пісна Тріодь\\тиждень-0\\0-{day_details[3]}-ВУ.docx"    
+            if expected_lent_template_path in lent_templates:
+                src_filename=expected_lent_template_path
+                draft_dic[d].append('сирний т-нь')
+            #print(d, "Шаблон Воскресіння")
+        elif day_details[0]=='lent':
             expected_lent_template_path = f"В,У - Пісна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"    
             if expected_lent_template_path in lent_templates and day_details[3]!=7:
                 src_filename=expected_lent_template_path
@@ -1173,11 +1182,17 @@ def create_stubs():
                 draft_dic[d].append('октоїх')
                 #print(d, "Шаблон Октоїха")
         try:
+            #print("Trying to copy:",src_filename,dest_filename)
             shutil.copy2(src_filename,dest_filename)
         except NameError as e:
             print(e)
             print("Помилка для дня ", d)
             raise e
+        except OSError as e:
+            print(e)
+            print("Помилка імені файлу дня ", d)
+            raise e
+
         draft_dic[d].append(dest_filename)
     print("Завершено створення чернеток УВ!")
     return draft_dic
@@ -1188,6 +1203,7 @@ def update_stubs(draft_dic):
     for d,desc in draft_dic.items():
         #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
         insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d))
+        
         insert_dismissal(desc[1],datetime(year_no, month_no, d))
         
         if desc[0] in ('неділя','октоїх','пасха','50-ця'):
@@ -1246,7 +1262,7 @@ if __name__ == "__main__":
     if action[0]=="1":
         print("chose 1")
         draft_dic = create_stubs()
-        #print(draft_dic[1])
+        #print(draft_dic)
         update_stubs(draft_dic)
     elif action[0]=="2":
         draft_dic=get_files_in_dir()

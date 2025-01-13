@@ -15,7 +15,9 @@ def delete_run(run):
 
 def copy_run(target_paragraph,run):
     new_run = target_paragraph.add_run(run.text)
-    new_run.style = run.style.name
+    
+    #!!!треба перевірити чи буде все копіюваитись без стилю ранів
+    #new_run.style = run.style.name
 
     new_run.bold = run.bold
     new_run.italic = run.italic
