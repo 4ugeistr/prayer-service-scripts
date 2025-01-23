@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 #import calendar
 import os
 import easygui
-from checkLiturgyIntegrity import checkLiturgyIntegrity
+from lit_check_integrity import checkLiturgyIntegrity
 
 CLEANA = re.compile('<a.*?</a>')
 CLEANR = re.compile('<.*?>')

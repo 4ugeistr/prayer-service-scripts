@@ -30,8 +30,8 @@ if mode == 'u':
 elif mode == 'g':
     mode_suffix='Гр'
 
-csv_filename='Читання'+mode_suffix+'.csv'
-dismissal_csv_filename='Відпусти'+mode_suffix+'.csv'
+csv_filename='matrices\\Читання'+mode_suffix+'.csv'
+dismissal_csv_filename='matrices\\Відпусти'+mode_suffix+'.csv'
 
 
 doc = docx.Document(docx_filename) 

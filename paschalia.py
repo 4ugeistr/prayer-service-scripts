@@ -455,8 +455,8 @@ def get_day_label_legacy(cur_date):
 '''
 
     
-def get_week_code(cur_date, day_title):
-    paschalia_dates = get_prev_next_pascha(cur_date)
+def get_week_code(cur_date, day_title, mode):
+    paschalia_dates = get_prev_next_pascha(cur_date, mode=mode)
     #print(cur_date)
     # пропускаємо номер тижня для 🕀 свят
     #if day_type=="#":

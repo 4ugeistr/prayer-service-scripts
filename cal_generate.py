@@ -114,12 +114,11 @@ def get_special_day_strings(date):
             else:
                 txt = f"{day_name} по {sd['holiday_locative']}"
             res.append({'text':txt,'format':'ir'})
-        '''
-        if diff == 1:
-            txt2 = f"Навечір`я перед {sd['holiday_relative']}"
-            if txt2:
-                res.append({'text':txt2,'format':'ir'})
-        '''
+        if res and res[-1]['text'] == 'Неділя перед Різдвом':
+            res[-1]['text'] += ', святих Отців'
+        if res and res[-1]['text'] == 'Неділя по Різдві':
+            res[-1]['text'] += '. Пам’ять святих і праведних Йосифа Обручника, Давида, царя, і Якова, брата Божого'
+
     
     #Hardcode for 2025
     #Свято Матері Божої Неустанної Помочі
@@ -141,7 +140,10 @@ def get_special_unimportant_day_strings(date):
     res = []
     #Hardcode for 2025
     if date == datetime(date.year,3,26):
-        res.append({'text':"Віддання Благовіщення",'format':'i'})
+        res.append({'text':"Віддання Благовіщення",'format':'ir'})
+    #Hardcode for 2025
+    if date == datetime(date.year,2,8):
+        res.append({'text':"Віддання Стрітення",'format':'ir'})
     return res
     #іноді для Стрітення теж нестандартне віддання.
 
@@ -197,7 +199,8 @@ def compile_header(date,mode,short=True):
         lst += get_sunday_header(date,mode) 
     
     lst += get_menaion_strings(date,short)
-    
+    lst += get_special_unimportant_day_strings(date)
+
     #lst[0]['text'] = f'{date.day} '+lst[0]['text']
     return lst
 

@@ -470,7 +470,7 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
 
 
     #week_string=get_week(date,day_title,day_symbol)
-    week_code=paschalia.get_week_code(date,day_title)
+    week_code=paschalia.get_week_code(date,day_title,mode)
     #day_title=day_title.replace("🕃b","🕃")
     
     #print(get_lent_params(date,day_symbol,day_title,paschalia_dates))
@@ -824,7 +824,7 @@ with open(csvfilename,'w',newline='',encoding='utf8') as csvfile:
             raise e
 
 #folder prefix
-fp = 'calendar_monthly'
+fp = 'drafts\\calendar\\calendar_monthly'
 #mode for director
 md = '' if mode =='u' else 'n'
 
