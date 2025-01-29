@@ -318,6 +318,10 @@ if __name__== "__main__":
 
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
         template=None
+
+
+        #AI: add cheese-fare week logic here
+
         if day_details[0]=='lent' and expected_triodion_template_path in lent_triodion_templates and (day_details[3] in (1,2,3,4,5,6) or (day_details[1] in (6,7) and day_details[3]==7)):
             template = expected_triodion_template_path
             #shutil.copy2(expected_triodion_template_path,dest_filename)

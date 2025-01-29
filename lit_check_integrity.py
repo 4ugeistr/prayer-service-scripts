@@ -171,7 +171,7 @@ def initDateCalendar():
 
 if __name__ == "__main__":
    month_no, cur_month, mode, mode_suffix = initDateCalendar()
-   docx_filename=f'{month_no:02}-Літургія-{mode_suffix.upper()}.docx'
+   docx_filename=f'drafts\\liturgy\\{month_no:02}-Літургія-{mode_suffix.upper()}.docx'
 
    checkLiturgyIntegrity(docx_filename)
    
