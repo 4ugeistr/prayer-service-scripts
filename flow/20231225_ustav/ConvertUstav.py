@@ -12,8 +12,10 @@ mode= 'u'
 filehtm = f"temp_{YEAR}_{mode}.html"
 #filedoc = f'ustav-{YEAR}-{mode}.docx'
 #filedoc = 
-filedoc = "Календар з уставом 2025 (григоріанський).docx"
-#filedoc = 'Календар з уставом 2025 (новоюліанський).docx'
+if mode == 'u':
+    filedoc = 'Календар з уставом 2025 (новоюліанський).docx'
+elif mode == 'g':
+    filedoc = "Календар з уставом 2025 (григоріанський).docx"
 
 '''
 if len(sys.argv)>1:

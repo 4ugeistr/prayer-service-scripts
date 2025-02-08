@@ -142,7 +142,7 @@ def get_special_unimportant_day_strings(date):
     if date == datetime(date.year,3,26):
         res.append({'text':"Віддання Благовіщення",'format':'ir'})
     #Hardcode for 2025
-    if date == datetime(date.year,2,8):
+    if date == datetime(date.year,2,9):
         res.append({'text':"Віддання Стрітення",'format':'ir'})
     return res
     #іноді для Стрітення теж нестандартне віддання.
