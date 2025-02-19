@@ -278,7 +278,7 @@ def convert_db_entries_to_html(lst):
 '''
 
 day_headers_menaion = get_matrix_full("matrices\\Місяцеслов-БД.csv")
-day_headers_triodion = get_matrix_full("matrices\\Дні-Тріодь.csv")
+day_headers_triodion = get_matrix_full("matrices\\Місяцеслов-БД-Тріодь.csv")
 
 
 if __name__ == "__main__":
