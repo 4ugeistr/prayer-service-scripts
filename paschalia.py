@@ -314,7 +314,7 @@ def get_week_code(cur_date, day_title, mode):
     
 if __name__ == "__main__":
     mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
-    cur_date=datetime(2025,4,7)
+    cur_date=datetime(2025,3,27)
     paschalia_dates = get_prev_next_pascha(cur_date, mode)
     print(get_day_details(cur_date,paschalia_dates))
     print(get_echos(cur_date,paschalia_dates))

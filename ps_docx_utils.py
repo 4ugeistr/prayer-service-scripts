@@ -111,5 +111,12 @@ def format_line(p, handle='', mode=''):
     if 'r' in handle and mode == 'html':
         p.runs[0].font.italic = True
 
-    p.runs[0].font.name='Times New Roman'
-    p.runs[0].font.size=152400
+    try:
+
+        p.runs[0].font.name='Times New Roman'
+        p.runs[0].font.size=152400
+
+    except IndexError as e:
+        #print()
+        print("Warning. Empty paragraph:",p.text)
+        raise e

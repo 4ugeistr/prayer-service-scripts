@@ -3,6 +3,9 @@ from datetime import datetime
 from docx.shared import RGBColor
 import paschalia
 import get_stichera
+import ps_docx_utils as pdu
+
+
 RGB_RED = RGBColor(0xff, 0x44, 0x00)
 BLACK='b'
 RED='r'   
@@ -37,10 +40,10 @@ month_dic_reversed = {v:k for k,v in month_dic.items()}
 #month_dic_string='('+'|'.join([x.lower() for x in month_dic.keys()])+')'
 
 
-lpd_templates = glob.glob('ЛПД/*/*.docx')
+lpd_templates = glob.glob('docx_resources\\ЛПД\\*\\*.docx')
 #lpd_templates_filenames = [x.split('\\')[-1] for x in lpd_templates]
 
-
+'''
 def delete_paragraph(paragraph):
     p = paragraph._element
     p.getparent().remove(p)
@@ -76,6 +79,7 @@ def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
         copy_run(target_paragraph,run)
     return target_paragraph
 
+'''
 
 def stretch_texts(qty_of_verses_requested, texts):
     result = []
@@ -89,7 +93,7 @@ def stretch_texts(qty_of_verses_requested, texts):
     else:
         return texts[:qty_of_verses_requested]
 
-
+'''
 
 def add_text(p,text, color=BLACK):
     r = p.add_run(text)
@@ -110,6 +114,9 @@ def format_line(p, handle=''):
     p.runs[0].font.name='Times New Roman'
     p.runs[0].font.size=152400
 
+
+'''
+
 def insert_dismissal(path,date):
     doc = docx.Document(path)
     shoutout_found = None
@@ -122,28 +129,28 @@ def insert_dismissal(path,date):
 
         if shoutout_found:
             #print(date.day, "inserting")
-            p_new=p.insert_paragraph_before(dismissal_matrix[date.day][-1])
+            p_new=p.insert_paragraph_before(dismissal_matrix[date.day][9])
             #print(date.day,p_new.text)
-            format_line(p_new, '')
-            delete_paragraph(p)
+            pdu.format_line(p_new, '')
+            pdu.delete_paragraph(p)
             shoutout_found = False
 
     for p in doc.paragraphs:
-        if re.search(f'Священик:',p.text):
-            re_result=re.search(f'^(Священик:)( .+?)(якого є храм)(.*?)$',p.text)
+        if re.search(f'Священник:',p.text):
+            re_result=re.search(f'^(Священник:)( .+?)(якого є храм)(.*?)$',p.text)
             p_bak=p.text
             p.clear()
 
             try:
                 if re_result:
-                    add_text(p,re_result.group(1),color=RED)
-                    add_text(p,re_result.group(2))
-                    add_text(p,re_result.group(3),color=RED)
-                    add_text(p,re_result.group(4))
+                    pdu.add_text(p,re_result.group(1),color=RED)
+                    pdu.add_text(p,re_result.group(2))
+                    pdu.add_text(p,re_result.group(3),color=RED)
+                    pdu.add_text(p,re_result.group(4))
                 else:
-                    re_result=re.search(f'^(Священик:)(.*?)$',p_bak)
-                    add_text(p,re_result.group(1),color=RED)
-                    add_text(p,re_result.group(2))
+                    re_result=re.search(f'^(Священник:)(.*?)$',p_bak)
+                    pdu.add_text(p,re_result.group(1),color=RED)
+                    pdu.add_text(p,re_result.group(2))
             except:
                 print(p_bak)
                 raise
@@ -167,7 +174,6 @@ stichos_list=[
     "Стих: Бо утвердилася милість його на нас",
     ]
 
-
 if mode == 'u':
     mode_suffix='Юл'
 elif mode == 'g':
@@ -175,10 +181,10 @@ elif mode == 'g':
 
 if __name__ == "__main__":
     paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
-    dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
+    dismissal_matrix = get_dismissal_matrix(f'matrices/Відпусти{mode_suffix}.csv',month_no)
     
     stub_dic={}
-    folder= f'drafts\\{year_no}-{month_no:02}-{mode}-lpd'
+    folder= f'drafts\\lpd\\{year_no}-{month_no:02}-{mode}-lpd'
     #os.makedirs('drafts', exist_ok=True)
     os.makedirs(folder, exist_ok=True)
 
@@ -186,7 +192,7 @@ if __name__ == "__main__":
         #stub_dic[d]=None
         day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
         #expected_template_path = f"ЛПД\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ЛПД.docx"
-        expected_template_path = f"ЛПД\\{day_details[1]} тиждень\\{day_details[1]}т_{day_details[3]}-ЛПД.docx"
+        expected_template_path = f"docx_resources\\ЛПД\\{day_details[1]} тиждень\\{day_details[1]}т_{day_details[3]}-ЛПД.docx"
         if expected_template_path in lpd_templates:
             filename=folder+f'\\{d:02}.{month_no:02}-{day_details[1]}т_{day_details[3]}-ЛПД.docx'
             shutil.copy2(expected_template_path, filename)
@@ -194,7 +200,7 @@ if __name__ == "__main__":
         #re_result = re.search("(\d)-(\d)-ЛПД.docx")
     print(f"Created {len(stub_dic)} stubs for month {month_no} mode {mode}!")
 
-    stichera_matrix = get_stichera.get_stichera_matrix(glob.glob(f'Стихири - Мінея\\Мінея_{month_no:02}*.docx')[0])
+    stichera_matrix = get_stichera.get_stichera_matrix(glob.glob(f'docx_resources\\Стихири - Мінея\\Мінея_{month_no:02}*.docx')[0])
     for k,v in stub_dic.items():
         stichera_no=None
         look_for_slava=False
@@ -228,8 +234,8 @@ if __name__ == "__main__":
                 continue
 
             if stichera_no or stichera_no==0:
-                copy_paragraph_before(p,texts[stichera_no])
-                delete_paragraph(p)
+                pdu.copy_paragraph_before(doc, p,texts[stichera_no])
+                pdu.delete_paragraph(p)
                 #print(f"Inserted stichera {stichera_no} for {v}")
                 stichera_no=None
                 look_for_slava=True
@@ -237,14 +243,14 @@ if __name__ == "__main__":
         
             re_result = re.search("^(Слава|І нині)",p.text)
             if re_result and look_for_slava:
-                delete_paragraph(p)
+                pdu.delete_paragraph(p)
 
             re_result = re.search("^Вхід",p.text)
             if re_result:
                 look_for_slave=False
                 if "gv_doxa" in stichera_matrix[k]:
                     print(f"Inserted doxa for {k}")
-                    copy_paragraph_before(p,stichera_matrix[k]["gv_doxa"][0])
+                    pdu.copy_paragraph_before(doc,p,stichera_matrix[k]["gv_doxa"][0])
                     if re.search("слава",stichera_matrix[k]["gv_doxa"][0].text.lower()) and re.search("і нині",stichera_matrix[k]["gv_doxa"][0].text.lower()):
                         continue
         
@@ -252,14 +258,14 @@ if __name__ == "__main__":
                 if datetime(year_no,month_no,k).weekday()+1 in (3,5):
                     if  "gv_theotokion" in stichera_matrix[k] and len(stichera_matrix[k]["gv_theotokion"])==2:
                         print(f"Inserted theo for {k}")
-                        copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][1])
+                        pdu.copy_paragraph_before(doc,p,stichera_matrix[k]["gv_theotokion"][1])
                     else:
                         print(f"Warning, failed to find theotokion for day {k}")
                         p.insert_paragraph_before("ХРЕСТОБОГОРОДИЧНИЙ")
                 else:
                     print(f"Inserted theo for {k}")
                     try:
-                        copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][0])
+                        pdu.copy_paragraph_before(doc,p,stichera_matrix[k]["gv_theotokion"][0])
                     except KeyError:
                         print(f"Warning, failed to find theotokion for day {k}")
                         p.insert_paragraph_before("БОГОРОДИЧНИЙ")
