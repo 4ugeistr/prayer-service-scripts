@@ -1,4 +1,5 @@
 import re,glob,calendar,docx,os,easygui, shutil, csv,copy
+from easygui_timerbox import timerbox
 from datetime import datetime
 from docx.shared import RGBColor, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX
@@ -15,6 +16,9 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
+
+month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, month_no-1], time=5)
+#TODO: add adjustment for jan
 
 #month_no=1
 #print(f"WARNING: MONTH OVERRIDE!")
@@ -1236,9 +1240,15 @@ def sanitize_spaces(path):
             r.text = r.text.replace('\xa0',' ')
     doc.save(path)
 
+choice_list=[
+    "1. Згенерувати чернетки",
+    "2. Оновити Відпусти",
+    "3. Оновити гласи у заголовках",
+]
 
 if __name__ == "__main__":
-    action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', ["1. Згенерувати чернетки","2. Оновити Відпусти"])
+
+    action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', choice_list)
     print(action)
     if action[0]=="1":
         print("chose 1")
@@ -1256,6 +1266,14 @@ if __name__ == "__main__":
         for d,desc in draft_dic.items():
             insert_dismissal(desc[1],datetime(year_no, month_no, d))
         print("Завершено оновлення відпустів")
+    elif action[0] == "3":
+        draft_dic = get_files_in_dir()
+        # print(len(draft_dic))
+        # print(draft_dic[1])
+        for d, desc in draft_dic.items():
+            insert_boh_hospod_echos(desc[1], datetime(year_no, month_no, d))
+            insert_gv_echos(desc[1], datetime(year_no, month_no, d))
+        print("Завершено оновлення гласів у заголовках")
     else:
         print("Нічого не вибрано.")
     print("All done!")
