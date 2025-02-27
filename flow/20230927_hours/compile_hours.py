@@ -262,8 +262,8 @@ def insert_dismissal(path,date):
             shoutout_found = False
 
     for p in doc.paragraphs:
-        if re.search(f'Священик:',p.text):
-            re_result=re.search(f'^(Священик:)( .+?)(якого є храм)(.*?)$',p.text)
+        if re.search('Священ{1,2}ик: Христос',p.text):
+            re_result=re.search('^(Священ{1,2}ик:)( .+?)(якого є храм)(.*?)$',p.text)
             p_bak=p.text
             p.clear()
 
@@ -274,7 +274,7 @@ def insert_dismissal(path,date):
                     add_text(p,re_result.group(3),color=RED)
                     add_text(p,re_result.group(4))
                 else:
-                    re_result=re.search(f'^(Священик:)(.*?)$',p_bak)
+                    re_result=re.search(f'^(Священ{1,2}ик:)(.*?)$',p_bak)
                     add_text(p,re_result.group(1),color=RED)
                     add_text(p,re_result.group(2))
             except:
@@ -414,7 +414,7 @@ if __name__== "__main__":
 
 
         doc.save(dest_filename)
-
+        #print(f"Inserting dismissal for file: {dest_filename}")
         insert_dismissal(dest_filename,datetime(year_no,month_no,d))
             
     #for k,v in hours_matrix.items():
