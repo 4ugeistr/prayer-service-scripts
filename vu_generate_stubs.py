@@ -1,9 +1,15 @@
 import re,glob,calendar,docx,os,easygui, shutil, csv,copy
+
+import ps_docx_utils
 from easygui_timerbox import timerbox
 from datetime import datetime
 from docx.shared import RGBColor, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX
 import paschalia,get_stichera
+
+from vu_rebuild_octoechos_templates import get_vu_octoechos_variable_parts_from_template as get_octoechos
+from vu_rebuild_octoechos_templates import get_template_part_text as get_octoechos_part
+
 RGB_RED = RGBColor(0xff, 0x00, 0x00)
 
 
@@ -324,6 +330,105 @@ def get_menaion_troparia_texts(path):
         #    template_dic[echos].append([re_result.group(1),re_result.group(3)])
     return template_dic
 
+
+lenten_tr_ex_endings = {
+1:'заступництвом безтілесних Твоїх помилуй нас.',
+2:'задля молитов Предтечі Твого, помилуй нас.',
+3:'силою хреста Твого, охорони нас.',
+4:'задля молитов святих апостолів Твоїх і святителя Миколая, помилуй нас.',
+5:'силою хреста Твого, охорони нас.'}
+
+#path = r'docx_resources\Вечірня-Утреня\13-ТРОЇЧНІ ТРОПАРІ - СВІТИЛЬНІ.docx'
+def get_trinity_troparia_lenten_exapostolaria(path):
+    dic = {'tr':{},'ex':{}}
+    for i in range(1,9):
+        dic['tr'][i] = []
+        dic['ex'][i] = []
+    doc = docx.Document(path)
+    header = None
+    echos = None
+
+    for p in doc.paragraphs:
+        #print(header,echos,p.text[:10])
+        if "ропарі" in p.text:
+            header = 'tr'
+            continue
+        if "Світильні" in p.text:
+            header = 'ex'
+            continue
+
+        re_result = re.search(r"Глас (\d)",p.text)
+        if re_result:
+            echos = int(re_result.group(1))
+            continue
+
+        if header and echos:
+            if not p.text.startswith('(:)'):
+                dic[header][echos].append(p)
+
+    return dic['tr'],dic['ex']
+
+
+
+def insert_trinity_troparia(path, date):
+    #paschalia_dates = paschalia.get_prev_next_pascha(date, mode)
+    #wd = date.workday() + 1
+    #date_echos=paschalia.get_echos(date,mode)
+
+    paragraph_list = copy.deepcopy(lent_trinity_troparia[paschalia.get_echos(date,mode)])
+    paragraph_list[0].runs[-1].text += " "+lenten_tr_ex_endings[date.weekday() + 1]
+
+
+    doc = docx.Document(path)
+    #print(path)
+    section_start_found = False
+    #section_end_found = True
+    for p in doc.paragraphs:
+
+        if p.text.startswith("Троїчні"):
+            section_start_found = True
+            continue
+
+        if not p.text.startswith("Після першого") and section_start_found:
+            delete_paragraph(p)
+            continue
+
+
+
+        if p.text.startswith("Після першого"):
+            ps_docx_utils.copy_paragraph_list_before(doc,p,paragraph_list)
+            break
+
+        #elif vespers_prokimenon_found:
+        #    #print(f"Deleting {p.text}")
+        #    delete_paragraph(p)
+    doc.save(path)
+
+
+def insert_lent_exapostolaria(path, date):
+    paragraph_list = copy.deepcopy(lent_exapostolaria[paschalia.get_echos(date,mode)])
+    paragraph_list[0].runs[-1].text += " "+lenten_tr_ex_endings[date.weekday() + 1]
+
+    doc = docx.Document(path)
+    #print(path)
+    section_start_found = False
+    #section_end_found = True
+    for p in doc.paragraphs:
+
+        if p.text.startswith("Світильний"):
+            section_start_found = True
+            continue
+
+        if not p.text.startswith("Хвалитні") and section_start_found:
+            delete_paragraph(p)
+            continue
+
+        if p.text.startswith("Хвалитні"):
+            ps_docx_utils.copy_paragraph_list_before(doc,p,paragraph_list)
+            break
+
+    doc.save(path)
+
 def get_vespers_prokimenon(path):
     template_dic={}
     doc = docx.Document(path)
@@ -418,6 +523,7 @@ def insert_prokimenon(path,day):
     doc.save(path)
 
 def insert_boh_hospod_echos(path,date):
+    paschalia_dates = paschalia.get_prev_next_pascha(date, mode)
     #print(date.day)
     doc = docx.Document(path)
     for p in doc.paragraphs:
@@ -425,7 +531,7 @@ def insert_boh_hospod_echos(path,date):
         if re_result:
             #print("found")
             if date.weekday()+1==7:
-                echos = paschalia.get_echos(date,paschalia_dates)
+                echos = paschalia.get_echos(date,mode)
             else:
                 #echos = int(re.search("(\d)",templates_menaion[date.day][0]['troparion'][0]).group(1))
                 echos = int(re.search(r"(\d)",templates_menaion[date.day][0]['troparion'].text).group(1))
@@ -435,6 +541,47 @@ def insert_boh_hospod_echos(path,date):
                     #print(r.text)
                     r.font.highlight_color=None
                     r.text = re.sub(r'(\?+)',str(echos),r.text)
+            break
+    doc.save(path)
+
+
+def insert_aliluia_echos(path,date):
+    doc = docx.Document(path)
+    for p in doc.paragraphs:
+        re_result = re.search("^Алилуя на глас",p.text)
+        if re_result:
+            echos = paschalia.get_echos(date, mode)
+
+            for r in p.runs:
+                r.text = re.sub(r'(\d)',str(echos),r.text)
+            break
+    doc.save(path)
+
+def insert_first_sessional_hymn(path,date):
+    print("Inserting sessional hymn for:", date)
+    section_start_found=False
+    #section_end_ = False
+    doc = docx.Document(path)
+    echos = paschalia.get_echos(date,mode)
+    wd = date.weekday()+1
+
+    dic = get_octoechos(echos,wd)
+    paragraph_list = get_octoechos_part(dic,'сідальний1')[1:3]
+
+
+    for p in doc.paragraphs:
+        if p.text.startswith("Після першого"):
+            print("found sid header")
+            section_start_found = True
+            continue
+
+        if len(p.text)>0 and section_start_found:
+            print("deleting:", p.text[:20])
+            delete_paragraph(p)
+
+        if len(p.text)==0 and section_start_found:
+            print("inserting",paragraph_list[0].text[:20])
+            ps_docx_utils.copy_paragraph_list_before(doc,p,paragraph_list)
             break
     doc.save(path)
 
@@ -488,6 +635,7 @@ def get_troparia_theotokion(echos, date, service):
     #return list(filter(lambda t: t['service'] == service and t['weekday'] == date.weekday()+1, templates_theotokion_dic[echos]))[0]["p"]
 
 def get_troparia_block(date,service):
+    paschalia_dates = paschalia.get_prev_next_pascha(date, mode)
     #if date.day!=1:
     #    return 0
     
@@ -512,7 +660,7 @@ def get_troparia_block(date,service):
         if ordo_matrix[date.day][2:][i] == 'resurrection':
             #if date.day==2:
             #    print(f"inserting troparia for day{d}. item {i}")
-            troparia = templates_resurrection[paschalia.get_echos(date,paschalia_dates)][0]
+            troparia = templates_resurrection[paschalia.get_echos(date,mode)][0]
         if ordo_matrix[date.day][2:][i] == 'triodion':
             if i==3:
                 troparia=insert_prefix_to_paragraph(templates_triodion[date.day][0]["troparion"],text="І нині: ")
@@ -807,7 +955,7 @@ stichos_list=[
 ]
 
 def insert_menaion_stichera(path,date,template_type):
-    print("Вставляємо стихири з Мінеї:", path)
+    #print("Вставляємо стихири з Мінеї:", path)
     doc = docx.Document(path)
     stichera_no=None
     look_for_slava=False
@@ -844,7 +992,7 @@ def insert_menaion_stichera(path,date,template_type):
     else:
         return 0
 
-    print(stichos_dic)
+    #print(stichos_dic)
 
     stichos_dic_string='('+'|'.join(stichos_dic.keys())+')'
     #print(date.day,stichos_dic_string)
@@ -937,7 +1085,7 @@ def insert_kanon(path,date):
     doc = docx.Document(path)
     song8_end_found = False
     week_day = date.weekday()+1
-    echos = paschalia.get_echos(date,paschalia_dates)
+    echos = paschalia.get_echos(date,mode)
     kanon_no = 1
     #визначаємо № канону дня, що беремо
     #в піст - 0
@@ -1034,37 +1182,7 @@ def insert_resurrection_gospel_parts(path,date):
 
     doc.save(path)
 
-
-lent_templates = glob.glob(r'docx_resources\Вечірня-Утреня\В,У - Пісна Тріодь\*\*.docx')
-pascha_pentecost_templates = glob.glob(r'docx_resources\Вечірня-Утреня\В,У - Квітна Тріодь\*\*.docx')
-
-ordo_matrix = get_matrix(f"matrices/vu_тропарі{mode_suffix2}.csv")
-stichera_gv_matrix = get_matrix(f"matrices/vu_стихириМінеї{mode_suffix2}.csv")
-dismissal_matrix = get_dismissal_matrix(f'matrices/Відпусти{mode_suffix}.csv',month_no)
-saint_matrix = get_matrix_full("matrices/Місяцеслов-БД.csv")
-filename_triodion_matrix = get_matrix_full("matrices/Місяцеслов-БД-Тріодь.csv")
-templates_octoechos_dic = get_octoechos_template_files(r'docx_resources\Вечірня-Утреня\01-Октоїх\*\*.docx')
-templates_menaion_dic = get_menaion_template_files()
-templates_resurrection = get_resurrection_troparia_texts('docx_resources/воскресні_тропарі.docx')
-#templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
-
-templates_menaion = get_menaion_troparia_texts(glob.glob(f'docx_resources/Тропарі - Мінея/{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
-if glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_Тріоді\\тріодь-{month_no:02}.docx'):
-    templates_triodion = get_menaion_troparia_texts(glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_Тріоді\\тріодь-{month_no:02}.docx')[0])
-else: 
-    templates_triodion = None
-
-vespers_prokimenon = get_vespers_prokimenon(f'docx_resources/Вечірня-Утреня/vu_прокімени.docx')
-templates_theotokion_dic = get_theotokion_troparia_texts('docx_resources/Вечірня-Утреня/vu_богородичні-тропарі.docx')
-templates_kanon_dic = get_octoechos_kanon_texts('docx_resources/Вечірня-Утреня/05a_ОКТОЇХ_КАНОНИ.docx')
-kanon_litany_list = get_kanon_litany("docx_resources/Вечірня-Утреня/Канон - Мала єтенія.docx")
-stichera_matrix = get_stichera.get_stichera_matrix(glob.glob(f'docx_resources/Стихири - Мінея/Мінея_{month_no:02}*.docx')[0])
-generic_stichera_matrix = get_stichera.get_generic_stichera_matrix('docx_resources/Вечірня-Утреня/Стихири ГВ загальної служби.docx')
-resurrection_gospel_matrix = get_stichera.get_resurrection_gospel_matrix("docx_resources/Вечірня-Утреня/11-ВОСКРЕСНІ ЄВАНГЕЛІЯ.docx")
-#dogmatika = get_stichera.get_dogmatika("Догмати.docx")
-
-
-folder_name=f'drafts\\uv\\{year_no}-{month_no:02}-{mode}'
+folder_name=f'drafts\\vu\\{year_no}-{month_no:02}-{mode}'
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
 
@@ -1084,9 +1202,10 @@ def get_saints_for_filename(month,day,multiline=False):
     return saint_string
 
 draft_dic={}
-paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
+#paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
 
 def create_stubs():
+
     print("commencing creation")
     
     draft_dic={}
@@ -1094,7 +1213,8 @@ def create_stubs():
     #for d in range(1,5):    
         draft_dic[d]=[]
         print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
-        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
+        paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no, d), mode)
+        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),mode)
         #print(d, day_details)
         filename_triodion_row = None
         filename_menaion_string = get_saints_for_filename(month_no,d)
@@ -1113,7 +1233,7 @@ def create_stubs():
         
         
         if datetime(year_no, month_no, d).weekday()+1==7: 
-            dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)}'
+            dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d),mode)}'
         
         if filename_triodion_row and filename_triodion_row[12]:
             dest_filename+=f'-{filename_triodion_row[12]}.docx'
@@ -1139,7 +1259,7 @@ def create_stubs():
                 draft_dic[d].append('піст')
                 #print(d, "Шаблон Великого Посту")
             else:
-                src_filename = templates_octoechos_dic[paschalia.get_echos(datetime(year_no, month_no, d), paschalia_dates)][datetime(year_no, month_no, d).weekday() + 1]
+                src_filename = templates_octoechos_dic[paschalia.get_echos(datetime(year_no, month_no, d), mode)][datetime(year_no, month_no, d).weekday() + 1]
                 draft_dic[d].append('октоїх')
         elif day_details[0] in ('pascha'):
             expected_template_path = f"docx_resources\\Вечірня-Утреня\\В,У - Квітна Тріодь\\pascha-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"
@@ -1160,11 +1280,11 @@ def create_stubs():
                 draft_dic[d].append('мінея')
                 #print(d, "Шаблон Мінеї")
             else:        
-                src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)][datetime(year_no, month_no, d).weekday()+1]
+                src_filename=templates_octoechos_dic[paschalia.get_echos(datetime(year_no,month_no,d),mode)][datetime(year_no, month_no, d).weekday()+1]
                 draft_dic[d].append('октоїх')
                 #print(d, "Шаблон Октоїха")
         #else:
-        #    src_filename = templates_octoechos_dic[paschalia.get_echos(datetime(year_no, month_no, d), paschalia_dates)][datetime(year_no, month_no, d).weekday() + 1]
+        #    src_filename = templates_octoechos_dic[paschalia.get_echos(datetime(year_no, month_no, d), mode)][datetime(year_no, month_no, d).weekday() + 1]
         #    draft_dic[d].append('октоїх')
         try:
             #print("Trying to copy:",src_filename,dest_filename)
@@ -1185,7 +1305,9 @@ def create_stubs():
 
 def update_stubs(draft_dic):
     #drafts = glob.glob(f'{folder_name}\\*.docx')
+
     for d,desc in draft_dic.items():
+
         #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
         insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d))
         
@@ -1216,6 +1338,12 @@ def update_stubs(draft_dic):
             insert_menaion_stichera(desc[1],datetime(year_no, month_no, d),desc[0])    
         if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1==6:
             pass
+        day_details = paschalia.get_day_details(datetime(year_no, month_no, d), mode)
+        if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1 in (1,2,3,4,5) and day_details[1] in (1,2,3,4,5):
+            insert_trinity_troparia(desc[1],datetime(year_no, month_no, d))
+            insert_lent_exapostolaria(desc[1], datetime(year_no, month_no, d))
+            insert_aliluia_echos(desc[1], datetime(year_no, month_no, d))
+            insert_first_sessional_hymn(desc[1], datetime(year_no, month_no, d))
 
     print("Завершено оновлення чернеток УВ!")
     
@@ -1240,6 +1368,46 @@ def sanitize_spaces(path):
             r.text = r.text.replace('\xa0',' ')
     doc.save(path)
 
+
+lent_templates = glob.glob(r'docx_resources\Вечірня-Утреня\В,У - Пісна Тріодь\*\*.docx')
+pascha_pentecost_templates = glob.glob(r'docx_resources\Вечірня-Утреня\В,У - Квітна Тріодь\*\*.docx')
+
+ordo_matrix = get_matrix(f"matrices/vu_тропарі{mode_suffix2}.csv")
+stichera_gv_matrix = get_matrix(f"matrices/vu_стихириМінеї{mode_suffix2}.csv")
+dismissal_matrix = get_dismissal_matrix(f'matrices/Відпусти{mode_suffix}.csv', month_no)
+saint_matrix = get_matrix_full("matrices/Місяцеслов-БД.csv")
+filename_triodion_matrix = get_matrix_full("matrices/Місяцеслов-БД-Тріодь.csv")
+templates_octoechos_dic = get_octoechos_template_files(r'docx_resources\Вечірня-Утреня\01-Октоїх\*\*.docx')
+templates_menaion_dic = get_menaion_template_files()
+templates_resurrection = get_resurrection_troparia_texts('docx_resources/воскресні_тропарі.docx')
+# templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
+
+templates_menaion = get_menaion_troparia_texts(glob.glob(
+    f'docx_resources/Тропарі - Мінея/{month_w_offset[month_no - 1]:02}-{month_dic_reversed[month_no].upper()}.docx')[
+                                                   0])
+if glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_Тріоді\\тріодь-{month_no:02}.docx'):
+    templates_triodion = get_menaion_troparia_texts(
+        glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_Тріоді\\тріодь-{month_no:02}.docx')[0])
+else:
+    templates_triodion = None
+
+vespers_prokimenon = get_vespers_prokimenon(f'docx_resources/Вечірня-Утреня/vu_прокімени.docx')
+templates_theotokion_dic = get_theotokion_troparia_texts(
+    'docx_resources/Вечірня-Утреня/vu_богородичні-тропарі.docx')
+templates_kanon_dic = get_octoechos_kanon_texts('docx_resources/Вечірня-Утреня/05a_ОКТОЇХ_КАНОНИ.docx')
+kanon_litany_list = get_kanon_litany("docx_resources/Вечірня-Утреня/Канон - Мала єтенія.docx")
+stichera_matrix = get_stichera.get_stichera_matrix(
+    glob.glob(f'docx_resources/Стихири - Мінея/Мінея_{month_no:02}*.docx')[0])
+generic_stichera_matrix = get_stichera.get_generic_stichera_matrix(
+    'docx_resources/Вечірня-Утреня/Стихири ГВ загальної служби.docx')
+resurrection_gospel_matrix = get_stichera.get_resurrection_gospel_matrix(
+    "docx_resources/Вечірня-Утреня/11-ВОСКРЕСНІ ЄВАНГЕЛІЯ.docx")
+lent_trinity_troparia, lent_exapostolaria = get_trinity_troparia_lenten_exapostolaria(
+    r'docx_resources\Вечірня-Утреня\13-ТРОЇЧНІ ТРОПАРІ - СВІТИЛЬНІ.docx')
+
+# dogmatika = get_stichera.get_dogmatika("Догмати.docx")
+
+
 choice_list=[
     "1. Згенерувати чернетки",
     "2. Оновити Відпусти",
@@ -1250,6 +1418,11 @@ if __name__ == "__main__":
 
     action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', choice_list)
     print(action)
+
+    #build_data()
+
+
+
     if action[0]=="1":
         print("chose 1")
         draft_dic = create_stubs()
@@ -1272,7 +1445,7 @@ if __name__ == "__main__":
         # print(draft_dic[1])
         for d, desc in draft_dic.items():
             insert_boh_hospod_echos(desc[1], datetime(year_no, month_no, d))
-            insert_gv_echos(desc[1], datetime(year_no, month_no, d))
+            insert_gv_echos(desc[1])
         print("Завершено оновлення гласів у заголовках")
     else:
         print("Нічого не вибрано.")

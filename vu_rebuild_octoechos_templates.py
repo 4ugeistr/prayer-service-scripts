@@ -94,7 +94,7 @@ sunday_part_list=['вечірня',
                 'великий_відпуст',
 ]
 
-octoechos_template_source_folder = '01-Октоїх'
+octoechos_template_source_folder = r'docx_resources\Вечірня-Утреня\01-Октоїх'
 
 
 def find_octoechos_template(echos,day, folder=octoechos_template_source_folder):
@@ -285,7 +285,6 @@ def get_template_part_text(matrix, key):
     for item in matrix:
         if item['key']==key:
             return item['text']
-    
     return -1
 
 def get_vespers_prokimenon(path):
@@ -539,14 +538,14 @@ folder_for_new_files = '01-Октоїх-new'
 def build_full_octoechos(folder):
     for echos in range(1,9):
         for day in range(1,8):
-            doc_filename = f"{folder}/Глас_{echos}/{echos}-{pdt.day_short_dic_reversed[day]}-.docx"
+            doc_filename = f"{folder}\\Глас_{echos}\\{echos}-{pdt.day_short_dic_reversed[day]}-.docx"
             build_template(doc_filename, day,echos)
             print(f"{datetime.now()}: Шаблон {doc_filename} побудовано!")
 
 
-vu_template_parts = get_vu_template_parts('vu_template_parts.docx')
-vu_misc_variable_parts = get_vu_misc_variable_parts('vu_template_misc_variable_parts.docx')
-vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
+vu_template_parts = get_vu_template_parts(r'docx_resources\Вечірня-Утреня\vu_template_parts.docx')
+vu_misc_variable_parts = get_vu_misc_variable_parts(r'docx_resources\Вечірня-Утреня\vu_template_misc_variable_parts.docx')
+vespers_prokimenon = get_vespers_prokimenon(r'docx_resources\Вечірня-Утреня\vu_прокімени.docx')
 
 
 #vu_octoechos_parts = build_octoechos_part_matrix_full('01-Октоїх')
@@ -554,11 +553,11 @@ vespers_prokimenon = get_vespers_prokimenon(f'прокімени.docx')
 print(f"Finished building dictionaries: {(datetime.now() - start_time).total_seconds()}")
 
 if __name__ == "__main__":
-    filename = 'test.docx'
+    #filename = 'test.docx'
     #build_template(filename, 7,1)
     #print(f"Шаблон {filename} побудовано!")
 
-    build_full_octoechos('01-Октоїх-new')
+    build_full_octoechos(r'docx_resources\Вечірня-Утреня\01-Октоїх-new')
 
     end_time = datetime.now()
     elapsed_time = (end_time - start_time).total_seconds()
