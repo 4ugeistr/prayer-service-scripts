@@ -225,8 +225,9 @@ def get_resurrection_gospel(cur_date, paschalia_dates):
     if cur_date >= paschalia_dates[1]['palm_sunday']:
         return None
 
-    if cur_date == paschalia_dates[1]["cheesefare_sunday"] + timedelta(days=7 * 5):
-        return f"Неділя 6-та Великого посту."
+    #щось незрозуміле, залишкове:
+    #if cur_date == paschalia_dates[1]["cheesefare_sunday"] + timedelta(days=7 * 5):
+    #    return f"Неділя 6-та Великого посту."
 
     match get_week_from_pascha(cur_date, paschalia_dates):
         case 0:  #Пасха

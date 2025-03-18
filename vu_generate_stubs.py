@@ -6,6 +6,7 @@ from datetime import datetime
 from docx.shared import RGBColor, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX
 import paschalia,get_stichera
+import get_saints
 
 from vu_rebuild_octoechos_templates import get_vu_octoechos_variable_parts_from_template as get_octoechos
 from vu_rebuild_octoechos_templates import get_template_part_text as get_octoechos_part
@@ -330,15 +331,13 @@ def get_menaion_troparia_texts(path):
         #    template_dic[echos].append([re_result.group(1),re_result.group(3)])
     return template_dic
 
-
-lenten_tr_ex_endings = {
+lenten_tr_endings = {
 1:'заступництвом безтілесних Твоїх помилуй нас.',
 2:'задля молитов Предтечі Твого, помилуй нас.',
-3:'силою хреста Твого, охорони нас.',
+3:'силою Хреста Твого, охорони нас.',
 4:'задля молитов святих апостолів Твоїх і святителя Миколая, помилуй нас.',
-5:'силою хреста Твого, охорони нас.'}
+5:'силою Хреста Твого, охорони нас.'}
 
-#path = r'docx_resources\Вечірня-Утреня\13-ТРОЇЧНІ ТРОПАРІ - СВІТИЛЬНІ.docx'
 def get_trinity_troparia_lenten_exapostolaria(path):
     dic = {'tr':{},'ex':{}}
     for i in range(1,9):
@@ -349,7 +348,6 @@ def get_trinity_troparia_lenten_exapostolaria(path):
     echos = None
 
     for p in doc.paragraphs:
-        #print(header,echos,p.text[:10])
         if "ропарі" in p.text:
             header = 'tr'
             continue
@@ -371,18 +369,12 @@ def get_trinity_troparia_lenten_exapostolaria(path):
 
 
 def insert_trinity_troparia(path, date):
-    #paschalia_dates = paschalia.get_prev_next_pascha(date, mode)
-    #wd = date.workday() + 1
-    #date_echos=paschalia.get_echos(date,mode)
 
     paragraph_list = copy.deepcopy(lent_trinity_troparia[paschalia.get_echos(date,mode)])
-    paragraph_list[0].runs[-1].text += " "+lenten_tr_ex_endings[date.weekday() + 1]
-
+    paragraph_list[0].runs[-1].text += " "+lenten_tr_endings[date.weekday() + 1]
 
     doc = docx.Document(path)
-    #print(path)
     section_start_found = False
-    #section_end_found = True
     for p in doc.paragraphs:
 
         if p.text.startswith("Троїчні"):
@@ -393,26 +385,38 @@ def insert_trinity_troparia(path, date):
             delete_paragraph(p)
             continue
 
-
-
         if p.text.startswith("Після першого"):
             ps_docx_utils.copy_paragraph_list_before(doc,p,paragraph_list)
             break
 
-        #elif vespers_prokimenon_found:
-        #    #print(f"Deleting {p.text}")
-        #    delete_paragraph(p)
     doc.save(path)
 
+#для гласів 1, 5, 6, 7
+lenten_ex_endings = {
+1:'заступництвом безтілесних Твоїх, і спаси мене.',
+2:'задля молитов Предтечі Твого, і спаси мене.',
+3:'силою Хреста Твого, і спаси мене.',
+4:'задля молитов святих апостолів Твоїх і святителя Миколая, і спаси мене.',
+5:'силою Хреста Твого, і спаси мене.'}
+
+#для гласів 2, 3, 4, 8
+lenten_ex_h_endings = {
+1:'заступництвом безтілесних Твоїх, і спаси мене.',
+2:'задля молитов, Господи, Предтечі Твого, і спаси мене.',
+3:'силою, Господи, Хреста Твого, і спаси мене.',
+4:'задля молитов святих апостолів Твоїх і святителя Миколая, і спаси мене.',
+5:'силою, Господи, Хреста Твого, і спаси мене.'}
 
 def insert_lent_exapostolaria(path, date):
-    paragraph_list = copy.deepcopy(lent_exapostolaria[paschalia.get_echos(date,mode)])
-    paragraph_list[0].runs[-1].text += " "+lenten_tr_ex_endings[date.weekday() + 1]
+    echos = paschalia.get_echos(date,mode)
+    paragraph_list = copy.deepcopy(lent_exapostolaria[echos])
+    if echos in (1,5,6,7):
+        paragraph_list[0].runs[-1].text += " "+lenten_ex_endings[date.weekday() + 1]
+    elif echos in (2,3,4,8):
+        paragraph_list[0].runs[-1].text += " " + lenten_ex_h_endings[date.weekday() + 1]
 
     doc = docx.Document(path)
-    #print(path)
     section_start_found = False
-    #section_end_found = True
     for p in doc.paragraphs:
 
         if p.text.startswith("Світильний"):
@@ -571,16 +575,16 @@ def insert_first_sessional_hymn(path,date):
 
     for p in doc.paragraphs:
         if p.text.startswith("Після першого"):
-            print("found sid header")
+            #print("found sid header")
             section_start_found = True
             continue
 
         if len(p.text)>0 and section_start_found:
-            print("deleting:", p.text[:20])
+            #print("deleting:", p.text[:20])
             delete_paragraph(p)
 
         if len(p.text)==0 and section_start_found:
-            print("inserting",paragraph_list[0].text[:20])
+            #print("inserting",paragraph_list[0].text[:20])
             ps_docx_utils.copy_paragraph_list_before(doc,p,paragraph_list)
             break
     doc.save(path)
@@ -1201,6 +1205,19 @@ def get_saints_for_filename(month,day,multiline=False):
                     saint_string=row[index]
     return saint_string
 
+def get_polyeleos_saints_for_filename(month,day,multiline=False):
+    index = 10
+    separator = ','
+    saint_string=""
+    for row in saint_matrix[1:]:
+        if int(row[0])==month and int(row[1])==day and row[6] and row[6] in '+*#':
+            if row[index]:
+                if saint_string:
+                    saint_string+=separator+row[index]
+                else:
+                    saint_string=row[index]
+    return saint_string
+
 draft_dic={}
 #paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
 
@@ -1215,7 +1232,7 @@ def create_stubs():
         print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
         paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no, d), mode)
         day_details = paschalia.get_day_details(datetime(year_no,month_no,d),mode)
-        #print(d, day_details)
+        print(d, day_details)
         filename_triodion_row = None
         filename_menaion_string = get_saints_for_filename(month_no,d)
 
@@ -1225,18 +1242,21 @@ def create_stubs():
                 if day_details[0] == row[0] and row[2] and day_details[2] == int(row[2]) and day_details[3] == int(row[3]):
                     filename_triodion_row = row
             else:
-                if day_details[0] == row[0] and day_details[1] == int(row[1]) and day_details[3] == int(row[3]):
+                if day_details[0] == row[0] and day_details[1] == int(row[1]) and day_details[3] == int(row[3]) and row[12]:
                     filename_triodion_row = row
 
 
         dest_filename=f'{folder_name}\\{d:02}-{day_short_dic_reversed[datetime(year_no, month_no, d).weekday()+1]}'
         
         
-        if datetime(year_no, month_no, d).weekday()+1==7: 
+        if (datetime(year_no, month_no, d).weekday()+1==7 and paschalia.get_echos(datetime(year_no,month_no,d),mode)) and not (day_details[0]=='pascha' and day_details[1]==1):
             dest_filename+=f'-Гл.{paschalia.get_echos(datetime(year_no,month_no,d),mode)}'
         
         if filename_triodion_row and filename_triodion_row[12]:
-            dest_filename+=f'-{filename_triodion_row[12]}.docx'
+            dest_filename+=f'-{filename_triodion_row[12]}'
+            if get_polyeleos_saints_for_filename(month_no,d):
+                dest_filename+=f'-{get_polyeleos_saints_for_filename(month_no,d)}'
+            dest_filename+=f'.docx'
         elif filename_menaion_string:
             dest_filename+=f'-{filename_menaion_string}.docx'
         else:
@@ -1254,7 +1274,7 @@ def create_stubs():
             #print(d, "Шаблон Воскресіння")
         elif day_details[0]=='lent':
             expected_lent_template_path = f"docx_resources\\Вечірня-Утреня\\В,У - Пісна Тріодь\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ВУ.docx"    
-            if expected_lent_template_path in lent_templates and day_details[3]!=7:
+            if expected_lent_template_path in lent_templates and (day_details[3]!=7 or day_details[1] in [6,7]):
                 src_filename=expected_lent_template_path
                 draft_dic[d].append('піст')
                 #print(d, "Шаблон Великого Посту")
@@ -1302,6 +1322,36 @@ def create_stubs():
     print("Завершено створення чернеток УВ!")
     return draft_dic
 
+def update_ektenia_before_kanon(path,date):
+    doc = docx.Document(path)
+    saints_str = get_saints.get_saints_full(date)
+
+    for p in doc.paragraphs:
+        if "Спаси́, Бо́же, наро́д Твій" in p.text or "Спаси, Боже, народ Твій" in p.text:
+            re_result = re.search(r'^(.*?)(\(ім’я, що його́ є храм цей\))(.*?)(і всіх .вяти́х:)(.*?)$',p.text)
+
+            if re_result:
+                p.text = re_result.group(1)
+                format_run(p.runs[0],'')
+                new_run = p.add_run(re_result.group(2))
+                format_run(new_run, 'ri')
+                new_run = p.add_run(', і '+saints_str+', і всіх cвяти́х:'+re_result.group(5))
+                format_run(new_run, '')
+
+                '''
+                ektenia_text = re_result.group(1)
+                ektenia_text += '<red>'+re_result.group(2)+'</red>'+', і '
+                ektenia_text += saints_str
+                ektenia_text += ', і всіх cвяти́х:'
+                ektenia_text += re_result.group(5)
+                print(path)
+                print(ektenia_text)
+                '''
+
+            else:
+                print(path, "Ektenia, RE failed")
+            break
+    doc.save(path)
 
 def update_stubs(draft_dic):
     #drafts = glob.glob(f'{folder_name}\\*.docx')
@@ -1326,6 +1376,7 @@ def update_stubs(draft_dic):
             insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
             
             if datetime(year_no, month_no, d).weekday()+1==7:
+                print("Inserting gospel for", datetime(year_no, month_no, d))
                 insert_resurrection_gospel_parts(desc[1],datetime(year_no, month_no, d))
 
             #вставити тропарі вкінці утрені
@@ -1339,11 +1390,14 @@ def update_stubs(draft_dic):
         if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1==6:
             pass
         day_details = paschalia.get_day_details(datetime(year_no, month_no, d), mode)
-        if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1 in (1,2,3,4,5) and day_details[1] in (1,2,3,4,5):
+        if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1 in (1,2,3,4,5) and day_details[1] in (1,2,3,4,5,6):
             insert_trinity_troparia(desc[1],datetime(year_no, month_no, d))
             insert_lent_exapostolaria(desc[1], datetime(year_no, month_no, d))
             insert_aliluia_echos(desc[1], datetime(year_no, month_no, d))
             insert_first_sessional_hymn(desc[1], datetime(year_no, month_no, d))
+
+        update_ektenia_before_kanon(desc[1], datetime(year_no, month_no, d))
+
 
     print("Завершено оновлення чернеток УВ!")
     
