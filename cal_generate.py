@@ -150,8 +150,7 @@ def get_special_unimportant_day_strings(date):
 
 def get_triodion_strings(date,mode):
     lines = []
-    paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
-    triodion_params = paschalia.get_day_details(date,paschalia_dates)
+    triodion_params = paschalia.get_day_details(date,mode)
     
     matrix = []
     

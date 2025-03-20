@@ -45,12 +45,16 @@ day_dic_string='('+'|'.join(day_dic.keys())+')'
 
 #doc = docx.Document("Літургія - Мінея\\10-Літургія-шаблони.docx") 
 '''
+#DEPRECATED -  see paschalia
 def get_echos(date,mode):
     if mode=='u':
         return (int(date.strftime("%U"))-25) % 8 + 1
     elif mode=='g':
         return (int(date.strftime("%U"))-24) % 8 + 1
 '''
+
+'''
+#DEPRECATED -  see docx_utils
 def copy_paragraph(target_doc,source_paragraph):
     target_paragraph = target_doc.add_paragraph()
     for run in source_paragraph.runs:
@@ -62,11 +66,18 @@ def copy_paragraph(target_doc,source_paragraph):
         new_run.font.name = run.font.name
         new_run.font.color.rgb = run.font.color.rgb
         new_run.font.highlight_color = run.font.highlight_color
-
+        if new_run.text.startswith('<'):
+            new_run.font.name = 'Consolas'
+            new_run.font.highlight_color = 15
+        else:
+            new_run.font.name = 'Times New Roman'
+            
+#DEPRECATED -  see docx_utils
 def copy_paragraph_list(target_doc,paragraph_list):
     for p in paragraph_list:
         copy_paragraph(target_doc,p)
-
+        
+#DEPRECATED -  see docx_utils
 def format_line(p, handle=''):
     #handle = "bir"
     if 'b' in handle:
@@ -77,7 +88,7 @@ def format_line(p, handle=''):
         p.runs[0].font.color.rgb = RGBColor(0xff, 0x44, 0x00)
     p.runs[0].font.name='Times New Roman'
     p.runs[0].font.size=152400
-
+'''
 
 def get_dismissal_matrix(dismissal_csv_filename,cur_month):
     matrix={}
@@ -236,7 +247,7 @@ moved to cal_generate.py
 def insert_header_liturgy(doc,date):
     day_name = day_dic_reversed[date.weekday()+1]
     #month_name = month_dic_reversed[month_no]
-    week_no=paschalia.get_day_details(date,paschalia_dates)
+    week_no=paschalia.get_day_details(date,mode)
 
     #Субота, Неділя, Тиждень etc...
     special_dates=[{"date":datetime(year_no,12,25),
@@ -254,7 +265,7 @@ def insert_header_liturgy(doc,date):
                 p_new = doc.add_paragraph(f"{day_name} перед {sd['holiday_instrumental']}")
             else:
                 p_new = doc.add_paragraph(f"{day_name} по {sd['holiday_locative']}")
-            format_line(p_new, '')
+            pdu.format_line(p_new, '')
 
 
     #if date.weekday()+1 in [6,7]:
@@ -262,7 +273,7 @@ def insert_header_liturgy(doc,date):
         #print(date)
         p_new=doc.add_paragraph(reading_matrix[date.day-1][4])
         if date.weekday()+1 == 7:
-            p_new.text += f" Глас {paschalia.get_echos(date,paschalia_dates)}."
+            p_new.text += f" Глас {paschalia.get_echos(date,mode)}."
         #print(reading_matrix[date.day-1][:5])
 
     
@@ -299,10 +310,11 @@ elif mode == 'g':
 
 if __name__ == "__main__":
     #init data
-    paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
+    #paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
     templates_menaion = get_menaion_template_texts()
-    templates_pascha = get_triodion_template_texts("docx_resources\\Літургія\\Літургія - Квітна Тріодь\\Літургія - Пасха.docx")
-    templates_pentecost = get_triodion_template_texts("docx_resources\\Літургія\\Літургія - Квітна Тріодь\\Літургія - 50-ця.docx")
+    templates_lent = get_triodion_template_texts("docx_resources\\Літургія\\Літургія - Тріодь\\Літургія - Піст.docx")
+    templates_pascha = get_triodion_template_texts("docx_resources\\Літургія\\Літургія - Тріодь\\Літургія - Пасха.docx")
+    templates_pentecost = get_triodion_template_texts("docx_resources\\Літургія\\Літургія - Тріодь\\Літургія - 50-ця.docx")
     
     templates_resurrection = get_resurrection_template_texts(template_path)
     templates_everyday = get_everyday_template_texts(template_path)
@@ -320,7 +332,7 @@ if __name__ == "__main__":
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
     #for d in range (5,6):
         #print(d)
-        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
+        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),mode)
         print(d, day_details)
         if day_details[0]=='lent':
             if not day_details[3] in (6,7):
@@ -342,22 +354,24 @@ if __name__ == "__main__":
         pdu.copy_paragraph_list(new_doc,generate_calendar.prepare_header_for_docx(datetime(year_no,month_no,d),mode))
 
         #print(dismissal_matrix[d][2])
-        if day_details[0]=='pascha' and (day_details[1], day_details[3]) in templates_pascha.keys():
-            copy_paragraph_list(new_doc,templates_pascha[(day_details[1], day_details[3])])
+        if day_details[0] == 'lent' and (day_details[1], day_details[3]) in templates_lent.keys():
+            pdu.copy_paragraph_list(new_doc, templates_lent[(day_details[1], day_details[3])])
+        elif day_details[0]=='pascha' and (day_details[1], day_details[3]) in templates_pascha.keys():
+            pdu.copy_paragraph_list(new_doc,templates_pascha[(day_details[1], day_details[3])])
             #print("template: pascha")
         elif day_details[0]=='pentecost' and (day_details[1], day_details[3]) in templates_pentecost.keys():
-            copy_paragraph_list(new_doc,templates_pentecost[(day_details[1], day_details[3])])
+            pdu.copy_paragraph_list(new_doc,templates_pentecost[(day_details[1], day_details[3])])
             #print("template: pentecost")
         elif datetime(year_no, month_no, d).weekday()+1==7:
             #print(d, "copied sunday ", get_echos(datetime(year_no,month_no,d)))
-            copy_paragraph_list(new_doc,templates_resurrection[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)])
+            pdu.copy_paragraph_list(new_doc,templates_resurrection[paschalia.get_echos(datetime(year_no,month_no,d),mode)])
             #print("template: resurrection")
         elif d in templates_menaion.keys():
-            copy_paragraph_list(new_doc,templates_menaion[d])
+            pdu.copy_paragraph_list(new_doc,templates_menaion[d])
             #print("template: menaion")
         else:
             #print(d, datetime(year_no, month_no, d).weekday()+1,templates_everyday[datetime(year_no, month_no, d).weekday()+1][38].text[:20])
-            copy_paragraph_list(new_doc,templates_everyday[datetime(year_no, month_no, d).weekday()+1])
+            pdu.copy_paragraph_list(new_doc,templates_everyday[datetime(year_no, month_no, d).weekday()+1])
             #print("template: everyday")
 
     #for p in new_doc.paragraphs:

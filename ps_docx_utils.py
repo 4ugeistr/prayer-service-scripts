@@ -15,19 +15,22 @@ def delete_run(run):
 
 def copy_run(target_paragraph,run):
     new_run = target_paragraph.add_run(run.text)
-    
-    #!!!треба перевірити чи буде все копіюваитись без стилю ранів
-    #new_run.style = run.style.name
 
     new_run.bold = run.bold
     new_run.italic = run.italic
     new_run.underline = run.underline
     #new_run.font.size = run.font.size
     #new_run.font.name = run.font.name
-    new_run.font.name='Times New Roman'
+    #new_run.font.name='Times New Roman'
     new_run.font.size=152400
     new_run.font.color.rgb = run.font.color.rgb
     new_run.font.highlight_color = run.font.highlight_color
+
+    if new_run.text.startswith('<'):
+        new_run.font.name = 'Consolas'
+        new_run.font.highlight_color = 15
+    else:
+        new_run.font.name = 'Times New Roman'
 
 
 def copy_paragraph(target_doc,source_paragraph):
@@ -44,17 +47,15 @@ def copy_paragraph(target_doc,source_paragraph):
         target_paragraph.paragraph_format.space_after = Pt(6)
     except KeyError:
         print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
+        target_paragraph.style = 'Normal'
     target_paragraph.alignment = source_paragraph.alignment
 
     for run in source_paragraph.runs:
-        new_run = target_paragraph.add_run(run.text)
-        new_run.bold = run.bold
-        new_run.italic = run.italic
-        new_run.underline = run.underline
-        new_run.font.size = run.font.size
-        new_run.font.name = run.font.name
-        new_run.font.color.rgb = run.font.color.rgb
-        new_run.font.highlight_color = run.font.highlight_color
+        copy_run(target_paragraph, run)
+
+    return target_paragraph
+
+
     
     #if source_paragraph.style.name!='Normal':
     #        print(target_paragraph.style.name)
@@ -78,6 +79,7 @@ def copy_paragraph_before(target_doc, paragraph_to_insert_before,source_paragrap
         #target_paragraph.style.font = source_paragraph.style.font.name
     except KeyError:
         print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
+        target_paragraph.style = 'Normal'
     for run in source_paragraph.runs:
         copy_run(target_paragraph,run)
     return target_paragraph

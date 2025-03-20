@@ -4,6 +4,7 @@ from docx.shared import RGBColor
 import paschalia
 import get_stichera
 import ps_docx_utils as pdu
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX
 
 
 RGB_RED = RGBColor(0xff, 0x44, 0x00)
@@ -14,6 +15,13 @@ month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+
+if mode == 'u':
+    mode_suffix='Юл'
+    mode_suffix2='НЮ'
+elif mode == 'g':
+    mode_suffix='Гр'
+    mode_suffix2='ГР'
 
 day_short_dic={"ПН":1,
         "ВТ":2,
@@ -39,47 +47,22 @@ month_dic= {'Січень':1,
 month_dic_reversed = {v:k for k,v in month_dic.items()}
 #month_dic_string='('+'|'.join([x.lower() for x in month_dic.keys()])+')'
 
+def get_matrix(csv_filename):
+    matrix={}
+    with open(csv_filename, newline='', encoding='utf-8') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in spamreader:
+            if row[0]==str(month_no):
+                matrix[int(row[1].split('.')[2])]=row[2:]
+    return matrix
+
 
 lpd_templates = glob.glob('docx_resources\\ЛПД\\*\\*.docx')
 #lpd_templates_filenames = [x.split('\\')[-1] for x in lpd_templates]
+generic_stichera_matrix = get_stichera.get_generic_stichera_matrix('docx_resources/Вечірня-Утреня/Стихири ГВ загальної служби.docx')
+stichera_gv_matrix = get_matrix(f"matrices/vu_стихириМінеї{mode_suffix2}.csv")
 
-'''
-def delete_paragraph(paragraph):
-    p = paragraph._element
-    p.getparent().remove(p)
-    p._p = p._element = None
 
-def delete_run(run):
-    p = run._element
-    p.getparent().remove(p)
-    p._p = p._element = None
-
-def copy_run(target_paragraph,run):
-    new_run = target_paragraph.add_run(run.text)
-    #KeyError: "no style with name 'Default Paragraph Font'"
-    #new_run.style = run.style.name
-    new_run.bold = run.bold
-    new_run.italic = run.italic
-    new_run.underline = run.underline
-    #new_run.font.size = run.font.size
-    #new_run.font.name = run.font.name
-    new_run.font.name='Times New Roman'
-    new_run.font.size=152400
-    new_run.font.color.rgb = run.font.color.rgb
-    new_run.font.highlight_color = run.font.highlight_color
-
-def copy_paragraph_before(paragraph_to_insert_before,source_paragraph):
-    target_paragraph = paragraph_to_insert_before.insert_paragraph_before()
-    try:
-        target_paragraph.style = source_paragraph.style
-        #target_paragraph.style.font = source_paragraph.style.font.name
-    except KeyError:
-        print(f"Warning. Text {source_paragraph.text[:20]} has style{source_paragraph.style}")
-    for run in source_paragraph.runs:
-        copy_run(target_paragraph,run)
-    return target_paragraph
-
-'''
 
 def stretch_texts(qty_of_verses_requested, texts):
     result = []
@@ -180,7 +163,7 @@ elif mode == 'g':
     mode_suffix='Гр'
 
 if __name__ == "__main__":
-    paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
+
     dismissal_matrix = get_dismissal_matrix(f'matrices/Відпусти{mode_suffix}.csv',month_no)
     
     stub_dic={}
@@ -189,19 +172,27 @@ if __name__ == "__main__":
     os.makedirs(folder, exist_ok=True)
 
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
+        #paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no, d), mode)
+
         #stub_dic[d]=None
-        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
+
+        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),'u')
         #expected_template_path = f"ЛПД\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ЛПД.docx"
         expected_template_path = f"docx_resources\\ЛПД\\{day_details[1]} тиждень\\{day_details[1]}т_{day_details[3]}-ЛПД.docx"
-        if expected_template_path in lpd_templates:
+        if expected_template_path in lpd_templates and day_details[0]=='lent':
             filename=folder+f'\\{d:02}.{month_no:02}-{day_details[1]}т_{day_details[3]}-ЛПД.docx'
             shutil.copy2(expected_template_path, filename)
             stub_dic[d]=filename
+            print('Building LPD for:', datetime(year_no, month_no, d))
         #re_result = re.search("(\d)-(\d)-ЛПД.docx")
     print(f"Created {len(stub_dic)} stubs for month {month_no} mode {mode}!")
 
     stichera_matrix = get_stichera.get_stichera_matrix(glob.glob(f'docx_resources\\Стихири - Мінея\\Мінея_{month_no:02}*.docx')[0])
     for k,v in stub_dic.items():
+
+        if stichera_gv_matrix[k][1]=='0':
+            continue
+
         stichera_no=None
         look_for_slava=False
         doc = docx.Document(v)
@@ -212,9 +203,25 @@ if __name__ == "__main__":
         try:
             texts = stretch_texts(stichera_qty,stichera_matrix[k]['gv_stichera'])
         except KeyError:
-            print(f"Пропускаємо {k}, немає стихир ГВ.")
-            print(IndexError) 
-            continue 
+            if not 'gv_stichera' in stichera_matrix[k] and stichera_gv_matrix[k][3]:
+                #???
+                stichera_matrix[k]['gv_stichera'] = stretch_texts(stichera_qty,generic_stichera_matrix[stichera_gv_matrix[k][3]]['gv_stichera'])
+                stichera_matrix[k]['gv_doxa'] = generic_stichera_matrix[stichera_gv_matrix[k][3]]['gv_doxa']
+                stichera_matrix[k]['gv_theotokion'] = generic_stichera_matrix[stichera_gv_matrix[k][3]]['gv_theotokion']
+
+                for p in (stichera_matrix[k]['gv_stichera'] + stichera_matrix[k]['gv_doxa']):
+                    for r in p.runs:
+                        if re.search('(ім’я)', r.text):
+                            r.text = r.text.replace('(ім’я)', stichera_gv_matrix[k][4])
+                            r.font.highlight_color = WD_COLOR_INDEX.YELLOW
+                            r.font.italic = False
+                            r.font.color.rgb = RGBColor(0x00, 0x00, 0x00)
+
+                print(f"Стихири: використано стихири заг. служби для {k}")
+
+            #print(f"Пропускаємо {k}, немає стихир ГВ.")
+            #print(IndexError)
+            #continue
         '''
         try:
             texts = stretch_texts(stichera_qty,stichera_matrix[k]['gv_stichera'])

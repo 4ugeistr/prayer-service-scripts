@@ -121,6 +121,8 @@ for p in paschalia_dates_table:
     p["pentecost"] = p["pascha"] + timedelta(days=7 * 7)
 
 
+
+
 # 0 - previous, 1 - current
 def get_prev_next_pascha(cur_date, mode='u'):
     #prev = max(filter(lambda p: (p['pascha']-timedelta(days=7*9) <= cur_date) and p['mode']==mode , paschalia_dates_table), key = lambda x: x['pascha'])
