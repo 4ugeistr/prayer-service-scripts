@@ -1357,11 +1357,13 @@ def update_stubs(draft_dic):
     #drafts = glob.glob(f'{folder_name}\\*.docx')
 
     for d,desc in draft_dic.items():
-
+        day_details = paschalia.get_day_details(datetime(year_no, month_no))
         #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
-        insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d))
-        
-        insert_dismissal(desc[1],datetime(year_no, month_no, d))
+        insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d),mode)
+
+
+        if not(day_details[0]=='lent' and day_details[1]==7):
+            insert_dismissal(desc[1],datetime(year_no, month_no, d))
         
         if desc[0] in ('неділя','октоїх','пасха','50-ця'):
             #вставити стихири ГВ
@@ -1466,6 +1468,7 @@ choice_list=[
     "1. Згенерувати чернетки",
     "2. Оновити Відпусти",
     "3. Оновити гласи у заголовках",
+    "4. Оновити троїчні тропарі та Світильні"
 ]
 
 if __name__ == "__main__":
@@ -1501,6 +1504,17 @@ if __name__ == "__main__":
             insert_boh_hospod_echos(desc[1], datetime(year_no, month_no, d))
             insert_gv_echos(desc[1])
         print("Завершено оновлення гласів у заголовках")
+
+    elif action[0] == "4":
+        draft_dic = get_files_in_dir()
+        # print(len(draft_dic))
+        # print(draft_dic[1])
+        for d, desc in draft_dic.items():
+            day_details = paschalia.get_day_details(datetime(year_no, month_no, d),mode)
+            if day_details[0] == 'lent' and datetime(year_no, month_no, d).weekday() + 1 in (1, 2, 3, 4, 5) and day_details[1] in (1, 2, 3, 4, 5, 6):
+                insert_trinity_troparia(desc[1], datetime(year_no, month_no, d))
+                insert_lent_exapostolaria(desc[1], datetime(year_no, month_no, d))
+        print("Завершено оновлення Троїчних тропарів та Світильних")
     else:
         print("Нічого не вибрано.")
     print("All done!")

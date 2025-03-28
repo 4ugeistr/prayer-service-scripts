@@ -151,8 +151,36 @@ def normalize(arr, n=2):
 for k,v in lines_dict.items():
     #print(k,v['readings'])
     v['array']=[]
+
+    list_of_headings_to_ignore = [
+
+        'Вечірня з Літургією св.Василія Великого.',
+        'На вмиванні:',
+        'По вмиванні:',
+        'Царські часи.',
+        'На 1 - му часі:',
+        'На 3 - му часі:',
+        'На 6 - му часі:',
+        'Літургія Передосвячених Дарів:',
+        'Літургія св. Івана Золотоустого.',
+        'Літургія св.Івана Золотоустого.',
+        'Час Шостий:',
+        'Вечірня:',
+        'На 9 - му часі:',
+        'Єрусалимська Утреня:',
+    ]
+
     res = re.findall('<i>(.*?)</i>',v['readings'])
-    v['array']+=normalize(res)
+    res2 = res.copy()
+
+    for r in res:
+        print(r)
+        if r in list_of_headings_to_ignore:
+            print(f"Removing {r} from {res2}")
+            res2.remove(r)
+            print(f"Removed: {res2}")
+
+    v['array']+=normalize(res2)
         
     res = re.findall(r'Ап\. (?:–|-) (.*?)(?:<br>|<i>|\n|\||<sup>)',v['readings'])
     v['array']+=normalize(res)
