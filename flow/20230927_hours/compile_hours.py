@@ -20,8 +20,8 @@ mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-month_no = 3
-print("WARNING. Month_no OVERRIDE", month_no)
+#month_no = 3
+#print("WARNING. Month_no OVERRIDE", month_no)
 
 month_dic= {'Січень':1,
               'Лютий':2,
@@ -262,8 +262,8 @@ def insert_dismissal(path,date):
             shoutout_found = False
 
     for p in doc.paragraphs:
-        if re.search('Священ{1,2}ик: Христос',p.text):
-            re_result=re.search('^(Священ{1,2}ик:)( .+?)(якого є храм)(.*?)$',p.text)
+        if re.search(r'Священ{1,2}ик: Христос',p.text):
+            re_result=re.search(r'^(Священ{1,2}ик:)( .+?)(якого є храм)(.*?)$',p.text)
             p_bak=p.text
             p.clear()
 
@@ -274,7 +274,7 @@ def insert_dismissal(path,date):
                     add_text(p,re_result.group(3),color=RED)
                     add_text(p,re_result.group(4))
                 else:
-                    re_result=re.search(f'^(Священ{1,2}ик:)(.*?)$',p_bak)
+                    re_result=re.search(r'^(Священ{1,2}ик:)(.*?)$',p_bak)
                     add_text(p,re_result.group(1),color=RED)
                     add_text(p,re_result.group(2))
             except:
