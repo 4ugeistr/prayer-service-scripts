@@ -340,7 +340,7 @@ if __name__ == "__main__":
             elif (day_details[1]==7 and day_details[3]==6):
                 continue
             else:
-                #insert vv
+                #TODO: insert vv
                 pass
 
         heading_text =' '.join([month_dic_reversed[month_no],str(d)+',',day_dic_reversed[datetime(year_no, month_no, d).weekday()+1]])
