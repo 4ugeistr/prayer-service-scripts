@@ -1357,9 +1357,9 @@ def update_stubs(draft_dic):
     #drafts = glob.glob(f'{folder_name}\\*.docx')
 
     for d,desc in draft_dic.items():
-        day_details = paschalia.get_day_details(datetime(year_no, month_no))
+        day_details = paschalia.get_day_details(datetime(year_no, month_no,d),mode)
         #print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
-        insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d),mode)
+        insert_header_from_dismissal_matrix(desc[1],datetime(year_no, month_no, d))
 
 
         if not(day_details[0]=='lent' and day_details[1]==7):

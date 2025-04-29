@@ -218,6 +218,7 @@ def get_triodion_template_texts(path):
             #cur_date = int(re_result.group(2))
             template_dic[(triodion_week,triodion_day)]=[]
             template_found = True
+            starting_tag_found = False
             continue
         
         re_result=re.search(f'<ustav',p.text)
@@ -227,12 +228,14 @@ def get_triodion_template_texts(path):
         if template_found and starting_tag_found:
             template_dic[(triodion_week,triodion_day)].append(p)
 
+        '''
         re_result=re.search(f'</vidpust',p.text)
         if re_result:
             #template_dic[cur_date]=template_dic[cur_date][1:]
             template_found=False
             #cur_date=None
             starting_tag_found=False
+        '''
 
     #print(template_dic)
     return template_dic
@@ -381,3 +384,5 @@ if __name__ == "__main__":
         
     mode_new = 'ГР' if mode=='g' else "НЮ"
     new_doc.save(f'drafts\\liturgy\\{month_no:02}-Літургія-{mode_new}.docx')
+
+print("Done!")
