@@ -50,6 +50,7 @@ i => i
 b => b
 h2 => p
 """
+#style_map = ''
 
 month_list = {'Січень':1,
               'Лютий':2,
@@ -79,6 +80,8 @@ with open(filedoc, "rb") as docx_file:
 
 
 with open(filehtm, "w",encoding='utf-8') as html_file:
+    html_file.write(result)
+with open(filehtm+'_init.html', "w",encoding='utf-8') as html_file:
     html_file.write(result)
 
 # Розбиваємо файл на стрічки, попутно міняємо кутові дужки та видаляємо всі <br /> 
