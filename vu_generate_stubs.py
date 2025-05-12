@@ -1327,7 +1327,7 @@ def update_ektenia_before_kanon(path,date):
     saints_str = get_saints.get_saints_full(date)
 
     for p in doc.paragraphs:
-        if "Спаси́, Бо́же, наро́д Твій" in p.text or "Спаси, Боже, народ Твій" in p.text:
+        if "Спаси́, Бо́же, наро́д Твій" in p.text or "Спаси, Боже, народ Твій" in p.text or "Спаси́, Бо́же, наро́д Твій" in p.text:
             re_result = re.search(r'^(.*?)(\(ім’я, що його́ є храм цей\))(.*?)(і всіх .вяти́х:)(.*?)$',p.text)
 
             if re_result:
