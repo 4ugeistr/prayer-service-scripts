@@ -153,8 +153,8 @@ def checkLiturgyIntegrity(docx_filename):
 
 def initDateCalendar():
    month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
-   month_no=5
-   print("WARNING. Month_no OVERRIDE", month_no)
+   #month_no=5
+   #print("WARNING. Month_no OVERRIDE", month_no)
    cur_month=month_dic_reversed[month_no]
 
    mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
