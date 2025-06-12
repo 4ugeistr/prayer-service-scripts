@@ -1366,11 +1366,8 @@ def update_stubs(draft_dic):
             insert_dismissal(desc[1],datetime(year_no, month_no, d))
         
         if desc[0] in ('неділя','октоїх','пасха','50-ця'):
-            #вставити стихири ГВ
             #вставити тропарі вечірні, утрені
             if ordo_matrix[d][1]!='y':
-                #if d==2:
-                #    print(f'inserting troparia for {d}')
                 insert_troparia(desc[1],datetime(year_no, month_no, d))
             #вставити глас для Господи Воззвах
             insert_gv_echos(desc[1])
@@ -1388,6 +1385,7 @@ def update_stubs(draft_dic):
             #вставити прокімен
             insert_prokimenon(desc[1], datetime(year_no, month_no, d).weekday()+1)
         else:
+            # вставити стихири ГВ
             insert_menaion_stichera(desc[1],datetime(year_no, month_no, d),desc[0])    
         if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1==6:
             pass
