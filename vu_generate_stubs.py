@@ -706,11 +706,15 @@ def get_troparia_block(date,service):
         if re_result:
             for r in p.runs:
                 delete_run(r)
+            #якщо є Слава і Нині - переносимо
             if re_result.group(1):
                 r_new = p.add_run(re_result.group(1))
                 format_run(r_new,'b')
-            r_new = p.add_run(re_result.group(3))
-            format_run(r_new,'ri')
+            #якщо це не Богородичний - переносимо глас.
+            if not (re_result.group(2).startswith('Б')):
+                r_new = p.add_run(re_result.group(3))
+                format_run(r_new,'ri')
+            #Переносимо все решта
             r_new = p.add_run(re_result.group(4))
             format_run(r_new,'')
 
@@ -721,6 +725,7 @@ def insert_troparia(path,date):
     print(date.day)
     doc = docx.Document(path)
     troparia_block = {"orthros": get_troparia_block(date,'orthros'),
+                      #"orthros_dism": get_troparia_block(date, 'orthros')
                       "vespers": get_troparia_block(date,'vespers')}
     #troparia_block=get_troparia_block(date,'orthros')
     troparion_found = False
@@ -744,15 +749,19 @@ def insert_troparia(path,date):
             continue
         
         re_result = re.search("(Великий відпуст|.ктенія усильного благання|Мала .ктенія)",p.text)
-        if re_result and troparion_found:
+
+        if troparion_found and re_result:
             troparion_end_found=True
             troparia_block_to_copy = copy.deepcopy(troparia_block[service])
+
             #Додаємо (2 р.) до першого тропаря на Бог Господь.
             if service == 'orthros' and troparion_label_count ==2:
-                #r = troparia_block_to_copy[0].add_run("(2 р.)")
                 add_text(troparia_block_to_copy[0]," (2 р.)","r")
-                #print(f"ADDED {troparia_block_to_copy[0].text}")
-            #copy_paragraph_list_before(p,troparia_block[service])
+
+            #міняємо богородичний на богородичний вечірні/
+            if service == 'orthros' and re_result.group(1).startswith('М'):
+                troparia_block_to_copy[-2]=copy.deepcopy(troparia_block['vespers'][-2])
+
             copy_paragraph_list_before(p,troparia_block_to_copy)
             troparion_found=False
         elif  troparion_found and not troparion_end_found and ordo_matrix[date.day][1]!='y':
