@@ -154,7 +154,7 @@ def get_template_files(path):
 def get_hours_matrix():
     hours_matrix={}
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-        #print(d)
+        print(d)
         if ordo_matrix[d][1] =="":
             if len(templates_menaion[d])<=2:
                 hours_matrix[d] = ["","","",
@@ -361,7 +361,7 @@ if __name__== "__main__":
 
 
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
-        #print(d)
+        print(d)
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
         doc = docx.Document(dest_filename)
         hour=None
