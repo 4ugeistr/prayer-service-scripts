@@ -1318,6 +1318,7 @@ def create_stubs():
         try:
             #print("Trying to copy:",src_filename,dest_filename)
             shutil.copy2(src_filename,dest_filename)
+            reconstruct_document(dest_filename)
         except NameError as e:
             print(e)
             print("Помилка для дня ", d)
@@ -1330,6 +1331,11 @@ def create_stubs():
         draft_dic[d].append(dest_filename)
     print("Завершено створення чернеток УВ!")
     return draft_dic
+
+
+def
+def reconstruct_document(filename):
+
 
 def update_ektenia_before_kanon(path,date):
     doc = docx.Document(path)
