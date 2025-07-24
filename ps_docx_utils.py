@@ -19,6 +19,7 @@ def copy_run(target_paragraph,run):
     new_run.bold = run.bold
     new_run.italic = run.italic
     new_run.underline = run.underline
+    new_run.font.superscript = run.font.superscript
     #new_run.font.size = run.font.size
     #new_run.font.name = run.font.name
     #new_run.font.name='Times New Roman'
@@ -72,7 +73,8 @@ def copy_paragraph_before(target_doc, paragraph_to_insert_before,source_paragrap
     target_paragraph = paragraph_to_insert_before.insert_paragraph_before()
     try:
         #target_paragraph.style = source_paragraph.style
-        target_paragraph.style = target_doc.styles[source_paragraph.style.name]
+        if target_doc:
+            target_paragraph.style = target_doc.styles[source_paragraph.style.name]
         target_paragraph.alignment = source_paragraph.alignment
         #target_paragraph.paragraph_format.space_after = source_paragraph.paragraph_format.space_after
         target_paragraph.paragraph_format.space_after = Pt(6)

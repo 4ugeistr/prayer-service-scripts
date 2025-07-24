@@ -1,6 +1,6 @@
 import re,glob,calendar,docx,os,easygui, shutil, csv,copy
 
-import ps_docx_utils
+import ps_docx_utils as pdu
 from easygui_timerbox import timerbox
 from datetime import datetime
 from docx.shared import RGBColor, Pt
@@ -15,8 +15,8 @@ RGB_RED = RGBColor(0xff, 0x00, 0x00)
 
 
 #filenames= glob.glob('*/*/*.txt')
-mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
-#paschalia.paschalia = paschalia.get_prev_next_pascha(datetime(2024,1,1),mode)
+#mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+mode='u'
 
 
 
@@ -92,7 +92,7 @@ def copy_paragraph_before(p_to_insert_before,source_paragraph):
         new_run.font.color.rgb = run.font.color.rgb
         new_run.font.highlight_color = run.font.highlight_color
 '''
-
+'''
 def delete_paragraph(paragraph):
     p = paragraph._element
     p.getparent().remove(p)
@@ -106,21 +106,11 @@ def delete_run(run):
 def copy_run(target_paragraph,run):
     new_run = target_paragraph.add_run(run.text)
     #KeyError: "no style with name 'Default Paragraph Font'"
-    '''
-    try:
-        new_run.style = run.style.name
-    except KeyError as e:
-        print("Увага, проблеми при копіюванні стилів: ", run.text)
-        #print("new_run.style.name", new_run.style.name)
-        print("run.style.name", run.style.name)
-        print(e)
-        new_run.style = 'Normal'
-        pass
-    '''
         
     new_run.bold = run.bold
     new_run.italic = run.italic
     new_run.underline = run.underline
+    new_run.font.superscript = run.font.superscript
     #new_run.font.size = run.font.size
     #new_run.font.name = run.font.name
     new_run.font.name='Times New Roman'
@@ -171,6 +161,7 @@ def copy_paragraph(target_doc,source_paragraph):
 def copy_paragraph_list(target_doc,paragraph_list):
     for p in paragraph_list:
         copy_paragraph(target_doc,p)
+'''
 
 def get_octoechos_template_files(pattern):
     template_dic = {}
@@ -382,11 +373,11 @@ def insert_trinity_troparia(path, date):
             continue
 
         if not p.text.startswith("Після першого") and section_start_found:
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
             continue
 
         if p.text.startswith("Після першого"):
-            ps_docx_utils.copy_paragraph_list_before(doc,p,paragraph_list)
+            pdu.copy_paragraph_list_before(doc,p,paragraph_list)
             break
 
     doc.save(path)
@@ -424,11 +415,11 @@ def insert_lent_exapostolaria(path, date):
             continue
 
         if not p.text.startswith("Хвалитні") and section_start_found:
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
             continue
 
         if p.text.startswith("Хвалитні"):
-            ps_docx_utils.copy_paragraph_list_before(doc,p,paragraph_list)
+            pdu.copy_paragraph_list_before(doc,p,paragraph_list)
             break
 
     doc.save(path)
@@ -518,12 +509,12 @@ def insert_prokimenon(path,day):
         if re_result:
             #print(day)
             for p1 in vespers_prokimenon[day]:
-                copy_paragraph_before(p,p1)
+                pdu.copy_paragraph_before(doc,p,p1)
             p.insert_paragraph_before()
             break
         elif vespers_prokimenon_found:
             #print(f"Deleting {p.text}")
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
     doc.save(path)
 
 def insert_boh_hospod_echos(path,date):
@@ -538,7 +529,7 @@ def insert_boh_hospod_echos(path,date):
                 echos = paschalia.get_echos(date,mode)
             else:
                 #echos = int(re.search("(\d)",templates_menaion[date.day][0]['troparion'][0]).group(1))
-                echos = int(re.search(r"(\d)",templates_menaion[date.day][0]['troparion'].text).group(1))
+                echos = int(re.search(r"(\d)",troparia_menaion[date.day][0]['troparion'].text).group(1))
 
             for r in p.runs:
                 if '?' in r.text:
@@ -581,39 +572,38 @@ def insert_first_sessional_hymn(path,date):
 
         if len(p.text)>0 and section_start_found:
             #print("deleting:", p.text[:20])
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
 
         if len(p.text)==0 and section_start_found:
             #print("inserting",paragraph_list[0].text[:20])
-            ps_docx_utils.copy_paragraph_list_before(doc,p,paragraph_list)
+            pdu.copy_paragraph_list_before(doc,p,paragraph_list)
             break
     doc.save(path)
 
 def insert_gv_echos(path):
-    #print(date.day)
+    #print("Inserting gv for ",path)
     doc = docx.Document(path)
-    found_sticheron = False
+
     first_gv_echos = None
     for p in doc.paragraphs:
-        re_result = re.search("Стихири",p.text)
-        if re_result:
-            found_sticheron = True
-            continue
 
         re_result = re.search(r'\(г. (\d)',p.text)
         if re_result:
             first_gv_echos=re_result.group(1)
+            #print("Found gv echos:", first_gv_echos)
             break
 
     for p in doc.paragraphs:
         if first_gv_echos and 'Два перші стихи 140-го псалма' in p.text:
+            #print("Changing:",p.runs[0].text)
             p.runs[0].text = re.sub(r'Два перші стихи 140-го псалма, на глас \d.',f'Два перші стихи 140-го псалма, на глас {first_gv_echos}.',p.runs[0].text )
+            #print("Changed:", p.runs[0].text)
             break
 
     doc.save(path)
 
-def insert_prefix_to_paragraph(p,text="Слава: ",formatting='b'):
-    p_new = copy_paragraph_before(p,p)
+def insert_prefix_to_paragraph(doc,p,text="Слава: ",formatting='b'):
+    p_new = pdu.copy_paragraph_before(doc,p,p)
     #print("iptp:    ",p_new.text)
     new_run = p_new.add_run(text)
     if 'b' in formatting:
@@ -623,11 +613,11 @@ def insert_prefix_to_paragraph(p,text="Слава: ",formatting='b'):
     
     bkp=p_new.runs[:-1]
     for r in p_new.runs:
-        delete_run(r)
+        pdu.delete_run(r)
         
-    copy_run(p_new,new_run)
+    pdu.copy_run(p_new,new_run)
     for r in bkp:
-        copy_run(p_new,r)
+        pdu.copy_run(p_new,r)
     return p_new
 
 def get_troparia_theotokion(echos, date, service):
@@ -667,19 +657,19 @@ def get_troparia_block(date,service):
             troparia = templates_resurrection[paschalia.get_echos(date,mode)][0]
         if ordo_matrix[date.day][2:][i] == 'triodion':
             if i==3:
-                troparia=insert_prefix_to_paragraph(templates_triodion[date.day][0]["troparion"],text="І нині: ")
+                troparia=insert_prefix_to_paragraph(None,troparia_triodion[date.day][0]["troparion"],text="І нині: ")
             else:
-                troparia = templates_triodion[date.day][0]["troparion"]
+                troparia = troparia_triodion[date.day][0]["troparion"]
         if ordo_matrix[date.day][2:][i] == 'saint':
             #print(date.day, i)
             try:
                 if i==2:
                     #print("adding Slava")
                     #print(templates_menaion[date.day][saint_counter]["troparion"].text)
-                    troparia=insert_prefix_to_paragraph(templates_menaion[date.day][saint_counter]["troparion"],text="Слава: ")
+                    troparia=insert_prefix_to_paragraph(None,troparia_menaion[date.day][saint_counter]["troparion"],text="Слава: ")
                     #print(troparia.text)
                 else:
-                    troparia=templates_menaion[date.day][saint_counter]["troparion"]
+                    troparia=troparia_menaion[date.day][saint_counter]["troparion"]
             except IndexError as e:
                 print(date.day, e)
                 print("Check if troparion is in the file")
@@ -687,14 +677,24 @@ def get_troparia_block(date,service):
                 raise e
 
             saint_counter+=1
-            
+
+        if ordo_matrix[date.day][2:][2]:
+            prefix = "І нині: "
+        else:
+            prefix = "Слава, і нині: "
+
+
         if ordo_matrix[date.day][2:][i] == 'theotokos':
             echos = int(re.search(r"(\d)",troparia_block[-1].text).group(1))
-        
-            if ordo_matrix[date.day][2:][2]:
-                troparia=insert_prefix_to_paragraph(get_troparia_theotokion(echos,date,service),text="І нині: ")
+            troparia = insert_prefix_to_paragraph(None, get_troparia_theotokion(echos, date, service),text=prefix)
+
+        if ordo_matrix[date.day][2:][i] == 'feast':
+            if troparia_feast and date.day in troparia_feast:
+                troparia = insert_prefix_to_paragraph(None, troparia_feast[date.day][0]['troparion'],text=prefix)
             else:
-                troparia=insert_prefix_to_paragraph(get_troparia_theotokion(echos,date,service),text="Слава, і нині: ")    
+                print(f"Увага: нема святкового тропаря для {date.day}")
+                continue
+
         troparia_block.append(troparia)
     
     #???
@@ -705,7 +705,7 @@ def get_troparia_block(date,service):
         re_result = re.search(r"^(.*?)(Богородичний |Тропар |Кондак )(\(г. \d\): )(.*)",p.text)
         if re_result:
             for r in p.runs:
-                delete_run(r)
+                pdu.delete_run(r)
             #якщо є Слава і Нині - переносимо
             if re_result.group(1):
                 r_new = p.add_run(re_result.group(1))
@@ -762,11 +762,11 @@ def insert_troparia(path,date):
             if service == 'orthros' and re_result.group(1).startswith('М'):
                 troparia_block_to_copy[-2]=copy.deepcopy(troparia_block['vespers'][-2])
 
-            copy_paragraph_list_before(p,troparia_block_to_copy)
+            pdu.copy_paragraph_list_before(doc,p,troparia_block_to_copy)
             troparion_found=False
         elif  troparion_found and not troparion_end_found and ordo_matrix[date.day][1]!='y':
             #pass
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
     if troparion_label_count!=3 and date.weekday()+1 !=7:
         print(f"WARNING! Day {date.day}: troparion_label_count={troparion_label_count}")
     doc.save(path)
@@ -809,7 +809,7 @@ def insert_header(path,date):
     for p in doc.paragraphs:
         re_result = re.search("ВЕЧІРНЯ",p.text)
         if not re_result:
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
         else:
             #Шапка в форматі "Травень 10 Середа"
             day_name = day_dic_reversed[date.weekday()+1]
@@ -861,7 +861,7 @@ def insert_header_from_dismissal_matrix(path,date):
     for p in doc.paragraphs:
         re_result = re.search("ВЕЧІРНЯ",p.text)
         if not re_result:
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
         else:
             day_name = day_dic_reversed[date.weekday()+1]
             month_name = month_dic_reversed[month_no]
@@ -914,7 +914,7 @@ def insert_dismissal(path,date):
             p_new.paragraph_format.space_after = Pt(6)
             #print(date.day,p_new.text)
             format_line(p_new, '')
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
             shoutout_found = False
 
     for p in doc.paragraphs:
@@ -1042,31 +1042,31 @@ def insert_menaion_stichera(path,date,template_type):
             continue
 
         if stichera_no or stichera_no==0:
-            copy_paragraph_before(p,texts[stichera_no])
-            delete_paragraph(p)
+            pdu.copy_paragraph_before(doc,p,texts[stichera_no])
+            pdu.delete_paragraph(p)
             #print(f"Inserted stichera {stichera_no} for {v}")
             stichera_no=None
             look_for_slava=True
             continue
         
         if p.text == "" and delete_empty:
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
             continue
 
         re_result = re.search("^(Слава|І нині)",p.text)
         if re_result and look_for_slava:
             if re.search('догмат',p.text):
                 dogmatikos = p
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
 
         re_result = re.search("^(Вхід|Світло тихе)",p.text)
         if re_result:
             look_for_slava=False
             if "gv_doxa" in stichera_matrix[k]:
                 #print(f"Inserted doxa for {k}")
-                copy_paragraph_before(p,stichera_matrix[k]["gv_doxa"][0])
+                pdu.copy_paragraph_before(doc,p,stichera_matrix[k]["gv_doxa"][0])
             #if datetime(year_no,month_no,k).weekday()+1 in (1,2,3,4,5):
-            #    copy_paragraph_before(p,doc.add_paragraph("Догмат"))
+            #    copy_paragraph_before(doc,p,doc.add_paragraph("Догмат"))
 
 
 
@@ -1075,17 +1075,17 @@ def insert_menaion_stichera(path,date,template_type):
             if dogmatikos:
                 if dogmatikos.runs[0].text.find("Слава")!=-1 and 'gv_doxa' in stichera_matrix[k]:
                     dogmatikos.runs[0].text = dogmatikos.runs[0].text.replace("Слава і","І").replace("Слава, і","І").replace("Слава: І","І")
-                copy_paragraph_before(p,dogmatikos)     
+                pdu.copy_paragraph_before(doc,p,dogmatikos)
             elif datetime(year_no,month_no,k).weekday()+1 in (3,5):
                 if  "gv_theotokion" in stichera_matrix[k] and len(stichera_matrix[k]["gv_theotokion"])==2:
                     #print(f"Inserted theo for {k}")
-                    copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][1])
+                    pdu.copy_paragraph_before(doc,p,stichera_matrix[k]["gv_theotokion"][1])
                 else:
                     p.insert_paragraph_before("ХРЕСТОБОГОРОДИЧНИЙ")
             else:
                 #print(f"Inserted theo for {k}")
                 try:
-                    copy_paragraph_before(p,stichera_matrix[k]["gv_theotokion"][0])
+                    pdu.copy_paragraph_before(doc,p,stichera_matrix[k]["gv_theotokion"][0])
                 except KeyError:
                     #print("Warning, failed to find stichera_matrix[k]['gv_theotokion'][0]")
                     print(f"Стихири: для {k} не знайдено богородичний ГВ в файлі з стихирами")
@@ -1128,19 +1128,19 @@ def insert_kanon(path,date):
 
             
 
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][1])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][3])
-            copy_paragraph_list_before(p,kanon_litany_list[1])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][4])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][5])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][6])
-            copy_paragraph_list_before(p,kanon_litany_list[2])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][7])
-            copy_paragraph_list_before(p,templates_kanon_dic[echos][week_day][kanon_no][8])
+            pdu.copy_paragraph_list_before(doc,p,templates_kanon_dic[echos][week_day][kanon_no][1])
+            pdu.copy_paragraph_list_before(doc,p,templates_kanon_dic[echos][week_day][kanon_no][3])
+            pdu.copy_paragraph_list_before(doc,p,kanon_litany_list[1])
+            pdu.copy_paragraph_list_before(doc,p,templates_kanon_dic[echos][week_day][kanon_no][4])
+            pdu.copy_paragraph_list_before(doc,p,templates_kanon_dic[echos][week_day][kanon_no][5])
+            pdu.copy_paragraph_list_before(doc,p,templates_kanon_dic[echos][week_day][kanon_no][6])
+            pdu.copy_paragraph_list_before(doc,p,kanon_litany_list[2])
+            pdu.copy_paragraph_list_before(doc,p,templates_kanon_dic[echos][week_day][kanon_no][7])
+            pdu.copy_paragraph_list_before(doc,p,templates_kanon_dic[echos][week_day][kanon_no][8])
             break
             
         if kanon_found and not song8_end_found:
-            delete_paragraph(p)
+            pdu.delete_paragraph(p)
     
     for p in doc.paragraphs:
         if re.search(r"(Пісня \d|Мала .ктенія)",p.text):
@@ -1171,14 +1171,14 @@ def insert_resurrection_gospel_parts(path,date):
         
         re_result = re.search("ТЕКСТ ЄВАНГЕЛІЯ",p.text)
         if re_result:
-            copy_paragraph_list_before(p,resurrection_gospel_matrix[gospel_no]['gospel'])
-            delete_paragraph(p)
+            pdu.copy_paragraph_list_before(doc,p,resurrection_gospel_matrix[gospel_no]['gospel'])
+            pdu.delete_paragraph(p)
             continue
 
         re_result = re.search("ВСТАВИТИ СВІТИЛЬНИЙ",p.text)
         if re_result:
-            copy_paragraph_list_before(p,resurrection_gospel_matrix[gospel_no]['exapostolarion'])
-            delete_paragraph(p)
+            pdu.copy_paragraph_list_before(doc,p,resurrection_gospel_matrix[gospel_no]['exapostolarion'])
+            pdu.delete_paragraph(p)
             continue
 
         re_result = re.search("Стихира євангельська",p.text)
@@ -1188,8 +1188,8 @@ def insert_resurrection_gospel_parts(path,date):
         
         re_result = re.search(r"Слава \(г. \): ",p.text)
         if gospel_stichera_label_found and re_result:
-            copy_paragraph_list_before(p,resurrection_gospel_matrix[gospel_no]['stichera'])
-            delete_paragraph(p)
+            pdu.copy_paragraph_list_before(doc,p,resurrection_gospel_matrix[gospel_no]['stichera'])
+            pdu.delete_paragraph(p)
             gospel_stichera_label_found = None
             continue
 
@@ -1377,9 +1377,9 @@ def update_stubs(draft_dic):
         if desc[0] in ('неділя','октоїх','пасха','50-ця'):
             #вставити тропарі вечірні, утрені
             if ordo_matrix[d][1]!='y':
+                print(f"Inserting troparia for {datetime(year_no, month_no, d)}")
                 insert_troparia(desc[1],datetime(year_no, month_no, d))
-            #вставити глас для Господи Воззвах
-            insert_gv_echos(desc[1])
+
             #вставити глас для Бог Господь
             insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
             
@@ -1405,6 +1405,9 @@ def update_stubs(draft_dic):
             insert_aliluia_echos(desc[1], datetime(year_no, month_no, d))
             insert_first_sessional_hymn(desc[1], datetime(year_no, month_no, d))
 
+        # вставити глас для Господи Воззвах
+        insert_gv_echos(desc[1])
+        # додати святого дня в Єктенію "Спаси Господи" перед каноном (свята, Піст)
         update_ektenia_before_kanon(desc[1], datetime(year_no, month_no, d))
 
 
@@ -1443,16 +1446,25 @@ filename_triodion_matrix = get_matrix_full("matrices/Місяцеслов-БД-�
 templates_octoechos_dic = get_octoechos_template_files(r'docx_resources\Вечірня-Утреня\01-Октоїх\*\*.docx')
 templates_menaion_dic = get_menaion_template_files()
 templates_resurrection = get_resurrection_troparia_texts('docx_resources/воскресні_тропарі.docx')
-# templates_menaion = get_menaion_troparia_texts(f'тропарі-{month_no:02}.docx')
 
-templates_menaion = get_menaion_troparia_texts(glob.glob(
-    f'docx_resources/Тропарі - Мінея/{month_w_offset[month_no - 1]:02}-{month_dic_reversed[month_no].upper()}.docx')[
-                                                   0])
+
+
+troparia_menaion_filename = f'{month_w_offset[month_no - 1]:02}-{month_dic_reversed[month_no].upper()}.docx'
+troparia_menaion = get_menaion_troparia_texts(glob.glob(f'docx_resources/Тропарі - Мінея/{troparia_menaion_filename}')[0])
+
 if glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_Тріоді\\тріодь-{month_no:02}.docx'):
-    templates_triodion = get_menaion_troparia_texts(
+    troparia_triodion = get_menaion_troparia_texts(
         glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_Тріоді\\тріодь-{month_no:02}.docx')[0])
 else:
-    templates_triodion = None
+    troparia_triodion = None
+
+if glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_святкові\\тропарі-святкові-{month_no:02}.docx'):
+    troparia_feast = get_menaion_troparia_texts(
+        glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_святкові\\тропарі-святкові-{month_no:02}.docx')[0])
+else:
+    troparia_feast = None
+
+
 
 vespers_prokimenon = get_vespers_prokimenon(f'docx_resources/Вечірня-Утреня/vu_прокімени.docx')
 templates_theotokion_dic = get_theotokion_troparia_texts(
@@ -1480,15 +1492,11 @@ choice_list=[
 
 if __name__ == "__main__":
 
-    action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', choice_list)
+    #action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', choice_list)
+    action="1"
     print(action)
 
-    #build_data()
-
-
-
     if action[0]=="1":
-        print("chose 1")
         draft_dic = create_stubs()
         for d, desc in draft_dic.items():
             if len(desc)<2:

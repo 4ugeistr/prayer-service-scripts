@@ -5,6 +5,7 @@ from win32com import client  # Ensure pywin32 is installed
 from docx import Document  # Ensure python-docx is installed
 from docx.oxml.ns import qn
 from docx.shared import Pt
+from change_font import set_font_style
 
 
 def select_directory():
