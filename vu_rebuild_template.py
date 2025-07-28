@@ -1,6 +1,44 @@
 import docx
 from datetime import datetime
 
+def read_two_column_table_from_xlsx(filepath):
+    """
+    Opens an XLSX file, reads a 2-column table from the first sheet,
+    and returns it as a 2-dimensional list.
+
+    Args:
+        filepath (str): The path to the XLSX file.
+
+    Returns:
+        list: A 2-dimensional list representing the 2-column table.
+              Returns an empty list if the file is not found or if
+              there's an issue reading the data.
+    """
+    try:
+        workbook = openpyxl.load_workbook(filepath)
+        sheet = workbook.active  # Get the first (active) sheet
+
+        data = []
+        for row in sheet.iter_rows(min_row=1, max_col=2, values_only=True):
+            # values_only=True ensures we get the cell values directly
+            # max_col=2 ensures we only read up to the second column
+            if len(row) == 2:  # Ensure the row has exactly two columns of data
+                data.append(list(row))
+            elif len(row) == 1 and row[0] is not None:
+                # Handle cases where the second column might be empty but the first isn't
+                data.append([row[0], ""])
+            # Rows with no data in the first two columns (e.g., empty rows) will be skipped
+
+        return data[1:0]
+
+    except FileNotFoundError:
+        print(f"Error: The file '{filepath}' was not found.")
+        return []
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
+
+
 def get_variable_parts_from_template(path):
     #path = find_octoechos_template(echos,day)
     
@@ -198,6 +236,9 @@ def dump_list_to_text_file(data_list):
             for paragraph in entry['text']:
                 f.write(paragraph.text + '\n')
     print(f'Dumped result to {filename}')
+
+def build_end_lines_dictionary():
+
 
 if __name__ == "__main__":
     start_time = datetime.now()
