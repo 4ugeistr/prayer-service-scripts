@@ -79,7 +79,7 @@ def process_file(path):
 
             if i<len(tm["search"]) and p.text.lower().replace('  ',' ').strip() == tm["search"][i].text.lower().replace('  ',' ').strip():
                 if not found_start and i==0:
-                    logger.info("NEW START"+p.text)
+                    logger.info("NEW START: "+p.text)
                     found_start = True
                 if found_start:
                     p_buffer.append(p)

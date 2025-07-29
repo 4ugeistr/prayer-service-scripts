@@ -172,7 +172,7 @@ for line in file_lines:
     if line.startswith('<ustav'):
         lit_template=re.search(f'liturgia={lit_template_list}',line).group(1)
         try:
-            file = open(folder_name+'/b{:02d}.html'.format(cur_date), 'w',encoding='utf-8')
+            file = open(f'{folder_name}/b{cur_date:02d}.html', 'w',encoding='utf-8')
             print('/b{:02d}.html'.format(cur_date))
         except TypeError as e:
             print(line)
