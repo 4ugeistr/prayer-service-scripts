@@ -86,7 +86,9 @@ for filehtml in html_files:
         islist = False
         for line in file_lines:
             if not line.isspace():
-                line = re.sub(re.compile('<a id="_.*?</a>'), '', line) # очистка сміття типу <a id="_Hlk12345678"></a>
+
+                # очистка сміття типу <a id="_Hlk12345678"></a>
+                line = re.sub(re.compile('<a id="_.*?</a>'), '', line)
 
                 if islist:
                     line = line.replace('p>','li>')
