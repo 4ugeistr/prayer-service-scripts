@@ -654,7 +654,9 @@ def get_troparia_block(date,service):
         if ordo_matrix[date.day][2:][i] == 'resurrection':
             #if date.day==2:
             #    print(f"inserting troparia for day{d}. item {i}")
-            troparia = templates_resurrection[paschalia.get_echos(date,mode)][0]
+            troparia = troparia_resurrection[paschalia.get_echos(date, mode)][0]
+        if ordo_matrix[date.day][2:][i] == 'special':
+            troparia = troparia_special[date.day][0]["troparion"]
         if ordo_matrix[date.day][2:][i] == 'triodion':
             if i==3:
                 troparia=insert_prefix_to_paragraph(None,troparia_triodion[date.day][0]["troparion"],text="І нині: ")
@@ -1445,7 +1447,7 @@ saint_matrix = get_matrix_full("matrices/Місяцеслов-БД.csv")
 filename_triodion_matrix = get_matrix_full("matrices/Місяцеслов-БД-Тріодь.csv")
 templates_octoechos_dic = get_octoechos_template_files(r'docx_resources\Вечірня-Утреня\01-Октоїх\*\*.docx')
 templates_menaion_dic = get_menaion_template_files()
-templates_resurrection = get_resurrection_troparia_texts('docx_resources/воскресні_тропарі.docx')
+troparia_resurrection = get_resurrection_troparia_texts('docx_resources/воскресні_тропарі.docx')
 
 
 
@@ -1464,6 +1466,11 @@ if glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_�
 else:
     troparia_feast = None
 
+if glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_спеціальні\\тропарі-спеціальні-{month_no:02}.docx'):
+    troparia_special = get_menaion_troparia_texts(
+        glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_спеціальні\\тропарі-спеціальні-{month_no:02}.docx')[0])
+else:
+    troparia_special = None
 
 
 vespers_prokimenon = get_vespers_prokimenon(f'docx_resources/Вечірня-Утреня/vu_прокімени.docx')
@@ -1492,8 +1499,8 @@ choice_list=[
 
 if __name__ == "__main__":
 
-    #action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', choice_list)
-    action="1"
+    action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', choice_list)
+    #action="1"
     print(action)
 
     if action[0]=="1":

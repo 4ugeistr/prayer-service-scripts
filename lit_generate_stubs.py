@@ -15,8 +15,8 @@ mode_dict={'u':'Юл',
 #select month
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
-#month_no=3
-#print("WARNING. Month_no OVERRIDE", month_no)
+month_no=12
+print("WARNING. Month_no OVERRIDE", month_no)
 
 month_dic = {'Січень':1,
               'Лютий':2,
@@ -254,6 +254,10 @@ def insert_header_liturgy(doc,date):
 
     #Субота, Неділя, Тиждень etc...
     special_dates=[{"date":datetime(year_no,12,25),
+                     "holiday":"Воздвиження",
+                     "holiday_locative":"Воздвиженні",
+                     "holiday_instrumental":"Воздвиженням"},
+                    {"date":datetime(year_no,12,25),
                      "holiday":"Різдво",
                      "holiday_locative":"Різдві",
                      "holiday_instrumental":"Різдвом"},

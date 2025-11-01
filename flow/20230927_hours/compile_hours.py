@@ -156,17 +156,17 @@ def get_hours_matrix():
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         print(d)
         if ordo_matrix[d][1] =="":
-            if len(templates_menaion[d])<=2:
+            if len(troparia_menaion[d])<=2:
                 hours_matrix[d] = ["","","",
-                                "",templates_menaion[d][0],templates_menaion[d][1],
+                                "", troparia_menaion[d][0], troparia_menaion[d][1],
                                 "","","",
-                                "",templates_menaion[d][0],templates_menaion[d][1]]
+                                "", troparia_menaion[d][0], troparia_menaion[d][1]]
             else:
                 #print(d)
                 hours_matrix[d] = ["","","",
-                                "",templates_menaion[d][0],templates_menaion[d][1],
+                                "", troparia_menaion[d][0], troparia_menaion[d][1],
                                 "","","",
-                                "",templates_menaion[d][2],templates_menaion[d][3]]
+                                "", troparia_menaion[d][2], troparia_menaion[d][3]]
         elif ordo_matrix[d][1] =="n":
             pass
         elif ordo_matrix[d][1] =="y":
@@ -177,22 +177,25 @@ def get_hours_matrix():
                 if o=="":
                     hours_matrix[d].append("")
                 elif o =='resurrection' and (i+1)%3!=0:
-                    hours_matrix[d].append(templates_resurrection[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)][0])
+                    hours_matrix[d].append(templates_resurrection[paschalia.get_echos(datetime(year_no,month_no,d),mode)][0])
                 elif o =='resurrection' and (i+1)%3==0:
-                    hours_matrix[d].append(templates_resurrection[paschalia.get_echos(datetime(year_no,month_no,d),paschalia_dates)][1])
+                    hours_matrix[d].append(templates_resurrection[paschalia.get_echos(datetime(year_no,month_no,d),mode)][1])
                 elif o =='triodion' and (i+1)%3!=0:
-                    hours_matrix[d].append(troparia_lent_triodion[d][0])
+                    hours_matrix[d].append(troparia_triodion[d][0])
                 elif o =='triodion' and (i+1)%3==0:
-                    hours_matrix[d].append(troparia_lent_triodion[d][1])
+                    hours_matrix[d].append(troparia_triodion[d][1])
                 elif o =='feast' and (i+1)%3!=0:
-                    hours_matrix[d].append(templates_feast[d][0])
+                    hours_matrix[d].append(troparia_feast[d][0])
                 elif o =='feast' and (i+1)%3==0:
-                    hours_matrix[d].append(templates_feast[d][1])
-            
+                    hours_matrix[d].append(troparia_feast[d][1])
+                elif o =='special' and (i+1)%3!=0:
+                    hours_matrix[d].append(troparia_special[d][0])
+                elif o =='special' and (i+1)%3==0:
+                    hours_matrix[d].append(troparia_special[d][1])
                 elif o =='saint' and (i+1)%3!=0:
-                    hours_matrix[d].append(templates_menaion[d][0])
+                    hours_matrix[d].append(troparia_menaion[d][0])
                 elif o =='saint' and (i+1)%3==0:
-                    hours_matrix[d].append(templates_menaion[d][1])
+                    hours_matrix[d].append(troparia_menaion[d][1])
         '''    
         if month_no == 1 and d==1:
             hours_matrix[d] =   [templates_menaion[d][0],templates_menaion[d][1],templates_menaion[d][2],
@@ -290,10 +293,10 @@ if __name__== "__main__":
     pentecostarion_templates = glob.glob('pentecost/*/*.docx')
     pascha_templates = glob.glob('pascha/*/*.docx')
     templates_resurrection = get_resurrection_template_texts('воскресні.docx')
-    #templates_menaion = get_menaion_troparia_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
-    templates_menaion = get_menaion_template_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no-1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
-    templates_feast = get_feast_template_texts(f'свято-{month_no:02}-{mode_dic_reversed[mode]}.docx')
-    troparia_lent_triodion = get_feast_template_texts(f'піст-тріодь-{month_no:02}-{mode_dic_reversed[mode]}.docx')
+    troparia_menaion = get_menaion_template_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no - 1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
+    troparia_feast = get_feast_template_texts(f'тропарі-святкові\\тропарі-святкові-{month_no:02}.docx')
+    troparia_triodion = get_feast_template_texts(f'тропарі-тріодь\\тріодь-{month_no:02}-{mode_dic_reversed[mode]}.docx')
+    troparia_special = get_feast_template_texts(f'тропарі-спеціальні\\тропарі-спеціальні-{month_no:02}.docx')
     template_file_list = get_template_files('docx_templates/hours-template-*.docx')
 
     dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
@@ -311,7 +314,7 @@ if __name__== "__main__":
     #print(year_no, month_no)
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         #print(d,datetime(year_no, month_no, d).weekday()+1)
-        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),paschalia_dates)
+        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),mode)
         expected_triodion_template_path=f"lent-triodion\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
         expected_pascha_template_path=f"pascha\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
         expected_pentecostarion_template_path=f"pentecost\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"

@@ -7,8 +7,8 @@ from datetime import datetime
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 #month = 'Березень'
-month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
-#month_no = 12
+#month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
+month_no = 12
 
 month_dic= {'Січень':1,
               'Лютий':2,
@@ -280,7 +280,7 @@ for k,v in lines_dict.items():
     try:
         weekday = datetime(year_no,month_dic[month],k).isoweekday()
     except ValueError:
-        print('Achtung')
+        print(f'Achtung: cannot resolve date with Y:{year_no} M:{month_dic[month]} D:{k}')
         print(k,v)
         raise ValueError
     l = [month,f'{k:0>2}.{month_dic[month]:0>2}',weekday, weekday_list[weekday]]
