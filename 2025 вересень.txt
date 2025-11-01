@@ -1,0 +1,37 @@
+Завершено створення чернеток УВ!
+Inserting troparia for 2025-09-02 00:00:00
+2
+Inserting troparia for 2025-09-03 00:00:00
+3
+Inserting troparia for 2025-09-04 00:00:00
+4
+Стихири: для 4 не знайдено богородичний ГВ в файлі з стихирами
+Inserting troparia for 2025-09-05 00:00:00
+5
+Inserting troparia for 2025-09-06 00:00:00
+6
+Inserting troparia for 2025-09-07 00:00:00
+7
+Inserting gospel for 2025-09-07 00:00:00
+Inserting gospel for 2025-09-14 00:00:00
+Inserting troparia for 2025-09-21 00:00:00
+21
+Inserting gospel for 2025-09-21 00:00:00
+Inserting troparia for 2025-09-22 00:00:00
+22
+Inserting troparia for 2025-09-24 00:00:00
+24
+Inserting troparia for 2025-09-25 00:00:00
+25
+drafts\vu\2025-09-u\26-ПТ-Івана Богослова.docx Ektenia, RE failed
+Inserting troparia for 2025-09-27 00:00:00
+27
+Inserting troparia for 2025-09-28 00:00:00
+28
+Inserting gospel for 2025-09-28 00:00:00
+Inserting troparia for 2025-09-29 00:00:00
+29
+Inserting troparia for 2025-09-30 00:00:00
+30
+Завершено оновлення чернеток УВ!
+All done!
