@@ -13,7 +13,7 @@ RGB_GRAY = RGBColor(0x3c, 0x40, 0x43)
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
 if mode == 'u':
-    docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2025.docx'
+    docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2026.docx'
     csvfilename='drafts\\calendar\\calendar25.txt'
 elif mode == 'g':
     docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2025 (григоріанський).docx'

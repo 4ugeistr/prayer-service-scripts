@@ -30,7 +30,10 @@ paschalia_dates_table = [
     {"mode": "u",
      "year": 2026,
      "pascha": datetime(2026, 4, 12)},
-
+    {"mode": "u",
+     "year": 2027,
+     "pascha": datetime(2026, 5, 2)},
+    
     {"mode": "g",
      "year": 2021,
      "pascha": datetime(2021, 4, 4)},
@@ -49,6 +52,10 @@ paschalia_dates_table = [
     {"mode": "g",
      "year": 2026,
      "pascha": datetime(2026, 4, 5)},
+    {"mode": "g",
+     "year": 2027,
+     "pascha": datetime(2026, 3, 28)},
+    
 ]
 
 special_day_list = [
