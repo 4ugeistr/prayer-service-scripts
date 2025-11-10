@@ -269,6 +269,8 @@ weekday
 
 
 def get_day_details(cur_date, mode):
+    if type(mode)!=str or len(mode)!=1:
+        raise Exception(f"ERROR. Невалідне значення mode: {mode}")
     paschalia_dates = get_prev_next_pascha(cur_date,mode)
     weeks_till_lent = None
     if cur_date >= paschalia_dates[0]["pentecost"] and cur_date < paschalia_dates[1]["lent_start"]:
@@ -342,5 +344,5 @@ if __name__ == "__main__":
     mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u', 'g'])
     cur_date = datetime(2025, 3, 27)
     paschalia_dates = get_prev_next_pascha(cur_date, mode)
-    print(get_day_details(cur_date, paschalia_dates))
-    print(get_echos(cur_date, paschalia_dates))
+    print(get_day_details(cur_date, 'u'))
+    print(get_echos(cur_date, 'u'))

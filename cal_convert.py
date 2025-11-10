@@ -9,7 +9,8 @@ RGB_RED = RGBColor(255, 0, 0)
 RGB_BLACK = RGBColor(0, 0, 0)
 RGB_GRAY = RGBColor(0x3c, 0x40, 0x43)
 
-
+'''
+#якщо підтримуємо 2 календарі
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
 if mode == 'u':
@@ -18,27 +19,16 @@ if mode == 'u':
 elif mode == 'g':
     docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2025 (григоріанський).docx'
     csvfilename='drafts\\calendar\\calendar25n.txt'
+'''
+
+#якщо один календар
+mode='u'
+docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2026.docx'
+csvfilename='drafts\\calendar\\calendar26.txt'
 
 csv_reading_validation_filename = 'drafts\\calendar\\reading_validation.csv'
 
-
-
-
 doc = docx.Document(docx_filename)
-
-
-
-#for 2023
-#previous_pascha =  datetime(2022,4,24)
-#pascha = datetime(2023,4,16)
-#for 2024
-#previous_pascha =  datetime(2023,4,16)
-#pascha = datetime(2024,5,5)
-#for 2025
-#previous_pascha = datetime(2024,5,5)
-#pascha = datetime(2024,4,20)
-
-#mode='u'
 
 month_list = {'Січень':1,
               'Лютий':2,
@@ -433,7 +423,7 @@ def beautify_reading(reading):
     return reading
 
 def compile_echo_gospel(date,paschalia_dates):
-
+    print(date)
     if date>=paschalia_dates[1]['palm_sunday']:
         return "*"
 
@@ -576,161 +566,6 @@ def check_day_qty(rows):
                 print(r)
         #raise Exception
 
-
-
-cur_year='2025'
-cur_month=''
-cur_day=''
-day_title=''
-day_readings=''
-flag_title=False
-flag_reading=False
-glas=''
-list_of_symbols=[]
-first=True
-
-
-i=0
-for p in doc.paragraphs:
-    for r in p.runs:
-        if '🕃' in r.text:
-            if r.font.color.rgb == RGB_RED:
-                r.text=r.text.replace('🕃','🕃r')
-            elif r.font.color.rgb == RGB_BLACK or r.font.color.rgb == RGB_GRAY or not r.font.color.rgb:
-                r.text=r.text.replace('🕃','🕃b')
-            else:
-                print('Warning: paragraph with funky colors:')
-                print(i,p.text)
-                #for r in doc.paragraphs[i].runs:
-               #     print(r.font.color,r.text)
-                print(r.font.color.rgb,r.text)
-    i+=1            
-i=-1
-rows=[]
-reading_validation_matrix=[]
-cur_month = None
-for p in doc.paragraphs:
-    re_result=None
-    i+=1
-
-    #if i < 4:
-    #    continue
-    #if i>26:
-    #    break
-    
-    #print(i,p.text)
-    #print(f'f_t={flag_title}, f_r={flag_reading}')
-    
-    #пропускаємо пусте
-    if p.text=='':
-        continue
-    
-    #місяць, рік
-    re_result=re.search(f'{month_list_string}( \((\d+)\))?',p.text.lower())
-    if re_result:
-        #print(re_result.groups(),first)
-        if not first:
-            #print("pfqikb c.lb")
-            rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
-            flag_reading=False
-            day_readings=""
-            day_title=""
-        else:
-            first=False
-        #print(re_result.groups())
-        if re_result.group(3):
-            cur_year = re_result.group(3)
-        cur_month=re_result.group(1)
-        #print(cur_year, cur_month)
-        continue
-    
-    #пропускаємо вступ з календарем посту.
-    #починаємо працювати від першого місяця
-    if not cur_month:
-        continue
-
-
-    #День, початок тайтлу
-    re_result=re.search(r'^(\d+)( )?(.*)',p.text)
-    if re_result:
-        #print("Day found",i, p.text)
-        cur_day=int(re_result.group(1))
-        #print("cur_day =", cur_day)
-        #if cur_day=='40':
-        #    print(p.text)
-        day_title=re_result.group(3)
-        flag_title=True
-
-        #Глас. Воскресне Євангеліє
-        re_result=re.search(r'(Глас \d\. Єв\. \d{1,2}\.)',p.text)
-        if re_result:
-            glas=re_result.group(1)
-            day_title=day_title.replace(glas,"")
-            re_result=None
-        #else:
-        #    glas='*'
-        re_result=re.search(r'Гл. (\d\. Єв\. \d{1,2}\.)',p.text)
-        if re_result:
-            glas = "Глас "+re_result.group(1)
-
-        #print(cur_day, day_title, glas)
-        #print("c")
-        continue
-    
-    
-    
-
-    
-    re_result=re.search(reading_indicator_string,p.text)
-    if re_result:
-        #print("Found readings",i,p.text)
-        flag_reading=True
-        flag_title=False
-        if not day_readings:
-            day_readings=p.text
-        else:
-            day_readings = day_readings + '<br>' + p.text
-        continue
-
-    #якщо в строці лише день - закриваємо попередній "день"
-    re_result=re.search(f'^{day_list_string}$',p.text)
-    if re_result and day_title: #and flag_reading:
-        #print('APPENDING ROWS!',cur_month,cur_day)
-        rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
-        flag_reading=False
-        day_readings=""
-        day_title=""
-        continue
-    elif re_result and not flag_reading:
-        #print("Пропускаємо ", p.text)
-        continue
-
-    #інакше - ввжаємо, що продовжується тайтл.
-    if flag_title:
-        day_title+="<br>"+p.text
-    else:
-        print(f'Щось не так {i}:\n',p.text, f'(дата {cur_month}-{cur_day})')
-
-#цикл не обробить закінчення останнього дня, викликаємо явно
-rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
-
-
-
-def read_csv(path):
-    lst=[]
-    with open(path, newline='', encoding='utf-8') as csvfile:
-        csvreader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        for row in csvreader:
-            lst+=[row]
-    return lst
-
-apostol_list = read_csv('matrices\\apostol.csv')
-evanhelie_list= read_csv('matrices\\evanhelie.csv')
-
-
-
-
-
 def break_readings_segment(str):
     lst = []
     res = re.findall(r'(Ап\. (?:–|-) .*?)(?:<br>|<i>|\n|\||<sup>|$)',str)
@@ -804,105 +639,247 @@ def validate_readings(rows):
                 reading_validation_matrix.append([row[0],row[1],row[2],row[7],item,reading_details[1]])
             else:
                 row[11].append('err')
-            
-            
-validate_readings(rows)
+
+def read_csv(path):
+    lst=[]
+    with open(path, newline='', encoding='utf-8') as csvfile:
+        csvreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in csvreader:
+            lst+=[row]
+    return lst
 
 
-#with open('c1test.txt','a',encoding='utf8') as f:
-with open(csvfilename,'w',newline='',encoding='utf8') as csvfile:
-    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-    #for row in rows:
-    #    row = row[0:1]+row[8:9]+row[10:]
 
-    for row in rows:
-        try:
-            #print(row[7])
-            spamwriter.writerow(row[:10])
-            #spamwriter.writerow(row)
-        except Exception as e:
-            print(f'Error, p={i}: ',p.text)
-            print(row)
-            raise e
 
-#folder prefix
-fp = 'drafts\\calendar\\calendar_monthly'
-#mode for director
-md = '' if mode =='u' else 'n'
+apostol_list = read_csv('matrices\\apostol.csv')
+evanhelie_list= read_csv('matrices\\evanhelie.csv')
 
-if not os.path.exists(f'{fp}\\{cur_year}{md}'):
-        os.makedirs(f'{fp}\\{cur_year}{md}')
+cur_year='2026'
+cur_month=None
+cur_day=None
+day_title=None
+day_readings=None
+flag_title=False
+flag_reading=False
+glas=None
+list_of_symbols=[]
+first=True
 
-cur_month = ''
+rows=[]
+reading_validation_matrix=[]
+cur_month = None
 
-csvfile = None
-for row in rows:
-    year, month, day = row[0][:4], row[0][4:6], row[0][6:8]
 
-    if month!=cur_month:
-        cur_month = month
-        if not os.path.exists(f'{fp}\\{cur_year}{md}\\{month}'):
-            os.makedirs(f'{fp}\\{cur_year}{md}\\{month}')
+if __name__ == '__main__':
+    #модифікуємо форматування: кольори тексту, а саме, шестиричні та славословні служби
+    #i=0
+    for i,p in enumerate(doc.paragraphs):
+        for r in p.runs:
+            if '🕃' in r.text:
+                if r.font.color.rgb == RGB_RED:
+                    r.text=r.text.replace('🕃','🕃r')
+                elif r.font.color.rgb == RGB_BLACK or r.font.color.rgb == RGB_GRAY or not r.font.color.rgb:
+                    r.text=r.text.replace('🕃','🕃b')
+                else:
+                    print('Warning: paragraph with funky colors:')
+                    print(i,p.text)
+                    #for r in doc.paragraphs[i].runs:
+                   #     print(r.font.color,r.text)
+                    print(r.font.color.rgb,r.text)
+    #    i+=1            
+    #i=-1
+
+
+
+    for i,p in enumerate(doc.paragraphs):
+        re_result=None
+        #i+=1
+
+        #if i < 4:
+        #    continue
+        #if i>26:
+        #    break
         
-        if csvfile:
-            csvfile.close()
-        csvfile = open(f'{fp}\\{cur_year}{md}\\{month}\\c1.txt','w',encoding='utf8')
-        #spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
-
-    #spamwriter.writerow([day]+row[1:10])
-    row_to_insert = [day]+row[2:10]
-    str_to_insert = "|".join(map(str, row_to_insert[:6])) + "|".join(map(str, row_to_insert[6:]))+'\n'
-
-    #spamwriter.writerow([str_to_insert])
-    csvfile.write(str_to_insert)
-csvfile.close()
-
-
-    
-
-
-
-
-
-
-
-
-
-with open(csvfilename,'r',newline='',encoding='utf8') as csvfile:
-    text = csvfile.readlines()
-
-#with open(csvfilename,'w',newline='',encoding='utf8') as csvfile:
-#    text = csvfile.readlines()
-
-
-
+        #print(i,p.text)
+        #print(f'f_t={flag_title}, f_r={flag_reading}')
+        
+        #пропускаємо пусте
+        if p.text=='':
+            continue
+        
+        #місяць, рік
+        re_result=re.search(f'{month_list_string}( \((\d+)\))?',p.text.lower())
+        if re_result:
+            #print(re_result.groups(),first)
+            if not first:
+                #print("pfqikb c.lb")
+                rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
+                flag_reading=False
+                day_readings=""
+                day_title=""
+            else:
+                first=False
+            #print(re_result.groups())
+            if re_result.group(3):
+                cur_year = re_result.group(3)
+            cur_month=re_result.group(1)
+            #print(cur_year, cur_month)
+            continue
+        
+        #пропускаємо вступ з календарем посту.
+        #починаємо працювати від першого місяця
+        if not cur_month:
+            continue
 
 
-with open(csv_reading_validation_filename,'w',newline='',encoding='utf8') as csvfile:
-    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    spamwriter.writerows(reading_validation_matrix)
+        #День, початок тайтлу
+        re_result=re.search(r'^(\d+)( )?(.*)',p.text)
+        if re_result:
+            #print("Day found",i, p.text)
+            cur_day=int(re_result.group(1))
+            #print("cur_day =", cur_day)
+            #if cur_day=='40':
+            #    print(p.text)
+            day_title=re_result.group(3)
+            flag_title=True
+
+            #Глас. Воскресне Євангеліє
+            re_result=re.search(r'(Глас \d\. Єв\. \d{1,2}\.)',p.text)
+            if re_result:
+                glas=re_result.group(1)
+                day_title=day_title.replace(glas,"")
+                re_result=None
+            #else:
+            #    glas='*'
+            re_result=re.search(r'Гл. (\d\. Єв\. \d{1,2}\.)',p.text)
+            if re_result:
+                glas = "Глас "+re_result.group(1)
+
+            #print(cur_day, day_title, glas)
+            #print("c")
+            continue
+        
+        
+        
+
+        
+        re_result=re.search(reading_indicator_string,p.text)
+        if re_result:
+            #print("Found readings",i,p.text)
+            flag_reading=True
+            flag_title=False
+            if not day_readings:
+                day_readings=p.text
+            else:
+                day_readings = day_readings + '<br>' + p.text
+            continue
+
+        #якщо в строці лише день - закриваємо попередній "день"
+        re_result=re.search(f'^{day_list_string}$',p.text)
+        if re_result and day_title: #and flag_reading:
+            #print('APPENDING ROWS!',cur_month,cur_day)
+            rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
+            flag_reading=False
+            day_readings=""
+            day_title=""
+            continue
+        elif re_result and not flag_reading:
+            #print("Пропускаємо ", p.text)
+            continue
+
+        #інакше - ввжаємо, що продовжується тайтл.
+        if flag_title:
+            day_title+="<br>"+p.text
+        else:
+            print(f'Щось не так {i}:\n',p.text, f'(дата {cur_month}-{cur_day})')
+
+    #цикл не обробить закінчення останнього дня, викликаємо явно
+    rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
+
+    validate_readings(rows)
+
+    #with open('c1test.txt','a',encoding='utf8') as f:
+    with open(csvfilename,'w',newline='',encoding='utf8') as csvfile:
+        spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        #for row in rows:
+        #    row = row[0:1]+row[8:9]+row[10:]
+
+        for row in rows:
+            try:
+                #print(row[7])
+                spamwriter.writerow(row[:10])
+                #spamwriter.writerow(row)
+            except Exception as e:
+                print(f'Error, p={i}: ',p.text)
+                print(row)
+                raise e
+
+    #folder prefix
+    fp = 'drafts\\calendar\\calendar_monthly'
+    #mode for director
+    md = '' if mode =='u' else 'n'
+
+    if not os.path.exists(f'{fp}\\{cur_year}{md}'):
+            os.makedirs(f'{fp}\\{cur_year}{md}')
+
+    cur_month = ''
+
+    csvfile = None
+    for row in rows:
+        year, month, day = row[0][:4], row[0][4:6], row[0][6:8]
+
+        if month!=cur_month:
+            cur_month = month
+            if not os.path.exists(f'{fp}\\{cur_year}{md}\\{month}'):
+                os.makedirs(f'{fp}\\{cur_year}{md}\\{month}')
+            
+            if csvfile:
+                csvfile.close()
+            csvfile = open(f'{fp}\\{cur_year}{md}\\{month}\\c1.txt','w',encoding='utf8')
+            #spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        #spamwriter.writerow([day]+row[1:10])
+        row_to_insert = [day]+row[2:10]
+        str_to_insert = "|".join(map(str, row_to_insert[:6])) + "|".join(map(str, row_to_insert[6:]))+'\n'
+
+        #spamwriter.writerow([str_to_insert])
+        csvfile.write(str_to_insert)
+    csvfile.close()
 
 
-for item in rows:
-    if item[7].startswith('+'):
-        item[7]= "'"+item[7]
-    
-    #item[7]=item[7].replace('<br>','\n')
-    #item[10]=item[10].replace('<br>','\n')
-
-with open('drafts\\calendar\\og_header.html','w',newline='',encoding='utf8') as csvfile:
-    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    #spamwriter.writerows([[x[0],x[1],x[10],x[7]] for x in rows])
-    spamwriter.writerows([[x[0],x[1],x[8]+'<br><br>'] for x in rows])
-#with open('new_header.html','w',newline='',encoding='utf8') as csvfile:
-#    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
-#    spamwriter.writerows([[x[0],x[1],x[7]] for x in rows])
+        
+    with open(csvfilename,'r',newline='',encoding='utf8') as csvfile:
+        text = csvfile.readlines()
 
 
+    with open(csv_reading_validation_filename,'w',newline='',encoding='utf8') as csvfile:
+        spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        spamwriter.writerows(reading_validation_matrix)
 
-#перевіряємо кількість днів
-#print(len(rows), rows[0])
-check_day_qty(rows)
+    for item in rows:
+        if item[7].startswith('+'):
+            item[7]= "'"+item[7]
+        
+        #item[7]=item[7].replace('<br>','\n')
+        #item[10]=item[10].replace('<br>','\n')
 
-print("Done!")
+    with open('drafts\\calendar\\og_header.html','w',newline='',encoding='utf8') as csvfile:
+        spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        #spamwriter.writerows([[x[0],x[1],x[10],x[7]] for x in rows])
+        spamwriter.writerows([[x[0],x[1],x[8]+'<br><br>'] for x in rows])
+    #with open('new_header.html','w',newline='',encoding='utf8') as csvfile:
+    #    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    #    spamwriter.writerows([[x[0],x[1],x[7]] for x in rows])
+
+
+
+    #перевіряємо кількість днів
+    #print(len(rows), rows[0])
+    check_day_qty(rows)
+
+    print("Done!")
+
+
+
