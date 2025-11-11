@@ -32,7 +32,7 @@ paschalia_dates_table = [
      "pascha": datetime(2026, 4, 12)},
     {"mode": "u",
      "year": 2027,
-     "pascha": datetime(2026, 5, 2)},
+     "pascha": datetime(2027, 5, 2)},
     
     {"mode": "g",
      "year": 2021,
@@ -54,7 +54,7 @@ paschalia_dates_table = [
      "pascha": datetime(2026, 4, 5)},
     {"mode": "g",
      "year": 2027,
-     "pascha": datetime(2026, 3, 28)},
+     "pascha": datetime(2027, 3, 28)},
     
 ]
 
@@ -134,11 +134,14 @@ for p in paschalia_dates_table:
 def get_prev_next_pascha(cur_date, mode='u'):
     #prev = max(filter(lambda p: (p['pascha']-timedelta(days=7*9) <= cur_date) and p['mode']==mode , paschalia_dates_table), key = lambda x: x['pascha'])
     #next = min(filter(lambda p: (p['pascha']-timedelta(days=7*9) > cur_date) and p['mode']==mode , paschalia_dates_table), key = lambda x: x['pascha'])
-
-    prev = max(filter(lambda p: (p['pascha'] <= cur_date) and p['mode'] == mode, paschalia_dates_table),
-               key=lambda x: x['pascha'])
-    next = min(filter(lambda p: (p['pascha'] > cur_date) and p['mode'] == mode, paschalia_dates_table),
-               key=lambda x: x['pascha'])
+    try:
+        prev = max(filter(lambda p: (p['pascha'] <= cur_date) and p['mode'] == mode, paschalia_dates_table),
+                   key=lambda x: x['pascha'])
+        next = min(filter(lambda p: (p['pascha'] > cur_date) and p['mode'] == mode, paschalia_dates_table),
+                   key=lambda x: x['pascha'])
+    except ValueError as e:
+        print("ValueError on data:",cur_date, mode)
+        raise e
 
     lst = [prev, next]
     #legacy
@@ -228,7 +231,8 @@ def get_echos(cur_date, mode):
     return echos_list[get_week_from_pascha(cur_date, paschalia_dates) % 8 - 2]
 
 
-def get_resurrection_gospel(cur_date, paschalia_dates):
+def get_resurrection_gospel(cur_date, mode):
+    paschalia_dates = get_prev_next_pascha(cur_date,mode)
     gospel_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
     if cur_date >= paschalia_dates[1]['palm_sunday']:
@@ -342,7 +346,7 @@ def get_week_code(cur_date, day_title, mode):
 
 if __name__ == "__main__":
     mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u', 'g'])
-    cur_date = datetime(2025, 3, 27)
+    cur_date = datetime(2026, 5, 2)
     paschalia_dates = get_prev_next_pascha(cur_date, mode)
     print(get_day_details(cur_date, 'u'))
     print(get_echos(cur_date, 'u'))

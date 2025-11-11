@@ -221,17 +221,17 @@ def get_lent_params(date,day_symbol,day_title,paschalia_dates):
 
 #шукаємо блок з читанням
 
-reading_indicator_list = ['Єв\. – ',
-                            'Ап\. – ',
-                            'Єв\. - ',
-                            'Ап\. - ',
+reading_indicator_list = [r'Єв\. – ',
+                            r'Ап\. – ',
+                            r'Єв\. - ',
+                            r'Ап\. - ',
                             'Царські часи.',
                             'Читання на Першому часі:',
                             'Читання на Шостому часі:',
                             'Час Перший:',
                             'Час Шостий:',
-                            'На \d-му часі:',
-                            'На \d-му часі –',
+                            r'На \d-му часі:',
+                            r'На \d-му часі –',
                             'Літ.:',
                             'Вечірня з Літургією св. Василія Великого.',
                             'На Літургії св. Василія Великого з вечірнею.',
@@ -300,13 +300,17 @@ reading_indicator_string_for_beautify='('+'|'.join(reading_indicator_list[4:])+'
 
 
 def get_nth_sunday(year, month, n):
+
     # Get the first day of the month
     first_day = datetime(year, month, 1)
+
     # Find the first Sunday of the month
     days_until_sunday = (6 - first_day.weekday()) % 7
     first_sunday = first_day + timedelta(days=days_until_sunday)
+
     # Calculate the Nth Sunday
     nth_sunday = first_sunday + timedelta(weeks=n-1)
+
     # Check if the Nth Sunday is within the same month
     if nth_sunday.month == month:
         return nth_sunday
@@ -423,12 +427,12 @@ def beautify_reading(reading):
     return reading
 
 def compile_echo_gospel(date,paschalia_dates):
-    print(date)
+    #print(date)
     if date>=paschalia_dates[1]['palm_sunday']:
         return "*"
 
-    echo = paschalia.get_echos(date,paschalia_dates)
-    gospel = paschalia.get_resurrection_gospel(date,paschalia_dates)
+    echo = paschalia.get_echos(date,mode)
+    gospel = paschalia.get_resurrection_gospel(date,mode)
 
     if date>=paschalia_dates[0]['pascha']+timedelta(days=7) and date< paschalia_dates[0]['pascha']+timedelta(days=7*2): 
         echo=None
@@ -445,8 +449,11 @@ def compile_echo_gospel(date,paschalia_dates):
 
 
 def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
-    print(cur_year,cur_month,cur_day,day_title,day_readings,glas)
-    month=month_list[cur_month.capitalize()]
+    month = month_list[cur_month.capitalize()]
+    if month >= 5:
+        print('APPENDING ROWS!', cur_month, cur_day)
+        print(cur_year,cur_month,cur_day,day_title,day_readings,glas)
+
     try:
         date=datetime.strptime(f'{cur_year}-{month:02}-{cur_day:02}','%Y-%m-%d')
     except ValueError as e:
@@ -676,7 +683,7 @@ cur_month = None
 
 
 if __name__ == '__main__':
-    #модифікуємо форматування: кольори тексту, а саме, шестиричні та славословні служби
+    #модифікуємо форматування: шестиричні та славословні служби
     #i=0
     for i,p in enumerate(doc.paragraphs):
         for r in p.runs:
@@ -696,11 +703,11 @@ if __name__ == '__main__':
 
     for i,p in enumerate(doc.paragraphs):
 
-        print(i,p.text[:50])
+        #print(i,p.text[:50])
         #if i>50:
         #    break
-        
-        re_result=None
+
+        #re_result=None
         #i+=1
 
         #if i < 4:
@@ -716,7 +723,26 @@ if __name__ == '__main__':
             continue
         
         #місяць
-        re_result=re.search(f'{month_list_string}( \((\d+)\))?',p.text.lower())
+        #
+        re_result = re.search(f'{month_list_string}$', p.text.lower())
+        if re_result:
+            #закриваємо останній день. чистимо прапорці
+            if cur_day:
+                rows.append(generate_row(cur_year, cur_month, cur_day, day_title, day_readings, glas))
+                flag_reading = False
+                flag_title = False
+                day_readings = ""
+                day_title = ""
+                print(f'>>>Місяць завержено: {cur_month}')
+
+            cur_month = re_result.group(1)
+            print(f'>>>Обробляємо місяць: {cur_month}')
+
+            continue
+
+        '''
+        # місяць OLD, OBSOLETE?
+        re_result = re.search(f'{month_list_string}( \((\d+)\))?', p.text.lower())
         if re_result:
             print(re_result.groups(),first)
             if not first:
@@ -728,9 +754,8 @@ if __name__ == '__main__':
                 first=False
             #print(re_result.groups())
             continue
-        
-        #пропускаємо вступ з календарем посту.
-        #починаємо працювати від першого місяця
+        '''
+        #Пропускаємо все до першого місяця
         if not cur_month:
             continue
 
@@ -747,7 +772,7 @@ if __name__ == '__main__':
             flag_title=True
 
             #Глас. Воскресне Євангеліє
-            #TODO: треба об'єднати 2 пасажі нижче в один.    
+            #TODO: треба об'єднати 2 пасажі нижче в один.
 
             re_result=re.search(r'(Глас \d\. Єв\. \d{1,2}\.)',p.text)
             if re_result:
@@ -779,7 +804,6 @@ if __name__ == '__main__':
         #якщо в строці лише день - закриваємо попередній "день"
         re_result=re.search(f'^{day_list_string}$',p.text)
         if re_result and day_title: #and flag_reading:
-            print('APPENDING ROWS!',cur_month,cur_day)
             rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
             flag_reading=False
             day_readings=""
@@ -852,7 +876,7 @@ if __name__ == '__main__':
         csvfile.write(str_to_insert)
     csvfile.close()
     '''
-    
+
 
     #пишемо файл для валідації читань
     with open(csvfilename,'r',newline='',encoding='utf8') as csvfile:
@@ -884,3 +908,11 @@ if __name__ == '__main__':
 
 
 
+'''
+Checklist for word manual updates
+^l > ^p
+'  ' > ''
+'^p ' > ^p
+' ^p' > ^p
+'^t' > ''
+'''
