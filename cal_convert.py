@@ -395,7 +395,7 @@ def get_day_color(date,day_symbol):
     [12,26]#Собор
     ]
 
-    #Богородичні празниpaschalia_dates[0]["pascha"]+timedelta(days=1) >= dateки
+    #Богородичні празники
     for d in holidays_godmother:
         if date == datetime(date.year,d[0],d[1]):
             return 3
@@ -445,7 +445,7 @@ def compile_echo_gospel(date,paschalia_dates):
 
 
 def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
-    
+    print(cur_year,cur_month,cur_day,day_title,day_readings,glas)
     month=month_list[cur_month.capitalize()]
     try:
         date=datetime.strptime(f'{cur_year}-{month:02}-{cur_day:02}','%Y-%m-%d')
@@ -664,7 +664,11 @@ flag_title=False
 flag_reading=False
 glas=None
 list_of_symbols=[]
+
+
 first=True
+
+
 
 rows=[]
 reading_validation_matrix=[]
@@ -685,14 +689,17 @@ if __name__ == '__main__':
                     print('Warning: paragraph with funky colors:')
                     print(i,p.text)
                     #for r in doc.paragraphs[i].runs:
-                   #     print(r.font.color,r.text)
+                    #    print(r.font.color,r.text)
                     print(r.font.color.rgb,r.text)
-    #    i+=1            
-    #i=-1
 
 
 
     for i,p in enumerate(doc.paragraphs):
+
+        print(i,p.text[:50])
+        #if i>50:
+        #    break
+        
         re_result=None
         #i+=1
 
@@ -708,12 +715,11 @@ if __name__ == '__main__':
         if p.text=='':
             continue
         
-        #місяць, рік
+        #місяць
         re_result=re.search(f'{month_list_string}( \((\d+)\))?',p.text.lower())
         if re_result:
-            #print(re_result.groups(),first)
+            print(re_result.groups(),first)
             if not first:
-                #print("pfqikb c.lb")
                 rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
                 flag_reading=False
                 day_readings=""
@@ -721,10 +727,6 @@ if __name__ == '__main__':
             else:
                 first=False
             #print(re_result.groups())
-            if re_result.group(3):
-                cur_year = re_result.group(3)
-            cur_month=re_result.group(1)
-            #print(cur_year, cur_month)
             continue
         
         #пропускаємо вступ з календарем посту.
@@ -733,7 +735,7 @@ if __name__ == '__main__':
             continue
 
 
-        #День, початок тайтлу
+        #Дата, початок тайтлу
         re_result=re.search(r'^(\d+)( )?(.*)',p.text)
         if re_result:
             #print("Day found",i, p.text)
@@ -745,6 +747,8 @@ if __name__ == '__main__':
             flag_title=True
 
             #Глас. Воскресне Євангеліє
+            #TODO: треба об'єднати 2 пасажі нижче в один.    
+
             re_result=re.search(r'(Глас \d\. Єв\. \d{1,2}\.)',p.text)
             if re_result:
                 glas=re_result.group(1)
@@ -759,11 +763,8 @@ if __name__ == '__main__':
             #print(cur_day, day_title, glas)
             #print("c")
             continue
-        
-        
-        
 
-        
+        #шукаємо строки з блоку читання
         re_result=re.search(reading_indicator_string,p.text)
         if re_result:
             #print("Found readings",i,p.text)
@@ -778,7 +779,7 @@ if __name__ == '__main__':
         #якщо в строці лише день - закриваємо попередній "день"
         re_result=re.search(f'^{day_list_string}$',p.text)
         if re_result and day_title: #and flag_reading:
-            #print('APPENDING ROWS!',cur_month,cur_day)
+            print('APPENDING ROWS!',cur_month,cur_day)
             rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
             flag_reading=False
             day_readings=""
@@ -788,7 +789,7 @@ if __name__ == '__main__':
             #print("Пропускаємо ", p.text)
             continue
 
-        #інакше - ввжаємо, що продовжується тайтл.
+        #інакше - вважаємо, що продовжується тайтл.
         if flag_title:
             day_title+="<br>"+p.text
         else:
@@ -797,9 +798,10 @@ if __name__ == '__main__':
     #цикл не обробить закінчення останнього дня, викликаємо явно
     rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
 
+    #викликаємо функцію валідування читань - додає нові колонки з даними.
     validate_readings(rows)
 
-    #with open('c1test.txt','a',encoding='utf8') as f:
+    #Пишемо результат в файл - без колонок валідації
     with open(csvfilename,'w',newline='',encoding='utf8') as csvfile:
         spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
@@ -815,6 +817,8 @@ if __name__ == '__main__':
                 print(f'Error, p={i}: ',p.text)
                 print(row)
                 raise e
+    '''
+    ПОМІСЯЧНИЙ КАЛЕНДАР - OBSOLETE
 
     #folder prefix
     fp = 'drafts\\calendar\\calendar_monthly'
@@ -847,17 +851,17 @@ if __name__ == '__main__':
         #spamwriter.writerow([str_to_insert])
         csvfile.write(str_to_insert)
     csvfile.close()
+    '''
+    
 
-
-        
+    #пишемо файл для валідації читань
     with open(csvfilename,'r',newline='',encoding='utf8') as csvfile:
         text = csvfile.readlines()
-
-
     with open(csv_reading_validation_filename,'w',newline='',encoding='utf8') as csvfile:
         spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
         spamwriter.writerows(reading_validation_matrix)
 
+    #додаємо ' як ескейп-символ для Spreadsheet???
     for item in rows:
         if item[7].startswith('+'):
             item[7]= "'"+item[7]
@@ -865,14 +869,11 @@ if __name__ == '__main__':
         #item[7]=item[7].replace('<br>','\n')
         #item[10]=item[10].replace('<br>','\n')
 
+    #пишемо окремий файл з описом днів з оригінального документу, для перевірки
     with open('drafts\\calendar\\og_header.html','w',newline='',encoding='utf8') as csvfile:
         spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
         #spamwriter.writerows([[x[0],x[1],x[10],x[7]] for x in rows])
         spamwriter.writerows([[x[0],x[1],x[8]+'<br><br>'] for x in rows])
-    #with open('new_header.html','w',newline='',encoding='utf8') as csvfile:
-    #    spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    #    spamwriter.writerows([[x[0],x[1],x[7]] for x in rows])
-
 
 
     #перевіряємо кількість днів
