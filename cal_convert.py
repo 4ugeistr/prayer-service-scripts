@@ -99,6 +99,7 @@ with open('matrices\\holiday_dictionary.csv', newline='',encoding='utf8') as csv
         holidays.append(row)
 
 def process_title(day_title):
+
     for row in holidays:
         #print(row)
         #RE_STRING=f"{row[0]}"
@@ -157,9 +158,12 @@ def find_highest_symbol_simple(title):
             cur_rank=symbol_hierarchy_simple[ch]
     return reverse_symbol_hierarchy_simple[cur_rank]
     
-def get_lent_params(date,day_symbol,day_title,paschalia_dates):
+def get_lent_params(date,day_symbol,day_title,mode):
     # return lent_color, lent_symbol
-    
+
+    paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
+
+
     is_holiday = True if day_symbol=="#" else False
 
     #Великі свята, в які піст
@@ -426,7 +430,8 @@ def beautify_reading(reading):
     reading = re.sub(reading_indicator_string_for_beautify,r'<i>\g<1></i><br>',reading)
     return reading
 
-def compile_echo_gospel(date,paschalia_dates):
+def compile_echos_gospel(date, mode):
+    paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
     #print(date)
     if date>=paschalia_dates[1]['palm_sunday']:
         return "*"
@@ -450,9 +455,9 @@ def compile_echo_gospel(date,paschalia_dates):
 
 def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     month = month_list[cur_month.capitalize()]
-    if month >= 5:
-        print('APPENDING ROWS!', cur_month, cur_day)
-        print(cur_year,cur_month,cur_day,day_title,day_readings,glas)
+    #if month >= 5:
+    #    print('APPENDING ROWS!', cur_month, cur_day)
+    #    print(cur_year,cur_month,cur_day,day_title,day_readings,glas)
 
     try:
         date=datetime.strptime(f'{cur_year}-{month:02}-{cur_day:02}','%Y-%m-%d')
@@ -474,15 +479,16 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     #day_title=day_title.replace("🕃b","🕃")
     
     #print(get_lent_params(date,day_symbol,day_title,paschalia_dates))
-    lent_color,lent_icon = get_lent_params(date,day_symbol,day_title,paschalia_dates)
+    lent_color,lent_icon = get_lent_params(date,day_symbol,day_title,mode)
 
     
     if date.weekday()+1 !=7 and glas and glas!="*":
         #???
         #print(glas, date)
-        glas = re.search(r"(Глас \d)",glas).group(1)
+        re_result = re.search(r"(Глас \d)",glas)
+        glas = re_result.group(1) if re_result else ''
 
-    glas = compile_echo_gospel(date,paschalia_dates)
+    echos_gospel = compile_echos_gospel(date, mode)
     '''
     try:
         weekday_no=date.weekday()+1
@@ -523,8 +529,9 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
          header,
          #process_title(day_title),
          beautify_reading(day_readings),
-         glas,
-         process_title(day_title)
+         echos_gospel,
+         #process_title(day_title),
+         day_title + ' ' + glas if glas else day_title
          ]
     
     '''
@@ -628,12 +635,13 @@ def clean_half_words(s):
 
 
 def validate_readings(rows):
+    print('Calculating validation')
     for row in rows:
         row.append(break_readings_segment(row[8]))
 
     for row in rows:
         row.append([])
-        for item in row[10]:
+        for item in row[11]:
             reading_details=None
 
             if item.startswith('Ап.'):
@@ -642,10 +650,11 @@ def validate_readings(rows):
                 reading_details =  process_reading(clean_half_words(item[6:]),evanhelie_list)
 
             if reading_details:
-                row[11].append(reading_details[0])
+                row[12].append(reading_details[0])
                 reading_validation_matrix.append([row[0],row[1],row[2],row[7],item,reading_details[1]])
             else:
-                row[11].append('err')
+                row[12].append('err')
+    return rows
 
 def read_csv(path):
     lst=[]
@@ -733,10 +742,10 @@ if __name__ == '__main__':
                 flag_title = False
                 day_readings = ""
                 day_title = ""
-                print(f'>>>Місяць завержено: {cur_month}')
+                #print(f'>>>Місяць завершено: {cur_month}')
 
             cur_month = re_result.group(1)
-            print(f'>>>Обробляємо місяць: {cur_month}')
+            #print(f'>>>Обробляємо місяць: {cur_month}')
 
             continue
 
@@ -772,18 +781,24 @@ if __name__ == '__main__':
             flag_title=True
 
             #Глас. Воскресне Євангеліє
+            '''
             #TODO: треба об'єднати 2 пасажі нижче в один.
 
-            re_result=re.search(r'(Глас \d\. Єв\. \d{1,2}\.)',p.text)
+            re_result=re.search(r'([Глас|Гл\.] \d\. Єв\. \d{1,2}\.)',p.text)
             if re_result:
                 glas=re_result.group(1)
                 day_title=day_title.replace(glas,"")
                 re_result=None
             #else:
             #    glas='*'
-            re_result=re.search(r'Гл. (\d\. Єв\. \d{1,2}\.)',p.text)
+            re_result=re.search(r' (\d\. Єв\. \d{1,2}\.)',p.text)
             if re_result:
                 glas = "Глас "+re_result.group(1)
+            '''
+            re_result = re.search(r'([Глас|Гл\.] \d\. Єв\. \d{1,2}\.)', p.text)
+            if re_result:
+                glas = re_result.group(1)
+
 
             #print(cur_day, day_title, glas)
             #print("c")
@@ -802,7 +817,7 @@ if __name__ == '__main__':
             continue
 
         #якщо в строці лише день - закриваємо попередній "день"
-        re_result=re.search(f'^{day_list_string}$',p.text)
+        re_result=re.search(f'^{day_list_string}(?:\s*)$',p.text)
         if re_result and day_title: #and flag_reading:
             rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
             flag_reading=False
@@ -822,8 +837,7 @@ if __name__ == '__main__':
     #цикл не обробить закінчення останнього дня, викликаємо явно
     rows.append(generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas))
 
-    #викликаємо функцію валідування читань - додає нові колонки з даними.
-    validate_readings(rows)
+
 
     #Пишемо результат в файл - без колонок валідації
     with open(csvfilename,'w',newline='',encoding='utf8') as csvfile:
@@ -877,6 +891,8 @@ if __name__ == '__main__':
     csvfile.close()
     '''
 
+    # викликаємо функцію валідування читань - додає нові колонки з даними.
+    reading_validation_matrix = validate_readings(rows)
 
     #пишемо файл для валідації читань
     with open(csvfilename,'r',newline='',encoding='utf8') as csvfile:
@@ -897,7 +913,7 @@ if __name__ == '__main__':
     with open('drafts\\calendar\\og_header.html','w',newline='',encoding='utf8') as csvfile:
         spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
         #spamwriter.writerows([[x[0],x[1],x[10],x[7]] for x in rows])
-        spamwriter.writerows([[x[0],x[1],x[8]+'<br><br>'] for x in rows])
+        spamwriter.writerows([[x[0],x[1],x[2],'<br><br>'+x[7]+' '+x[9],'<br><br>'+x[10]+'<br><br>'] for x in rows])
 
 
     #перевіряємо кількість днів

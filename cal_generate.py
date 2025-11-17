@@ -92,15 +92,15 @@ def get_special_day_strings(date):
     #week_no=paschalia.get_week(date,"","")[:2]
 
     #Субота, Неділя, Тиждень etc...
-    special_dates=[{"date":datetime(year_no,9,14),
+    special_dates=[{"date":datetime(date.year,9,14),
                      "holiday":"Воздвиженні",
                      "holiday_locative":"Воздвиженні",
                      "holiday_instrumental":"Воздвиженям"},
-                     {"date":datetime(year_no,12,25),
+                     {"date":datetime(date.year,12,25),
                      "holiday":"Різдво",
                      "holiday_locative":"Різдві",
                      "holiday_instrumental":"Різдвом"},
-                    {"date":datetime(year_no,1,6),
+                    {"date":datetime(date.year,1,6),
                      "holiday":"Богоявленні",
                      "holiday_locative":"Богоявленні",
                      "holiday_instrumental":"Богоявленням"},
@@ -120,15 +120,16 @@ def get_special_day_strings(date):
             res[-1]['text'] += '. Пам’ять святих і праведних Йосифа Обручника, Давида, царя, і Якова, брата Божого'
 
     
-    #Hardcode for 2025
+    #Hardcode for 2026
+    #TODO: break into dynamic fucntions
     #Свято Матері Божої Неустанної Помочі
-    if date == datetime(date.year,7,6):
+    if date == datetime(date.year,7,5):
         res.append({'text':"🕁 Свято Матері Божої Неустанної Помочі",'format':'ir','arbitrary_symbol':'*'})
     #Собори в липні, Жовтні
-    if date == datetime(date.year,7,13):
-        res.append({'text':"Неділя 5-та, святих отців шести Вселенських Соборів.",'format':'ir'})
-    if date == datetime(date.year,10,12):        
-        res.append({'text':"Неділя 18-та, cвятих отців Сьомого Вселенського Собору.",'format':'ir'})
+    if date == datetime(date.year,7,19):
+        res.append({'text':"Неділя 7-та, святих отців шести Вселенських Соборів.",'format':'ir'})
+    if date == datetime(date.year,10,11):
+        res.append({'text':"Неділя 19-та, cвятих отців Сьомого Вселенського Собору.",'format':'ir'})
     #if date == datetime(date.year,12,14):        
     #    res.append({'text':"Неділя 27-ма, святих Праотців",'format':'ir'})
         
@@ -138,11 +139,12 @@ def get_special_day_strings(date):
 
 def get_special_unimportant_day_strings(date):
     res = []
-    #Hardcode for 2025
+    #TODO make dynamic
+    #Hardcode for 2026
     if date == datetime(date.year,3,26):
         res.append({'text':"Віддання Благовіщення",'format':'ir'})
-    #Hardcode for 2025
-    if date == datetime(date.year,2,9):
+    #Hardcode for 2026
+    if date == datetime(date.year,2,8):
         res.append({'text':"Віддання Стрітення",'format':'ir'})
     return res
     #іноді для Стрітення теж нестандартне віддання.
@@ -290,7 +292,7 @@ if __name__ == "__main__":
 
     doc_filename = f"{year_no}_Календар_{mode}.docx"
 
-    print(paschalia.get_day_details(datetime(2024,3,3),paschalia_dates))
+    print(paschalia.get_day_details(datetime(2024,3,3),mode))
 
     doc = docx.Document()
     doc.add_heading(f"{year_no}",0)
