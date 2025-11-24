@@ -7,13 +7,13 @@ python ConvertUstav.py u Грудень Устав-Грудень.docx
 '''
 
 #MONTH = 'Січень'
-YEAR = 2025
+YEAR = 2026
 mode= 'u'
 filehtm = f"temp_{YEAR}_{mode}.html"
 #filedoc = f'ustav-{YEAR}-{mode}.docx'
 #filedoc = 
 if mode == 'u':
-    filedoc = 'Календар з уставом 2025 (новоюліанський).docx'
+    filedoc = 'Календар з уставом 2026.docx'
 elif mode == 'g':
     filedoc = "Календар з уставом 2025 (григоріанський).docx"
 
@@ -87,7 +87,7 @@ month_list_caps = {'Січень':1,
 
 month_list_string='('+'|'.join(month_list.keys())+')'
 
-day_list_string="(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)"
+day_list_string="(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Пʼятниця|Субота|Неділя)"
 
 # Перевизначаємо дефолтні (em & strong) теги для італіка та болда
 style_map = """
@@ -114,6 +114,7 @@ def reread():
     return content
 # функція для футноутів
 def move_footnotes(filehtm,content):
+    print("Running move_footnotes procedure.")
     with open(filehtm, "r",encoding='utf-8') as html_file:
         content=html_file.read()
     with open(filehtm+'_footnotes', "w",encoding='utf-8') as html_file:
@@ -134,21 +135,21 @@ def move_footnotes(filehtm,content):
     footnote_dict={}
     for item in footnote_list:
         footnote_dict[RE_FOOTNOTE.search(item).group(1)]= RE_FOOTNOTE.search(item).group(2)
-    
+    print(footnote_dict)
     #стираємо футноути вкінці файлу
     #content=re.sub('\n<p></p><ol>.*</ol>','',content,flags=re.DOTALL)
     content=re.sub('<ol>.*</ol>','',content,flags=re.DOTALL)
     content=re.sub('(<sup>)<a href="#footnote-(\d+).*?(</sup>)','\g<1><i>\g<2></i>\g<3>',content)
     #для кожного дня додаємо футноути в кінець та міняємо № на *
     #NB: без 31 грудня. 
-    days=re.findall(month_list_string+'( <b>.*?)(?=<p>'+month_list_string+')',content,flags=re.DOTALL)
+    days=re.findall('<p>'+day_list_string+'(.*?<sup>.*?)(?=<p>'+day_list_string+')',content,flags=re.DOTALL)
     print(len(days))
     for day in days:
         note_list=re.findall('<sup><i>(\d+)</i></sup>',day[1])
         if note_list:
             i=1
             asterisks='*'
-            #print(f'{day[0]} {day[1][4:6]} {note_list}')
+            print(f'{day[0]} {day[1][4:6]} {note_list}')
             day_tmp=day[1]+'<hr>'
             content=content.replace(day[1],day_tmp)
             for note in note_list:
@@ -166,6 +167,8 @@ def move_footnotes(filehtm,content):
 with open(filedoc, "rb") as docx_file:
     result = mammoth.convert_to_html(docx_file, style_map=style_map)
 with open(filehtm, "w",encoding='utf-8') as html_file:
+    html_file.write(result.value)
+with open(filehtm+'_raw.html', "w", encoding='utf-8') as html_file:
     html_file.write(result.value)
 
 # Розбиваємо файл на стрічки, попутно міняємо кутові дужки та видаляємо всі <br /> 
@@ -197,12 +200,10 @@ with open(filehtm,'r',encoding='utf-8') as f:
 
 
 # Формування fallout.html з вийнятками
-
-if mode=='g':
-    fallout_no = get_fallout(filehtm,
+fallout_no = get_fallout(filehtm,
               word="(<p>)\s*?(<i>)?\s*?(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)",
               pattern=re_pattern[mode][0])
-    print(f'{fallout_no} значень не потрапило в regexp. Див fallout.html')
+print(f'{fallout_no} значень не потрапило в regexp. Див fallout.html')
 
 # Чистимо найбільш часті криві послідовності тегів форматування
 # Наступний блок вичистить 95% фороматування для заголовків рубрик уставу ("Утреня:"...)
@@ -224,7 +225,8 @@ with open(filehtm, "r",encoding='utf-8') as html_file:
     # пусті строки
     content=re.sub('<p>(</p>)?\n','',content)
     # додаємо <hr> перед "Вечірня:"
-    content=re.sub('(<p><i>)(Вечірня|Літургія Передосвячених)','<hr>\n\g<1>\g<2>',content)
+    content = re.sub('(<p><i>)(Вечірня|Літургія Передосвячених|Перед початком вечірні|У цей день|На вечірні)','<hr>\n\g<1>\g<2>',content)
+    content = re.sub('(<p><b>)(Примітка)','<hr>\n\g<1>\g<2>', content)
     # прибираємо зайві пробіли до і після заголовку служби
     for word in word_list:
         content=re.sub(f'<i> ({word})',f' <i>\g<1>',content)
@@ -345,7 +347,7 @@ month = None
 
 if mode =="u" or mode=='g':
     for line in file_lines:        
-        re_result = re.search('<h1>(?:<b>)?'+month_list_string,line)
+        re_result = re.search('(?:<h1>|<p>)(?:<b>)?'+month_list_string,line)
         if re_result:
             month = month_list[re_result.group(1)]
             print("Found month", month, line)
@@ -356,13 +358,13 @@ if mode =="u" or mode=='g':
         re_result=re.search("^<p>"+day_list_string,line)
         if re_result and file:
             file.close()
-            #print("closing named_day")
+            #print("closing named_day:\n", line )
 
         re_result= re.search('^<p>(?:<b>)?(\d{1,2})',line)
         if re_result and month:        
             #print("Found day", line)
             day = int(re.search('^<p>(?:<b>)?(\d{1,2})(.*)',line)[1])
-            header = re.search('^<p>(?:<b>)?(\d{1,2})(.*)',line)[2].strip()
+            header = re.sub(r'^(<p>)(<b>)?(\d{1,2}\s)(.*)',r'\g<1>\g<2>\g<4>',line)
             if file:
                 file.close()
                 #print("closing day")
@@ -413,7 +415,7 @@ def zip_html_files(YEAR, mode_modifier):
                     if file.endswith('.html'):
                         file_path = os.path.join(root, file)
                         zipf.write(file_path, os.path.relpath(file_path, folder_path))
-        print("Zipped", f'{folder_path}\\files.zip')
+        #print("Zipped", f'{folder_path}\\files.zip')
 
 zip_html_files(YEAR, mode_modifier)
 

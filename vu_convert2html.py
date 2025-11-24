@@ -78,6 +78,7 @@ for filehtml in html_files:
         file_content = re.sub('<p>(<b>)?(<i>)?Мирна .ктенія(</i>)?(</b>)?</p>','<h3><b><i>Велика єктенія</i></b></h3>',file_content)
         file_content = re.sub('<p>(<b>)?(<i>)?Утренні молитви(</i>)?(</b>)?</p>','<h3><b><i>Утренні молитви</i></b></h3>',file_content)
         file_content = re.sub('<p>(<b>)?(<i>)?Канон(</i>)?(</b>)?</p>','<h2><b><i>Канон</i></b></h2>',file_content)
+
     with open(temppath+'/'+filehtml, 'w', encoding='utf-8') as f:
         f.write(file_content)    
     with open(temppath+'/'+filehtml, 'r', encoding='utf-8') as f:
@@ -89,7 +90,6 @@ for filehtml in html_files:
 
                 # очистка сміття типу <a id="_Hlk12345678"></a>
                 line = re.sub(re.compile('<a id="_.*?</a>'), '', line)
-
                 if islist:
                     line = line.replace('p>','li>')
                     linestart = line.find('.') + 1
@@ -109,7 +109,9 @@ for filehtml in html_files:
                     line = '<h3 id="magnificat"><b><i>Пісня Богородиці</i></b></h3>'
                 if line.find('Канон') != -1 and line.find('<h2>') != -1:
                     line += '<i>(Якщо скорочується Канон, перейди до <a href="#magnificat">Пісня Богородиці</a>).</i>\n'
-                
+                #чистимо позначки авторства
+                if line.find('<sup>') != -1:
+                    line = re.sub('<sup>.*?</sup>',"",line)
                 
                 if line.startswith('<li></li>'):
                     print(f'УВАГА: щось пішло не так. Перевірити {filehtml}')
