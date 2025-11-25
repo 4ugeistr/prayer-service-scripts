@@ -1,4 +1,10 @@
-import sys, os, re, mammoth, logging, zipfile
+import os, re, mammoth, logging, zipfile
+import docx
+from docx.enum.text import WD_COLOR_INDEX
+from docx.shared import RGBColor
+from docx.enum.style import WD_STYLE_TYPE
+from mammoth.documents import document
+
 logging.basicConfig(filename='dates.log', filemode='w', format='%(message)s', level=logging.DEBUG)
 
 '''
@@ -93,8 +99,34 @@ day_list_string="(Понеділок|Вівторок|Середа|Четвер|
 style_map = """
 i => i
 b => b
+highlight[color='yellow'] => span
+highlight[color='red'] => strong
 """
+#strike => span
+#r[style-name='RedText_Char'] => strong
 
+def apply_red_text_style(filename):
+    #tmp_style = 'tmp_RedText'
+    doc = docx.Document(filename)
+    #char_style = doc.styles.add_style(tmp_style, WD_STYLE_TYPE.CHARACTER)
+    #char_style.font.color.rgb = RGBColor(0xFF, 0x00, 0x00) # Red
+
+    for p in doc.paragraphs:
+        for r in p.runs:
+            # текст червоним кольором => span
+            if r.font.color.rgb == RGBColor(0xFF,0x00,0x00) and not r.font.italic and not r.font.bold:
+                #r.style = doc.styles["RedText_Char"]
+                #r.font.strike = True
+                r.font.highlight_color = WD_COLOR_INDEX.YELLOW
+
+            # текст жирним червоним кольором => strong
+            elif r.font.color.rgb == RGBColor(0xFF,0x00,0x00) and not r.font.italic and r.font.bold:
+                r.font.highlight_color = WD_COLOR_INDEX.RED
+
+    new_filename = filename.split('.')[0] + '_additional_styles.docx'
+    #print(new_filename)
+    doc.save(new_filename)
+    return new_filename
 
 # Функція зливає в fallout.html рядки з помилками чи нестандартним форматуванням.
 def get_fallout(filehtm, word=word_list[0], pattern=re_pattern['g'][0]):
@@ -161,15 +193,27 @@ def move_footnotes(filehtm,content):
                 asterisks+='*'        
     with open(filehtm, "w",encoding='utf-8') as html_file:
         html_file.write(content)
-    
 
+#застосовуємо додатковий стиль
+filedoc_new = apply_red_text_style(filedoc)
+#print(filedoc_new)
+#filedoc_new = "Календар з уставом 2026_additional_styles.docx"
 # Конвертуємо док в тичасовий великий хтмл
-with open(filedoc, "rb") as docx_file:
-    result = mammoth.convert_to_html(docx_file, style_map=style_map)
+with open(filedoc_new, "rb") as docx_file:
+    content = mammoth.convert_to_html(docx_file, style_map=style_map).value
+
+#видаляємо тимчасовий docx файл
+os.remove(filedoc_new)
+
+#прибираємо span із заголовків днів
+content = re.sub(f'<p><span>{day_list_string}</span></p>','<p>\g<1></p>',content)
+
+
+
 with open(filehtm, "w",encoding='utf-8') as html_file:
-    html_file.write(result.value)
+    html_file.write(content)
 with open(filehtm+'_raw.html', "w", encoding='utf-8') as html_file:
-    html_file.write(result.value)
+    html_file.write(content)
 
 # Розбиваємо файл на стрічки, попутно міняємо кутові дужки та видаляємо всі <br /> 
 with open(filehtm, 'r',encoding='utf-8') as f:
@@ -224,6 +268,11 @@ with open(filehtm, "r",encoding='utf-8') as html_file:
     content=re.sub('<p> *<i>','<p><i>',content)
     # пусті строки
     content=re.sub('<p>(</p>)?\n','',content)
+
+    # b + strong = strong
+    content = re.sub('<b><strong>', '<strong>', content)
+    content = re.sub('</strong></b>', '</strong>', content)
+
     # додаємо <hr> перед "Вечірня:"
     content = re.sub('(<p><i>)(Вечірня|Літургія Передосвячених|Перед початком вечірні|У цей день|На вечірні)','<hr>\n\g<1>\g<2>',content)
     content = re.sub('(<p><b>)(Примітка)','<hr>\n\g<1>\g<2>', content)
@@ -360,11 +409,12 @@ if mode =="u" or mode=='g':
             file.close()
             #print("closing named_day:\n", line )
 
-        re_result= re.search('^<p>(?:<b>)?(\d{1,2})',line)
+        re_result= re.search('^<p>(?:<b>|<span>)?(\d{1,2})',line)
         if re_result and month:        
             #print("Found day", line)
-            day = int(re.search('^<p>(?:<b>)?(\d{1,2})(.*)',line)[1])
-            header = re.sub(r'^(<p>)(<b>)?(\d{1,2}\s)(.*)',r'\g<1>\g<2>\g<4>',line)
+            day = int(re.search('^<p>(?:<b>|<span>)?(\d{1,2})(.*)',line)[1])
+            header = re.sub(r'^(<p>)(<b>|<span>)?(\d{1,2}\s)(.*)',r'\g<1>\g<2>\g<4>',line)
+            header = re.sub('<span></span>', '', header)
             if file:
                 file.close()
                 #print("closing day")
