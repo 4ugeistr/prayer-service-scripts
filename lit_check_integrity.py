@@ -146,7 +146,7 @@ def checkLiturgyIntegrity(docx_filename):
       
    for k,day in history.items():
       if day['integrity']=='NOK':
-         print("Потребує увагу, один з днів може бути пошкоджену структуру.")
+         print("Потребує уваги, один з днів може бути пошкоджену структуру.")
          #raise Exception
    return history, optional_tag_summary
 
