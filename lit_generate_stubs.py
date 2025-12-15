@@ -15,8 +15,8 @@ mode_dict={'u':'Юл',
 #select month
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
-month_no=12
-print("WARNING. Month_no OVERRIDE", month_no)
+#month_no=12
+#print("WARNING. Month_no OVERRIDE", month_no)
 
 month_dic = {'Січень':1,
               'Лютий':2,
@@ -387,6 +387,6 @@ if __name__ == "__main__":
 
         
     mode_new = 'ГР' if mode=='g' else "НЮ"
-    new_doc.save(f'drafts\\liturgy\\{month_no:02}-Літургія-{mode_new}.docx')
+    new_doc.save(f'..\\ps_drafts\\liturgy\\{month_no:02}-Літургія-{mode_new}.docx')
 
 print("Done!")
