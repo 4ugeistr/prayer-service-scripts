@@ -7,8 +7,15 @@ from datetime import datetime
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 #month = 'Березень'
-#month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
-month_no = 12
+
+month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
+
+'''
+month_no=1
+year_no=2026
+print(f"WARNING: MONTH OVERRIDE!")
+print(f"Processing month: {year_no}-{month_no}")
+'''
 
 month_dic= {'Січень':1,
               'Лютий':2,

@@ -1,4 +1,5 @@
 import re,glob,calendar,docx,os,easygui, shutil, csv,copy
+import sys
 
 import ps_docx_utils as pdu
 from easygui_timerbox import timerbox
@@ -10,6 +11,11 @@ import get_saints
 
 from vu_rebuild_octoechos_templates import get_vu_octoechos_variable_parts_from_template as get_octoechos
 from vu_rebuild_octoechos_templates import get_template_part_text as get_octoechos_part
+
+from guppy import hpy
+h = hpy()
+
+start_time = datetime.now()
 
 RGB_RED = RGBColor(0xff, 0x00, 0x00)
 
@@ -24,13 +30,14 @@ month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
 
-month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, month_no-1], time=5)
-#TODO: add adjustment for jan
+month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
 
-#month_no=1
-#print(f"WARNING: MONTH OVERRIDE!")
-#print(f"Processing month: {month_no}")
-
+'''
+month_no=1
+year_no=2026
+print(f"WARNING: MONTH OVERRIDE!")
+print(f"Processing month: {year_no}-{month_no}")
+'''
 
 
 day_short_dic={"ПН":1,
@@ -518,8 +525,6 @@ def insert_prokimenon(path,day):
     doc.save(path)
 
 def insert_boh_hospod_echos(path,date):
-    paschalia_dates = paschalia.get_prev_next_pascha(date, mode)
-    #print(date.day)
     doc = docx.Document(path)
     for p in doc.paragraphs:
         re_result = re.search("Бог Господь",p.text)
@@ -629,7 +634,6 @@ def get_troparia_theotokion(echos, date, service):
     #return list(filter(lambda t: t['service'] == service and t['weekday'] == date.weekday()+1, templates_theotokion_dic[echos]))[0]["p"]
 
 def get_troparia_block(date,service):
-    paschalia_dates = paschalia.get_prev_next_pascha(date, mode)
     #if date.day!=1:
     #    return 0
     
@@ -1154,10 +1158,9 @@ def insert_kanon(path,date):
     doc.save(path)
 
 def insert_resurrection_gospel_parts(path,date):
-    paschalia_dates = paschalia.get_prev_next_pascha(date, mode)
     doc = docx.Document(path)
     
-    gospel_no = paschalia.get_resurrection_gospel(date,paschalia_dates)
+    gospel_no = paschalia.get_resurrection_gospel(date,mode)
 
     gospel_stichera_label_found = None
 
@@ -1197,7 +1200,7 @@ def insert_resurrection_gospel_parts(path,date):
 
     doc.save(path)
 
-folder_name=f'drafts\\vu\\{year_no}-{month_no:02}-{mode}'
+folder_name=f'..\\ps_drafts\\vu\\{year_no}-{month_no:02}-{mode}'
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
 
@@ -1230,7 +1233,6 @@ def get_polyeleos_saints_for_filename(month,day,multiline=False):
     return saint_string
 
 draft_dic={}
-#paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
 
 def create_stubs():
 
@@ -1241,7 +1243,6 @@ def create_stubs():
     #for d in range(1,5):    
         draft_dic[d]=[]
         print("Дата:",d,datetime(year_no, month_no, d).weekday()+1,mode)
-        paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no, d), mode)
         day_details = paschalia.get_day_details(datetime(year_no,month_no,d),mode)
         print(d, day_details)
         filename_triodion_row = None
@@ -1474,21 +1475,36 @@ else:
 
 
 vespers_prokimenon = get_vespers_prokimenon(f'docx_resources/Вечірня-Утреня/vu_прокімени.docx')
+print("vespers_prokimenon",sys.getsizeof(vespers_prokimenon))
+
 templates_theotokion_dic = get_theotokion_troparia_texts(
     'docx_resources/Вечірня-Утреня/vu_богородичні-тропарі.docx')
+print("templates_theotokion_dic",sys.getsizeof(templates_theotokion_dic))
+
 templates_kanon_dic = get_octoechos_kanon_texts('docx_resources/Вечірня-Утреня/05a_ОКТОЇХ_КАНОНИ.docx')
+print("templates_kanon_dic",sys.getsizeof(templates_kanon_dic))
+
 kanon_litany_list = get_kanon_litany("docx_resources/Вечірня-Утреня/Канон - Мала єтенія.docx")
+
 stichera_matrix = get_stichera.get_stichera_matrix(
     glob.glob(f'docx_resources/Стихири - Мінея/Мінея_{month_no:02}*.docx')[0])
+print("stichera_matrix",sys.getsizeof(kanon_litany_list))
+
 generic_stichera_matrix = get_stichera.get_generic_stichera_matrix(
     'docx_resources/Вечірня-Утреня/Стихири ГВ загальної служби.docx')
+print("generic_stichera_matrix", sys.getsizeof(generic_stichera_matrix))
+
 resurrection_gospel_matrix = get_stichera.get_resurrection_gospel_matrix(
     "docx_resources/Вечірня-Утреня/11-ВОСКРЕСНІ ЄВАНГЕЛІЯ.docx")
+print("resurrection_gospel_matrix",sys.getsizeof(resurrection_gospel_matrix))
+
 lent_trinity_troparia, lent_exapostolaria = get_trinity_troparia_lenten_exapostolaria(
     r'docx_resources\Вечірня-Утреня\13-ТРОЇЧНІ ТРОПАРІ - СВІТИЛЬНІ.docx')
+print("lent_trinity_troparia, lent_exapostolaria", sys.getsizeof(lent_trinity_troparia)+sys.getsizeof(lent_trinity_troparia)  )
+
 
 # dogmatika = get_stichera.get_dogmatika("Догмати.docx")
-
+print(f"Finished building dictionaries: {(datetime.now() - start_time).total_seconds()}")
 
 choice_list=[
     "1. Згенерувати чернетки",
@@ -1497,7 +1513,10 @@ choice_list=[
     "4. Оновити троїчні тропарі та Світильні"
 ]
 
+#@profile
 if __name__ == "__main__":
+    start_time = datetime.now()
+    print(h.heap())
 
     action = easygui.choicebox('Виберіть операцію:', 'Вибір операції', choice_list)
     #action="1"
@@ -1540,4 +1559,6 @@ if __name__ == "__main__":
     else:
         print("Нічого не вибрано.")
     print("All done!")
+    print(f"Time spent: {(datetime.now() - start_time).total_seconds()}")
+
 
