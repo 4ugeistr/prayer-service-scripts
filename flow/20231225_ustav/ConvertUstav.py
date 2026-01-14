@@ -14,14 +14,14 @@ python ConvertUstav.py u Грудень Устав-Грудень.docx
 
 #MONTH = 'Січень'
 YEAR = 2026
-mode= 'u'
+mode= 'g'
 filehtm = f"temp_{YEAR}_{mode}.html"
 #filedoc = f'ustav-{YEAR}-{mode}.docx'
 #filedoc = 
 if mode == 'u':
     filedoc = 'Календар з уставом 2026.docx'
 elif mode == 'g':
-    filedoc = "Календар з уставом 2025 (григоріанський).docx"
+    filedoc = "Календар з уставом 2026 (григоріанський).docx"
 
 '''
 if len(sys.argv)>1:
@@ -194,8 +194,16 @@ def move_footnotes(filehtm,content):
     with open(filehtm, "w",encoding='utf-8') as html_file:
         html_file.write(content)
 
+'''
+поки виключаємо використання цієї функції, робить більше шкоди.
+треба змінити щоб було лиш для заголовків, і робило цю зміну не для документу а по ходу обробки 
+
 #застосовуємо додатковий стиль
 filedoc_new = apply_red_text_style(filedoc)
+
+'''
+filedoc_new = filedoc
+
 #print(filedoc_new)
 #filedoc_new = "Календар з уставом 2026_additional_styles.docx"
 # Конвертуємо док в тичасовий великий хтмл

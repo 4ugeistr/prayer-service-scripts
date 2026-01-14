@@ -95,6 +95,7 @@ def checkLiturgyIntegrity(docx_filename):
                   else:
                      history[cur_date][item]+='>'
 
+   print(history)
    print(f'Файл: {docx_filename}\n')
 
    optional_tag_summary={}
@@ -117,6 +118,7 @@ def checkLiturgyIntegrity(docx_filename):
                if not '>' in day[item]:
                   print(f'День {k}: пропущено закриваючий </{item}>')
                   day['integrity']='NOK'
+
                      
          #підсумки по опціональному набору міток
          for item in list_of_tags_optional:
@@ -134,8 +136,11 @@ def checkLiturgyIntegrity(docx_filename):
                      optional_tag_summary[item]=[k]
                   else:
                      optional_tag_summary[item]+=[k]
+         for item in day:
+             if not item in ('ustav', 'integrity') and day[item]!='<>':
+                 print(f"Day: {k}, item: {item} - structure might be corrupted.")
+                 day['integrity'] = 'NOK'
 
-         
       else:
          print(f'День {k}: немає Літургії або відсутній <ustav>')
          day['integrity']='NOK'
@@ -146,7 +151,7 @@ def checkLiturgyIntegrity(docx_filename):
       
    for k,day in history.items():
       if day['integrity']=='NOK':
-         print("Потребує уваги, один з днів може бути пошкоджену структуру.")
+         print(f"Потребує уваги. День {k} може мати пошкоджену структуру.")
          #raise Exception
    return history, optional_tag_summary
 
@@ -171,7 +176,12 @@ def initDateCalendar():
 
 if __name__ == "__main__":
    month_no, cur_month, mode, mode_suffix = initDateCalendar()
-   docx_filename=f'drafts\\liturgy\\{month_no:02}-Літургія-{mode_suffix.upper()}.docx'
+   #docx_filename=f'drafts\\liturgy\\{month_no:02}-Літургія-{mode_suffix.upper()}.docx'
+   docx_filename = easygui.fileopenbox(
+       title="Select a .docx file",
+       filetypes=["*.docx"],
+       default="*.docx"
+   )
 
    checkLiturgyIntegrity(docx_filename)
    

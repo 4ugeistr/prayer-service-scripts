@@ -116,8 +116,10 @@ def transform_readings(k,s):
     #print(k,'before=',s)
     return s
     
+print(f"Укладаємо коди читань для {year_no}-{month_no}")
+print(f"Обробляємо файл: c1_{mode}.txt")
 
-with open('c1_'+mode+'.txt','r',encoding='utf8') as f:
+with open(f'c1_{mode}.txt','r',encoding='utf8') as f:
     lines = f.readlines()
 #lines = restore_format(lines)
 lines = [re.sub(r'(\d{2}\|\d\|\d\|\d\|\d\|)(.)(.*)',r'\g<1>\g<2>|\g<3>',line) for line in lines]
@@ -154,6 +156,13 @@ def normalize(arr, n=2):
     if len(arr)<n:
         arr+=['']*(n-len(arr))
     return arr
+
+
+
+
+
+
+
 
 for k,v in lines_dict.items():
     #print(k,v['readings'])

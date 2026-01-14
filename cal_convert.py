@@ -9,23 +9,23 @@ RGB_RED = RGBColor(255, 0, 0)
 RGB_BLACK = RGBColor(0, 0, 0)
 RGB_GRAY = RGBColor(0x3c, 0x40, 0x43)
 
-'''
+
 #якщо підтримуємо 2 календарі
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
 if mode == 'u':
     docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2026.docx'
-    csvfilename='..\\ps_drafts\\calendar\\calendar25.txt'
+    csvfilename='..\\ps_drafts\\calendar\\calendar26.txt'
 elif mode == 'g':
-    docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2025 (григоріанський).docx'
-    csvfilename='..\\ps_drafts\\calendar\\calendar25n.txt'
-'''
+    docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2026 (григоріанський).docx'
+    csvfilename='..\\ps_drafts\\calendar\\calendar26n.txt'
 
+'''
 #якщо один календар
 mode='u'
 docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2026.docx'
 csvfilename='..\\ps_drafts\\calendar\\calendar26.txt'
-
+'''
 csv_reading_validation_filename = '..\\ps_drafts\\calendar\\reading_validation.csv'
 
 doc = docx.Document(docx_filename)
