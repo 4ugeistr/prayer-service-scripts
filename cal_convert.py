@@ -15,18 +15,18 @@ mode = easygui.choicebox('u - Юліанський, g - Григоріанськ
 
 if mode == 'u':
     docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2026.docx'
-    csvfilename='drafts\\calendar\\calendar25.txt'
+    csvfilename='..\\ps_drafts\\calendar\\calendar25.txt'
 elif mode == 'g':
     docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2025 (григоріанський).docx'
-    csvfilename='drafts\\calendar\\calendar25n.txt'
+    csvfilename='..\\ps_drafts\\calendar\\calendar25n.txt'
 '''
 
 #якщо один календар
 mode='u'
 docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2026.docx'
-csvfilename='drafts\\calendar\\calendar26.txt'
+csvfilename='..\\ps_drafts\\calendar\\calendar26.txt'
 
-csv_reading_validation_filename = 'drafts\\calendar\\reading_validation.csv'
+csv_reading_validation_filename = '..\\ps_drafts\\calendar\\reading_validation.csv'
 
 doc = docx.Document(docx_filename)
 
@@ -855,11 +855,11 @@ if __name__ == '__main__':
                 print(f'Error, p={i}: ',p.text)
                 print(row)
                 raise e
-    '''
-    ПОМІСЯЧНИЙ КАЛЕНДАР - OBSOLETE
+
+    #ПОМІСЯЧНИЙ КАЛЕНДАР - OBSOLETE
 
     #folder prefix
-    fp = 'drafts\\calendar\\calendar_monthly'
+    fp = '..\\ps_drafts\\calendar\\calendar_monthly'
     #mode for director
     md = '' if mode =='u' else 'n'
 
@@ -889,7 +889,7 @@ if __name__ == '__main__':
         #spamwriter.writerow([str_to_insert])
         csvfile.write(str_to_insert)
     csvfile.close()
-    '''
+
 
     # викликаємо функцію валідування читань - додає нові колонки з даними.
     reading_validation_matrix = validate_readings(rows)
@@ -910,7 +910,7 @@ if __name__ == '__main__':
         #item[10]=item[10].replace('<br>','\n')
 
     #пишемо окремий файл з описом днів з оригінального документу, для перевірки
-    with open('drafts\\calendar\\og_header.html','w',newline='',encoding='utf8') as csvfile:
+    with open('..\\ps_drafts\\calendar\\og_header.html','w',newline='',encoding='utf8') as csvfile:
         spamwriter=csv.writer(csvfile,delimiter='|',quotechar='"', quoting=csv.QUOTE_MINIMAL)
         #spamwriter.writerows([[x[0],x[1],x[10],x[7]] for x in rows])
         spamwriter.writerows([[x[0],x[1],x[2],'<br><br>'+x[7]+' '+x[9],'<br><br>'+x[10]+'<br><br>'] for x in rows])
