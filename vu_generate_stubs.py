@@ -21,8 +21,8 @@ RGB_RED = RGBColor(0xff, 0x00, 0x00)
 
 
 #filenames= glob.glob('*/*/*.txt')
-#mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
-mode='u'
+mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
+#mode='u'
 
 
 
@@ -1455,9 +1455,9 @@ troparia_resurrection = get_resurrection_troparia_texts('docx_resources/воск
 troparia_menaion_filename = f'{month_w_offset[month_no - 1]:02}-{month_dic_reversed[month_no].upper()}.docx'
 troparia_menaion = get_menaion_troparia_texts(glob.glob(f'docx_resources/Тропарі - Мінея/{troparia_menaion_filename}')[0])
 
-if glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_Тріоді\\тріодь-{month_no:02}.docx'):
+if glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_Тріоді\\тріодь-{month_no:02}-{mode_suffix2}.docx'):
     troparia_triodion = get_menaion_troparia_texts(
-        glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_Тріоді\\тріодь-{month_no:02}.docx')[0])
+        glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_Тріоді\\тріодь-{month_no:02}-{mode_suffix2}.docx')[0])
 else:
     troparia_triodion = None
 
