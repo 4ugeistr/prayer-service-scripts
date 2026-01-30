@@ -301,7 +301,7 @@ if __name__== "__main__":
 
     dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
 
-    paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
+    #paschalia_dates = paschalia.get_prev_next_pascha(datetime(year_no, month_no,1), mode)
     hours_matrix = get_hours_matrix()
 
     if not os.path.exists('drafts'):
@@ -315,6 +315,7 @@ if __name__== "__main__":
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         #print(d,datetime(year_no, month_no, d).weekday()+1)
         day_details = paschalia.get_day_details(datetime(year_no,month_no,d),mode)
+        if
         expected_triodion_template_path=f"lent-triodion\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
         expected_pascha_template_path=f"pascha\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
         expected_pentecostarion_template_path=f"pentecost\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
@@ -334,6 +335,8 @@ if __name__== "__main__":
         elif day_details[0]=='pentecost' and expected_pentecostarion_template_path in pentecostarion_templates:
             template = expected_pentecostarion_template_path
             #shutil.copy2(expected_pentecostarion_template_path,dest_filename)
+
+        #elif day_details[0]=='pentecost' and expected_triodion_template_path
 
         elif ordo_matrix[d][1]=='y' or datetime(year_no, month_no, d).weekday()+1==7:
             template = template_file_list[7]
