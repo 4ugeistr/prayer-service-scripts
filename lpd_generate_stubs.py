@@ -1,4 +1,5 @@
 import re, easygui, calendar, glob,shutil,os,docx,csv
+from easygui_timerbox import timerbox
 from datetime import datetime
 from docx.shared import RGBColor
 import paschalia
@@ -13,6 +14,8 @@ RED='r'
 
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
+
+month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
@@ -163,11 +166,10 @@ elif mode == 'g':
     mode_suffix='Гр'
 
 if __name__ == "__main__":
+    dismissal_matrix = get_dismissal_matrix(f'matrices/Відпусти{mode_suffix}.csv', month_no)
 
-    dismissal_matrix = get_dismissal_matrix(f'matrices/Відпусти{mode_suffix}.csv',month_no)
-    
-    stub_dic={}
-    folder= f'drafts\\lpd\\{year_no}-{month_no:02}-{mode}-lpd'
+    stub_dic = {}
+    folder= f'..\\ps_drafts\\lpd\\{year_no}-{month_no:02}-{mode}-lpd'
     #os.makedirs('drafts', exist_ok=True)
     os.makedirs(folder, exist_ok=True)
 
@@ -176,9 +178,10 @@ if __name__ == "__main__":
 
         #stub_dic[d]=None
 
-        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),'u')
+        day_details = paschalia.get_day_details(datetime(year_no,month_no,d),mode)
         #expected_template_path = f"ЛПД\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}-ЛПД.docx"
         expected_template_path = f"docx_resources\\ЛПД\\{day_details[1]} тиждень\\{day_details[1]}т_{day_details[3]}-ЛПД.docx"
+
         if expected_template_path in lpd_templates and day_details[0]=='lent':
             filename=folder+f'\\{d:02}.{month_no:02}-{day_details[1]}т_{day_details[3]}-ЛПД.docx'
             shutil.copy2(expected_template_path, filename)
