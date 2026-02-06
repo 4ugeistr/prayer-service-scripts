@@ -289,7 +289,8 @@ def insert_dismissal(path,date):
 
 if __name__== "__main__":
     ordo_matrix = get_matrix(f"Часи_{mode_dic_reversed[mode]}.csv")
-    lent_triodion_templates = glob.glob('lent-triodion/*/*.docx')
+    lent_triodion_templates = glob.glob('triodion-lent/*/*.docx')
+    lent_triodion_preparation_templates = glob.glob('triodion-lent-preparation/*/*.docx')
     pentecostarion_templates = glob.glob('pentecost/*/*.docx')
     pascha_templates = glob.glob('pascha/*/*.docx')
     templates_resurrection = get_resurrection_template_texts('воскресні.docx')
@@ -315,10 +316,15 @@ if __name__== "__main__":
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         #print(d,datetime(year_no, month_no, d).weekday()+1)
         day_details = paschalia.get_day_details(datetime(year_no,month_no,d),mode)
-        if
-        expected_triodion_template_path=f"lent-triodion\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
-        expected_pascha_template_path=f"pascha\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
-        expected_pentecostarion_template_path=f"pentecost\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
+
+        if day_details[0] == 'pentecost' and day_details[2]:
+            expected_triodion_template_path=f"triodion-lent-preparation\\тиждень-{day_details[2]}\\{day_details[2]}-{day_details[3]}.docx"
+    
+        elif day_details[0]=='lent':
+            expected_triodion_template_path=f"triodion-lent\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
+        
+        expected_pascha_template_path=f"triodion-pascha\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
+        expected_pentecostarion_template_path=f"triodion-pentecost\\тиждень-{day_details[1]}\\{day_details[1]}-{day_details[3]}.docx"
 
         dest_filename=f'{folder_name}\\{d:02}.{month_no:02}.docx'
         template=None
@@ -328,15 +334,12 @@ if __name__== "__main__":
 
         if day_details[0]=='lent' and expected_triodion_template_path in lent_triodion_templates and (day_details[3] in (1,2,3,4,5,6) or (day_details[1] in (6,7) and day_details[3]==7)):
             template = expected_triodion_template_path
-            #shutil.copy2(expected_triodion_template_path,dest_filename)
         elif day_details[0]=='pascha' and expected_pascha_template_path in pascha_templates:
             template = expected_pascha_template_path
-            #shutil.copy2(expected_pentecostarion_template_path,dest_filename)
+        elif day_details[0]=='pentecost' and expected_triodion_template_path in lent_triodion_preparation_templates:
+            template = expected_triodion_template_path
         elif day_details[0]=='pentecost' and expected_pentecostarion_template_path in pentecostarion_templates:
             template = expected_pentecostarion_template_path
-            #shutil.copy2(expected_pentecostarion_template_path,dest_filename)
-
-        #elif day_details[0]=='pentecost' and expected_triodion_template_path
 
         elif ordo_matrix[d][1]=='y' or datetime(year_no, month_no, d).weekday()+1==7:
             template = template_file_list[7]
@@ -345,7 +348,8 @@ if __name__== "__main__":
             template = template_file_list[datetime(year_no, month_no, d).weekday()+1]
             #shutil.copy2(template_file_list[datetime(year_no, month_no, d).weekday()+1],dest_filename)
         #print(f"{d:02}", day_details, expected_pascha_template_path if day_details=='pascha' else expected_pentecostarion_template_path)
-        #print("template: ",template)
+        print(d,"template: ",template)
+        print(day_details)
         shutil.copy2(template,dest_filename)
     print("Stub files created.")
 
