@@ -1,4 +1,5 @@
 import re, docx, csv, easygui, glob, os, calendar, shutil
+from easygui_timerbox import timerbox
 from datetime import datetime
 import paschalia
 from docx.shared import RGBColor, Pt
@@ -20,8 +21,7 @@ mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-#month_no = 3
-#print("WARNING. Month_no OVERRIDE", month_no)
+month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
 
 month_dic= {'Січень':1,
               'Лютий':2,
@@ -348,6 +348,11 @@ if __name__== "__main__":
             template = template_file_list[datetime(year_no, month_no, d).weekday()+1]
             #shutil.copy2(template_file_list[datetime(year_no, month_no, d).weekday()+1],dest_filename)
         #print(f"{d:02}", day_details, expected_pascha_template_path if day_details=='pascha' else expected_pentecostarion_template_path)
+
+        #Exception for GR Feb-24
+        if mode == 'g' and month_no == 2 and d == 24:
+            template = template_file_list[7]
+
         print(d,"template: ",template)
         print(day_details)
         shutil.copy2(template,dest_filename)
