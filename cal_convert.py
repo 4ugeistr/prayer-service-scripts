@@ -157,9 +157,19 @@ def find_highest_symbol_simple(title):
         if ch in symbol_hierarchy_simple and symbol_hierarchy_simple[ch]<cur_rank:
             cur_rank=symbol_hierarchy_simple[ch]
     return reverse_symbol_hierarchy_simple[cur_rank]
-    
+
+''' 
+return lent_color, lent_symbol
+'''
 def get_lent_params(date,day_symbol,day_title,mode):
-    # return lent_color, lent_symbol
+
+    #константи, які треб зробити динамічними або міняти щороку
+
+
+
+
+
+
 
     paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
 
@@ -207,8 +217,8 @@ def get_lent_params(date,day_symbol,day_title,mode):
     
     #загальниця від Різдва до Богоявління (ПТ???)
     is_rizdvo_zahalnytsja = (date >= datetime(date.year,12,26) and date<=datetime(date.year,12,31)) or (date >= datetime(date.year,1,1) and date<=datetime(date.year,1,4))
-    #загальниця між Неділею Блудного сина та Неділею Митаря та Фарисея
-    is_period_before_great_lent = (date >= paschalia_dates[1]['meatfare_sunday'] - timedelta(days=7*2-1) and date<=datetime(date.year,2,15))
+    #загальниця між Неділею Блудного сина та Неділею Митаря та Фарисея. ПЕРЕВІРИТИ!
+    is_period_before_great_lent = (date >= paschalia_dates[1]['meatfare_sunday'] - timedelta(days=7*2-1) and date <= paschalia_dates[1]['meatfare_sunday'] - timedelta(days=7*1))
     #загальниця Світлого тижня
     is_pascha_week = (date >= paschalia_dates[0]['pascha']+timedelta(days=1) and date<=paschalia_dates[0]['pascha']+timedelta(days=6))
     #загальниця тижня по 50-ці
