@@ -16,12 +16,12 @@ month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
 month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
-
+'
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
 if mode == 'u':
     mode_suffix='Юл'
-    mode_suffix2='НЮ'
+    mode_suffix2='НЮ
 elif mode == 'g':
     mode_suffix='Гр'
     mode_suffix2='ГР'

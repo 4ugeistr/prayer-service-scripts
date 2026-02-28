@@ -92,7 +92,7 @@ for filehtml in html_files:
                 # очистка сміття типу <a id="_Hlk12345678"></a>
                 line = re.sub(re.compile('<a id="_.*?</a>'), '', line)
                 # очистка <strong>
-                line = re.sub(re.compile(r'<strong>(.*)</strong>'), '\g<1>', line)
+                line = re.sub(re.compile(r'<strong>(.*)</strong>'), r'\g<1>', line)
                 if islist:
                     line = line.replace('p>','li>')
                     linestart = line.find('.') + 1

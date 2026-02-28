@@ -192,9 +192,9 @@ for k,v in lines_dict.items():
     for r in res:
         print(r)
         if r in list_of_headings_to_ignore:
-            print(f"Removing {r} from {res2}")
+            #print(f"Removing {r} from {res2}")
             res2.remove(r)
-            print(f"Removed: {res2}")
+            #print(f"Removed: {res2}")
 
     v['array']+=normalize(res2)
         
@@ -308,7 +308,7 @@ for k,v in lines_dict.items():
 #for k,v in lines_dict.items():  
 #    print(k,v['array'])
 
-with open(f'{year_no}-{month_no}-{mode}.csv','w', newline='', encoding='utf-8') as csvfile:
+with open(f'csv\\{year_no}-{month_no}-{mode}.csv','w', newline='', encoding='utf-8') as csvfile:
     csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"')
     for k,v in lines_dict.items():  
         csvwriter.writerow(v['array_transformed'])
@@ -326,7 +326,7 @@ for k,item in lines_dict.items():
         if validation_line[6]:
             validation_matrix.append(validation_line)
 
-with open(f'{year_no}-{month_no}-{mode}_VAL.csv','w', newline='', encoding='utf-8') as csvfile:
+with open(f'csv\\{year_no}-{month_no}-{mode}_VAL.csv','w', newline='', encoding='utf-8') as csvfile:
     csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"')
     for row in validation_matrix:  
         csvwriter.writerow(row)
