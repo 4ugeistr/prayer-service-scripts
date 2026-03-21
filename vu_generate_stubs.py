@@ -1464,6 +1464,9 @@ else:
 if glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_святкові\\тропарі-святкові-{month_no:02}.docx'):
     troparia_feast = get_menaion_troparia_texts(
         glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_святкові\\тропарі-святкові-{month_no:02}.docx')[0])
+elif glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_святкові\\тропарі-святкові-{month_no:02}-{mode_suffix2}.docx'):
+    troparia_feast = get_menaion_troparia_texts(
+        glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_святкові\\тропарі-святкові-{month_no:02}-{mode_suffix2}.docx')[0])
 else:
     troparia_feast = None
 
