@@ -116,7 +116,7 @@ def transform_readings(k,s):
     #print(k,'before=',s)
     return s
     
-print(f"Укладаємо коди читань для {year_no}-{month_no}")
+print(f"Укладаємо коди читань для {year_no}-{month_no}-{mode}")
 print(f"Обробляємо файл: c1_{mode}.txt")
 
 with open(f'c1_{mode}.txt','r',encoding='utf8') as f:
