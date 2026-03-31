@@ -11,11 +11,12 @@ year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().ye
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 
 '''
-month_no=1
+month_no=5
 year_no=2026
 print(f"WARNING: MONTH OVERRIDE!")
-print(f"Processing month: {year_no}-{month_no}")
 '''
+print(f"Processing month: {year_no}-{month_no}")
+
 
 month_dic= {'Січень':1,
               'Лютий':2,

@@ -1,5 +1,5 @@
 import re, docx, csv, easygui, glob, os, calendar, shutil
-from easygui_timerbox import timerbox
+#from easygui_timerbox import timerbox
 from datetime import datetime
 import paschalia
 from docx.shared import RGBColor, Pt
@@ -21,7 +21,7 @@ mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
+#month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
 
 month_dic= {'Січень':1,
               'Лютий':2,
@@ -148,7 +148,8 @@ def get_template_files(path):
     template_dic={}
     for f in files:
         re_result = re.search(r"docx_templates\\hours-template-(\d)",f)
-        template_dic[int(re_result.group(1))] = f
+        if re_result:
+            template_dic[int(re_result.group(1))] = f
     return template_dic
 
 def get_hours_matrix():
@@ -291,14 +292,19 @@ if __name__== "__main__":
     ordo_matrix = get_matrix(f"Часи_{mode_dic_reversed[mode]}.csv")
     lent_triodion_templates = glob.glob('triodion-lent/*/*.docx')
     lent_triodion_preparation_templates = glob.glob('triodion-lent-preparation/*/*.docx')
-    pentecostarion_templates = glob.glob('pentecost/*/*.docx')
-    pascha_templates = glob.glob('pascha/*/*.docx')
+    pentecostarion_templates = glob.glob('triodion-pentecost/*/*.docx')
+    pascha_templates = glob.glob('triodion-pascha/*/*.docx')
     templates_resurrection = get_resurrection_template_texts('воскресні.docx')
     troparia_menaion = get_menaion_template_texts(glob.glob(f'Тропарі - Мінея\\{month_w_offset[month_no - 1]:02}-{month_dic_reversed[month_no].upper()}.docx')[0])
-    troparia_feast = get_feast_template_texts(f'тропарі-святкові\\тропарі-святкові-{month_no:02}.docx')
+    
+    if get_feast_template_texts(f'тропарі-святкові\\тропарі-святкові-{month_no:02}-{mode_dic_reversed[mode]}.docx'):
+        troparia_feast = get_feast_template_texts(f'тропарі-святкові\\тропарі-святкові-{month_no:02}-{mode_dic_reversed[mode]}.docx')
+    else:
+        troparia_feast = get_feast_template_texts(f'тропарі-святкові\\тропарі-святкові-{month_no:02}.docx')
+    
     troparia_triodion = get_feast_template_texts(f'тропарі-тріодь\\тріодь-{month_no:02}-{mode_dic_reversed[mode]}.docx')
     troparia_special = get_feast_template_texts(f'тропарі-спеціальні\\тропарі-спеціальні-{month_no:02}.docx')
-    template_file_list = get_template_files('docx_templates/hours-template-*.docx')
+    template_file_list = get_template_files('docx_templates\\hours-template-*.docx')
 
     dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
 
@@ -350,8 +356,8 @@ if __name__== "__main__":
         #print(f"{d:02}", day_details, expected_pascha_template_path if day_details=='pascha' else expected_pentecostarion_template_path)
 
         #Exception for GR Feb-24
-        if mode == 'g' and month_no == 2 and d == 24:
-            template = template_file_list[7]
+        #if mode == 'g' and month_no == 2 and d == 24:
+        #    template = template_file_list[7]
 
         print(d,"template: ",template)
         print(day_details)
