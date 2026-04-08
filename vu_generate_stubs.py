@@ -541,8 +541,15 @@ def insert_prefix_to_paragraph(doc,p,text="Слава: ",formatting='b'):
     return p_new
 
 def get_troparia_theotokion(echos, date, service):
+    #day_details = paschalia.get_day_details(date, mode)
+    if paschalia.get_day_details(date, mode)[0]==('pascha'):
+        day = 7
+    else:
+        day = date.weekday()+1
+
+
     #print(echos, date, service)
-    res = filter(lambda t: t['service'] == service and t['weekday'] == date.weekday()+1, templates_theotokion_dic[echos])
+    res = filter(lambda t: t['service'] == service and t['weekday'] == day, templates_theotokion_dic[echos])
     l = list(res)
     p = l[0]["p"]
     return p
@@ -551,6 +558,8 @@ def get_troparia_theotokion(echos, date, service):
 def get_troparia_block(date,service):
     #if date.day!=1:
     #    return 0
+
+
     
     troparia_block=[]
     troparia=None
@@ -607,6 +616,7 @@ def get_troparia_block(date,service):
 
         if ordo_matrix[date.day][2:][i] == 'theotokos':
             echos = int(re.search(r"(\d)",troparia_block[-1].text).group(1))
+
             troparia = insert_prefix_to_paragraph(None, get_troparia_theotokion(echos, date, service),text=prefix)
 
         if ordo_matrix[date.day][2:][i] == 'feast':
@@ -859,9 +869,9 @@ def insert_dismissal(path,date):
                 raise
     doc.save(path)
 
-'''
+
 #obsolete values
-stichos_list=[
+stichos_list_old=[
     "Стих: Виведи з в'язниці мою душу",
     "Стих: Мене обступлять праведники",
     "Стих: З глибин взиваю до тебе, Господи",
@@ -873,7 +883,7 @@ stichos_list=[
     "Стих: Хваліте Господа всі народи",
     "Стих: Велике бо до нас його милосердя"
 ]
-'''
+
 
 stichos_list=[
     "Стих: Ви́веди з в’язни́ці мою́ ду́шу",
@@ -895,7 +905,7 @@ def insert_menaion_stichera(path,date,template_type):
     look_for_slava=False
     k=date.day
     delta = None
-    dogmatikos = None
+    dogmatikos = triodion_doxa = None
     #print(f"inserting {k}")
     #required_stichera_qty = stichera_gv_matrix[k][1]
 
@@ -907,7 +917,8 @@ def insert_menaion_stichera(path,date,template_type):
         #else:
         #    print(f"Стихири: пропускаємо {k}, бо субота і стихир {stichera_gv_matrix[k][1]}")
             #return -2
-    
+
+    #TODO: зайва умова, перенесена на рівень вище.
     if stichera_gv_matrix[k][1].isnumeric() and stichera_gv_matrix[k][1]!='0':
         #stichos_dic =init_stichera_dic(stichera_gv_matrix[k][1])
         n= int(stichera_gv_matrix[k][1])
@@ -919,17 +930,26 @@ def insert_menaion_stichera(path,date,template_type):
         '''
         if date.weekday() + 1 in (6,) and template_type=="октоїх" and stichera_gv_matrix[k][1]=='3':
             stichos_dic = {stichos_list[-n - delta :-delta][i]: i for i in range(n) }
+            stichos_dic_old = {stichos_list_old[-n - delta :-delta][i]: i for i in range(n) }
         else:
             stichos_dic = {stichos_list[-n:][i]: i for i in range(n) }
-        #print(stichos_dic)
+            stichos_dic_old = {stichos_list_old[-n:][i]: i for i in range(n)}
+        #print(len(stichos_dic),stichos_dic)
 
+        #fallback to using old values
+
+
+    #Якщо в матриці "0" - виходимо з процедури
     else:
+        #print(f"Для {date.day} в матриці стихир: {stichera_gv_matrix[k][1]}. Пропускаємо.")
         return 0
 
     #print(stichos_dic)
 
-    stichos_dic_string='('+'|'.join(stichos_dic.keys())+')'
-    #print(date.day,stichos_dic_string)
+    stichos_dic_string ='('+'|'.join(stichos_dic.keys())+')'
+    stichos_dic_string_old = '(' + '|'.join(stichos_dic_old.keys()) + ')'
+    print(date.day,stichos_dic_string)
+    print(date.day, stichos_dic_string_old)
 
     if not 'gv_stichera' in stichera_matrix[k] and stichera_gv_matrix[k][3]: 
 
@@ -955,13 +975,23 @@ def insert_menaion_stichera(path,date,template_type):
     
     delete_empty = False
     for p in doc.paragraphs:
+        #stichera_no=None
         re_result = re.search(f"{stichos_dic_string}",p.text)
+        re_result_old = re.search(f"{stichos_dic_string_old}", p.text)
+
         if re_result:
             #print(f"Day {k}, found string:",re_result.group(1)[:20])
             stichera_no=stichos_dic[re_result.group(1)]
             delete_empty = True
             continue
 
+        if re_result_old:
+            #print(f"Day {k}, found string:",re_result.group(1)[:20])
+            stichera_no=stichos_dic_old[re_result_old.group(1)]
+            delete_empty = True
+            continue
+
+        #print(f"stichera_no: {stichera_no}; look_for_slava={look_for_slava}")
         if stichera_no or stichera_no==0:
             pdu.copy_paragraph_before(doc,p,texts[stichera_no])
             pdu.delete_paragraph(p)
@@ -969,15 +999,20 @@ def insert_menaion_stichera(path,date,template_type):
             stichera_no=None
             look_for_slava=True
             continue
+
         
         if p.text == "" and delete_empty:
             pdu.delete_paragraph(p)
             continue
 
-        re_result = re.search("^(Слава|І нині)",p.text)
+        re_result = re.search("^(Слава|І нині|Сла́ва|І ни́ні)",p.text)
         if re_result and look_for_slava:
+            print("Found Слава/І нині:", p.text[:40])
             if re.search('догмат',p.text):
                 dogmatikos = p
+            else:
+                triodion_doxa = p
+                print("Hit triodion_doxa")
             pdu.delete_paragraph(p)
 
         re_result = re.search("^(Вхід|Світло тихе)",p.text)
@@ -997,6 +1032,16 @@ def insert_menaion_stichera(path,date,template_type):
                 if dogmatikos.runs[0].text.find("Слава")!=-1 and 'gv_doxa' in stichera_matrix[k]:
                     dogmatikos.runs[0].text = dogmatikos.runs[0].text.replace("Слава і","І").replace("Слава, і","І").replace("Слава: І","І")
                 pdu.copy_paragraph_before(doc,p,dogmatikos)
+
+            elif triodion_doxa:
+                if triodion_doxa.runs[0].text.find("Слава")!=-1 and 'gv_doxa' in stichera_matrix[k]:
+                    triodion_doxa.runs[0].text = triodion_doxa.runs[0].text.replace("Слава і","І").replace("Слава, і","І").replace("Слава: І","І")
+                elif triodion_doxa.runs[0].text.find("Слава")==-1 and not 'gv_doxa' in stichera_matrix[k]:
+                    triodion_doxa.runs[0].text = triodion_doxa.runs[0].text.replace("І нині", "Слава, І нині")
+
+                pdu.copy_paragraph_before(doc,p,triodion_doxa)
+
+
             elif datetime(year_no,month_no,k).weekday()+1 in (3,5):
                 if  "gv_theotokion" in stichera_matrix[k] and len(stichera_matrix[k]["gv_theotokion"])==2:
                     #print(f"Inserted theo for {k}")
@@ -1295,25 +1340,28 @@ def update_stubs(draft_dic):
         if desc[0] in ('неділя','октоїх','пасха','50-ця'):
             #вставити тропарі вечірні, утрені
             if ordo_matrix[d][1]!='y':
-                print(f"Inserting troparia for {datetime(year_no, month_no, d)}")
+                #print(f"Inserting troparia for {datetime(year_no, month_no, d)}")
                 insert_troparia(desc[1],datetime(year_no, month_no, d))
 
             #вставити глас для Бог Господь
             insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
             
             if datetime(year_no, month_no, d).weekday()+1==7:
-                print("Inserting gospel for", datetime(year_no, month_no, d))
+                #print("Inserting gospel for", datetime(year_no, month_no, d))
                 insert_resurrection_gospel_parts(desc[1],datetime(year_no, month_no, d))
 
             #вставити тропарі вкінці утрені
         if desc[0] in ('октоїх') and (datetime(year_no, month_no, d).weekday()+1)!=7:
             insert_kanon(desc[1],datetime(year_no, month_no, d))
+
         if desc[0]=='мінея':
-            #вставити прокімен
+            #Якщо мінейний шаблон - вставити прокімен
             insert_prokimenon(desc[1], datetime(year_no, month_no, d).weekday()+1)
-        else:
-            # вставити стихири ГВ
-            insert_menaion_stichera(desc[1],datetime(year_no, month_no, d),desc[0])    
+
+        elif stichera_gv_matrix[d][1].isnumeric() and stichera_gv_matrix[d][1]!='0':
+            #Якщо шаблон не мінеї і вказані стихири в матриці - вставити стихири ГВ
+            insert_menaion_stichera(desc[1],datetime(year_no, month_no, d),desc[0])
+
         if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1==6:
             pass
         day_details = paschalia.get_day_details(datetime(year_no, month_no, d), mode)
@@ -1388,9 +1436,9 @@ else:
 if glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_спеціальні\\тропарі-спеціальні-{month_no:02}.docx'):
     troparia_special = get_menaion_troparia_texts(
         glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_спеціальні\\тропарі-спеціальні-{month_no:02}.docx')[0])
-elif glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_святкові\\тропарі-спеціальні-{month_no:02}-{mode_suffix2}.docx'):
+elif glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_спеціальні\\тропарі-спеціальні-{month_no:02}-{mode_suffix2}.docx'):
     troparia_special = get_menaion_troparia_texts(
-        glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_святкові\\тропарі-спеціальні-{month_no:02}-{mode_suffix2}.docx')[0])
+        glob.glob(f'docx_resources\\Вечірня-Утреня\\tmp_тропарі_спеціальні\\тропарі-спеціальні-{month_no:02}-{mode_suffix2}.docx')[0])
 else:
     troparia_special = None
 

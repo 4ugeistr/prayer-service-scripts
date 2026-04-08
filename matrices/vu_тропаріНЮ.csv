@@ -250,25 +250,25 @@ month,date,day,special,тропар1,тропар2,слава,І нині,При
 5,2026.05.07,4,,,saint,,triodion,Переполовення,
 5,2026.05.08,5,,,saint,,triodion,Переполовення,Івана
 5,2026.05.09,6,,,saint,,triodion,Переполовення,Миколая
-5,2026.05.10,7,y,,resurrection,saint,triodion,Самарянки,Симона
-5,2026.05.11,1,n,,triodion,,feast,Переполовення,
-5,2026.05.12,2,n,,saint,,triodion,Переполовення,
-5,2026.05.13,3,n,,saint,,triodion,Переполовення,
-5,2026.05.14,4,y,,resurrection,saint,theotokos,,
-5,2026.05.15,5,n,,resurrection,saint,theotokos,,
-5,2026.05.16,6,n,,resurrection,saint,theotokos,,
-5,2026.05.17,7,n,,resurrection,,theotokos,Сліпого,
-5,2026.05.18,1,n,,resurrection,saint,theotokos,,
-5,2026.05.19,2,n,,resurrection,saint,theotokos,,
-5,2026.05.20,3,n,,resurrection,saint,theotokos,,
+5,2026.05.10,7,,,resurrection,saint,triodion,Самарянки,Симона
+5,2026.05.11,1,,,triodion,,saint,Переполовення,Хреста
+5,2026.05.12,2,,,saint,,triodion,Переполовення,
+5,2026.05.13,3,y,,,,,Віддання Переполовення,
+5,2026.05.14,4,,,resurrection,saint,theotokos,,
+5,2026.05.15,5,,,resurrection,saint,theotokos,,
+5,2026.05.16,6,,,resurrection,saint,theotokos,,
+5,2026.05.17,7,,,resurrection,,theotokos,Сліпого,
+5,2026.05.18,1,,,resurrection,saint,theotokos,,
+5,2026.05.19,2,,,resurrection,saint,theotokos,,
+5,2026.05.20,3,,,resurrection,saint,theotokos,,
 5,2026.05.21,4,y,,,,,Вознесіння,
-5,2026.05.22,5,n,,saint,,triodion,,
-5,2026.05.23,6,n,,saint,,triodion,,
+5,2026.05.22,5,,,saint,,triodion,,
+5,2026.05.23,6,,,saint,,triodion,,
 5,2026.05.24,7,y,,,,,Неділя 7-ма,
-5,2026.05.25,1,n,,saint,,triodion,,Івана
-5,2026.05.26,2,n,,saint,,triodion,,
-5,2026.05.27,3,n,,saint,,triodion,,
-5,2026.05.28,4,n,,saint,,triodion,,
+5,2026.05.25,1,,,saint,,triodion,,Івана
+5,2026.05.26,2,,,saint,,triodion,,
+5,2026.05.27,3,,,saint,,triodion,,
+5,2026.05.28,4,,,saint,,triodion,,
 5,2026.05.29,5,y,,,,,Віддання Вознесіння,
 5,2026.05.30,6,y,,,,,заупокійна,
 5,2026.05.31,7,y,,,,,50-ця,
