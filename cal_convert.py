@@ -193,7 +193,7 @@ def get_lent_params(date,day_symbol,day_title,mode):
         if date>paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) and date<=paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=5):
             return (1,1)
         #Страсний Тиждень, пн-сб
-        elif date > paschalia_dates[1]["palm_sunday"] and date < paschalia_dates[1]["pascha"] - timedelta(days=1):
+        elif date > paschalia_dates[1]["palm_sunday"] and date <= paschalia_dates[1]["pascha"] - timedelta(days=1):
             return (1,1)
         #Звичайні дні Вел. Посту - пн, ср, пт
         elif date.weekday()+1 in [1,3,5]:

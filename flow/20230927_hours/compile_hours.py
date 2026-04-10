@@ -303,7 +303,16 @@ if __name__== "__main__":
         troparia_feast = get_feast_template_texts(f'тропарі-святкові\\тропарі-святкові-{month_no:02}.docx')
     
     troparia_triodion = get_feast_template_texts(f'тропарі-тріодь\\тріодь-{month_no:02}-{mode_dic_reversed[mode]}.docx')
-    troparia_special = get_feast_template_texts(f'тропарі-спеціальні\\тропарі-спеціальні-{month_no:02}.docx')
+    #troparia_special = get_feast_template_texts(f'тропарі-спеціальні\\тропарі-спеціальні-{month_no:02}.docx')
+
+    if glob.glob(f'тропарі-спеціальні\\тропарі-спеціальні-{month_no:02}-{mode_suffix2}.docx'):
+        troparia_special = get_feast_template_texts(glob.glob(f'тропарі-спеціальні\\тропарі-спеціальні-{month_no:02}-{mode_suffix2}.docx')[0])
+    elif glob.glob(f'тропарі-спеціальні\\тропарі-спеціальні-{month_no:02}.docx'):
+        troparia_special = get_feast_template_texts(glob.glob(f'тропарі-спеціальні\\тропарі-спеціальні-{month_no:02}.docx')[0])
+
+
+
+
     template_file_list = get_template_files('docx_templates\\hours-template-*.docx')
 
     dismissal_matrix = get_dismissal_matrix(f'Відпусти{mode_suffix}.csv',month_no)
@@ -322,7 +331,7 @@ if __name__== "__main__":
     for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
         #print(d,datetime(year_no, month_no, d).weekday()+1)
         day_details = paschalia.get_day_details(datetime(year_no,month_no,d),mode)
-
+        expected_triodion_template_path=None
         if day_details[0] == 'pentecost' and day_details[2]:
             expected_triodion_template_path=f"triodion-lent-preparation\\тиждень-{day_details[2]}\\{day_details[2]}-{day_details[3]}.docx"
     
