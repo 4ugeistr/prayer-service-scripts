@@ -73,46 +73,75 @@ def build_sources(docx_files):
 
         for day in day_name_sequence:
             new_doc.add_heading(f'Глас {echos} - {day}', level=1)
-            par = new_doc.add_paragraph(f"/октоїх/{echos}/{day}")
+            par = new_doc.add_paragraph(f"/октоїх/{echos}/{day_short_dic_reversed[day]}")
             format_as_code(par)
             
             old_template = get_octoechos_file(docx_files,echos,day)
             old_doc = docx.Document(old_template)
 
             new_doc.add_heading('ВЕЧІРНЯ', level=2)
-            
-            par = new_doc.add_heading(f"//вечірня/господи_взиваю", level=3)
+            new_doc.add_heading('//вечірня', level=3)
+            par = new_doc.add_heading(f"///стихири_на_гв", level=3)
             format_as_code(par)
             
             #[Вечірня] Стихири на Господи Взиваю
             paragraphs = get_stichera_gv(old_doc)
             for i,p in enumerate(paragraphs):
-                par = new_doc.add_paragraph(f"//вечірня/господи_взиваю/стихири/{i+1}")
+                par = new_doc.add_paragraph(f"////{i+1}")
+                if i == 1:
+                    par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                    format_as_code(par)
                 format_as_code(par)
                 pdu.copy_paragraph(new_doc,p)
             #ps.copy_paragraph_list(new_doc,paragraphs)
 
+            #TODO: розібратись з догматами
+
+
+
             #[Вечірня] Стихири на стиховні
+            par = new_doc.add_paragraph(f"///стиховня")
+            format_as_code(par)
             paragraphs = get_vespers_stichera_stkh(old_doc)
             for i,p in enumerate(paragraphs):
-                par = new_doc.add_paragraph(f"//вечірня/стиховня/стихири/{i+1}")
+                par = new_doc.add_paragraph(f"////{i+1}")
                 format_as_code(par)
+                if i == 1:
+                    par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                    format_as_code(par)
+                    
                 pdu.copy_paragraph(new_doc,p)
+
+
+            #TODO додати json перед богородичним стиховні
+            pdu.insert_paragraph_before()
                 
             new_doc.add_heading('УТРЕНЯ', level=2)
             
             #[Утреня] Сідальні після Першого славослов'я
+            par = new_doc.add_paragraph(f"///сідальні_по_першому_стихословї")
+            format_as_code(par)
             paragraphs = get_first_sessional_hymns(old_doc)
             for i,p in enumerate(paragraphs):
-                par = new_doc.add_paragraph(f"//утреня/сідальні_по_першому_славословї/{i+1}")
+
+                par = new_doc.add_paragraph(f"////{i+1}")
                 format_as_code(par)
+                if i == 1:
+                    par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                    format_as_code(par)
+                
                 pdu.copy_paragraph(new_doc,p)
 
             #[Утреня] Сідальні після Другого славослов'я
+            par = new_doc.add_paragraph(f"///сідальні_по_другому_стихословї")
+            format_as_code(par)
             paragraphs = get_second_sessional_hymns(old_doc)
             for i,p in enumerate(paragraphs):
-                par = new_doc.add_paragraph(f"//утреня/сідальні_по_другому_славословї/{i+1}")
+                par = new_doc.add_paragraph(f"////{i+1}")
                 format_as_code(par)
+                if i == 1:
+                    par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                    format_as_code(par)
                 pdu.copy_paragraph(new_doc,p)
 
             #[Утреня] Іпакой
@@ -121,12 +150,14 @@ def build_sources(docx_files):
                 #for i, p in enumerate(paragraphs):
                     par = new_doc.add_paragraph(f"//утреня/іпакой")
                     format_as_code(par)
+                    par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                    format_as_code(par)
                     pdu.copy_paragraph(new_doc, paragraphs)
 
             #[Утреня] Степенна пісня
             paragraphs = get_anavathmoi(old_doc)
             if paragraphs:
-                par = new_doc.add_paragraph(f"//утреня/степенна")
+                par = new_doc.add_paragraph(f"///степенна")
                 format_as_code(par)
                 pdu.copy_paragraph_list(new_doc,paragraphs)
 
@@ -134,22 +165,30 @@ def build_sources(docx_files):
             #[Утреня] Прокімен
             paragraphs = get_prokimenon(old_doc)
             if paragraphs:
-                par = new_doc.add_paragraph(f"//утреня/прокімен")
+                par = new_doc.add_paragraph(f"///прокімен")
                 format_as_code(par)
-                pdu.copy_paragraph_list(new_doc, paragraphs)
+                par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                format_as_code(par)
+
+                pdu.copy_paragraph(new_doc, paragraphs[2])
+                par = new_doc.add_paragraph(f"///стих_прокімена")
+                pdu.copy_paragraph(new_doc, paragraphs[3])
+
+
+                
 
             # [Утреня] Пісня Канону
             if day_short_dic[day] == 7:
                 for n in kanon_ode_numbers:
                     paragraphs = get_kanon_ode(old_doc, str(n))
                     if paragraphs:
-                        par = new_doc.add_paragraph(f"//утреня/канон/пісня_{n}")
+                        par = new_doc.add_paragraph(f"//утреня/канон_1/пісня_{n}")
                         format_as_code(par)
                         pdu.copy_paragraph_list(new_doc, paragraphs)
             else:
                 for n in kanon_ode_numbers:
                    if n in templates_kanon_dic[echos][day_short_dic[day]][1]:
-                       par = new_doc.add_paragraph(f"//утреня/канон/пісня_{n}")
+                       par = new_doc.add_paragraph(f"//утреня/канон_1/пісня_{n}")
                        format_as_code(par)
                        pdu.copy_paragraph_list(new_doc, templates_kanon_dic[echos][day_short_dic[day]][1][n])
 
