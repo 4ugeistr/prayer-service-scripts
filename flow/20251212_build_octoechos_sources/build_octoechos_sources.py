@@ -62,8 +62,8 @@ def get_octoechos_file(docx_files, echos,weekday_abr):
 def format_as_code(par):
     par.runs[0].font.highlight_color=WD_COLOR_INDEX.GRAY_50
 
-def build_sources(docx_files):
-    for echos in range(1,9):
+def build_sources(docx_files,echos_qty=8):
+    for echos in range(1,echos_qty+1):
         print(f"Обробляємо глас {echos}")
         if echos>1:
             continue
@@ -73,7 +73,7 @@ def build_sources(docx_files):
 
         for day in day_name_sequence:
             new_doc.add_heading(f'Глас {echos} - {day}', level=1)
-            par = new_doc.add_paragraph(f"/октоїх/{echos}/{day_short_dic_reversed[day]}")
+            par = new_doc.add_paragraph(f"/октоїх/{echos}/{day_dic_reversed[day_short_dic[day]]}")
             format_as_code(par)
             
             old_template = get_octoechos_file(docx_files,echos,day)
@@ -89,7 +89,7 @@ def build_sources(docx_files):
             for i,p in enumerate(paragraphs):
                 par = new_doc.add_paragraph(f"////{i+1}")
                 if i == 1:
-                    par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                    par = new_doc.add_paragraph('{"глас":'+f'{echos}'+'}')
                     format_as_code(par)
                 format_as_code(par)
                 pdu.copy_paragraph(new_doc,p)
@@ -100,21 +100,21 @@ def build_sources(docx_files):
 
 
             #[Вечірня] Стихири на стиховні
-            par = new_doc.add_paragraph(f"///стиховня")
+            par = new_doc.add_paragraph(f"///стихири_на_стиховні")
             format_as_code(par)
             paragraphs = get_vespers_stichera_stkh(old_doc)
             for i,p in enumerate(paragraphs):
                 par = new_doc.add_paragraph(f"////{i+1}")
                 format_as_code(par)
                 if i == 1:
-                    par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                    par = new_doc.add_paragraph('{"глас":'+f'{echos}'+'}')
                     format_as_code(par)
                     
                 pdu.copy_paragraph(new_doc,p)
 
 
             #TODO додати json перед богородичним стиховні
-            pdu.insert_paragraph_before()
+            par = new_doc.paragraphs[-1].insert_paragraph_before('{"опис": "богородичний","глас":"'+str(echos)+'"}')
                 
             new_doc.add_heading('УТРЕНЯ', level=2)
             
@@ -127,7 +127,7 @@ def build_sources(docx_files):
                 par = new_doc.add_paragraph(f"////{i+1}")
                 format_as_code(par)
                 if i == 1:
-                    par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                    par = new_doc.add_paragraph('{"глас":'+f'{echos}'+'}')
                     format_as_code(par)
                 
                 pdu.copy_paragraph(new_doc,p)
@@ -140,7 +140,7 @@ def build_sources(docx_files):
                 par = new_doc.add_paragraph(f"////{i+1}")
                 format_as_code(par)
                 if i == 1:
-                    par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                    par = new_doc.add_paragraph('{"глас":'+f'{echos}'+'}')
                     format_as_code(par)
                 pdu.copy_paragraph(new_doc,p)
 
@@ -150,9 +150,9 @@ def build_sources(docx_files):
                 #for i, p in enumerate(paragraphs):
                     par = new_doc.add_paragraph(f"//утреня/іпакой")
                     format_as_code(par)
-                    par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                    par = new_doc.add_paragraph('{"глас":'+f'{echos}'+'}')
                     format_as_code(par)
-                    pdu.copy_paragraph(new_doc, paragraphs)
+                    pdu.copy_paragraph_list(new_doc, paragraphs)
 
             #[Утреня] Степенна пісня
             paragraphs = get_anavathmoi(old_doc)
@@ -167,7 +167,7 @@ def build_sources(docx_files):
             if paragraphs:
                 par = new_doc.add_paragraph(f"///прокімен")
                 format_as_code(par)
-                par = new_doc.add_paragraph(f'\{"глас":"{echos}"\}')
+                par = new_doc.add_paragraph('{"глас":'+f'{echos}'+'}')
                 format_as_code(par)
 
                 pdu.copy_paragraph(new_doc, paragraphs[2])
@@ -178,32 +178,74 @@ def build_sources(docx_files):
                 
 
             # [Утреня] Пісня Канону
-            if day_short_dic[day] == 7:
-                for n in kanon_ode_numbers:
+            par = new_doc.add_paragraph(f"///канон_1")
+            format_as_code(par)
+            #TODO add Json
+
+
+            for n in kanon_ode_numbers:
+                if day_short_dic[day] == 7:
                     paragraphs = get_kanon_ode(old_doc, str(n))
-                    if paragraphs:
-                        par = new_doc.add_paragraph(f"//утреня/канон_1/пісня_{n}")
-                        format_as_code(par)
-                        pdu.copy_paragraph_list(new_doc, paragraphs)
-            else:
+                else:
+                    paragraphs = templates_kanon_dic[echos][day_short_dic[day]][1][n]
+
+                par = new_doc.add_paragraph(f"////пісня_{n}")
+                format_as_code(par)
+
+                if paragraphs:
+                    par = new_doc.add_paragraph(f"/////ірмос")
+                    format_as_code(par)
+                    pdu.copy_paragraph(new_doc,paragraphs[1])
+
+                    i=1
+                    for p in paragraphs[2:]:
+
+                        if p.text.startswith("Стих:") or p.text.startswith("Приспів:"):
+                            re_result = re.search("(?:Стих|Приспів): (.*)",p.text)
+                            if re_result:
+                                try:
+                                    par = new_doc.add_paragraph('{"Приспів":"'+re_result.group(1)+'"}')
+                                except TypeError as e:
+                                    print(p.text)
+                                    raise e
+
+                        else:
+                            par = new_doc.add_paragraph(f"/////{i}")
+                            format_as_code(par)
+                            par = pdu.copy_paragraph(new_doc, p)
+
+                            i+=1
+
+                        #pdu.copy_paragraph_list(new_doc, paragraphs)
+
+            #TODO додати другий канон
+            '''
+            else:     
                 for n in kanon_ode_numbers:
                    if n in templates_kanon_dic[echos][day_short_dic[day]][1]:
                        par = new_doc.add_paragraph(f"//утреня/канон_1/пісня_{n}")
                        format_as_code(par)
                        pdu.copy_paragraph_list(new_doc, templates_kanon_dic[echos][day_short_dic[day]][1][n])
+            '''
 
             #[Утреня] Світильні
             paragraphs = get_exapostolaria(old_doc)
+            par = new_doc.add_paragraph(f"///світильні")
+            format_as_code(par)
             for i,p in enumerate(paragraphs):
-                par = new_doc.add_paragraph(f"//утреня/світильні/{i+1}")
+
+                par = new_doc.add_paragraph(f"////{i+1}")
                 format_as_code(par)
                 pdu.copy_paragraph(new_doc,p)
 
             #[Утреня] Стихири хвалитні
             paragraphs = get_stichera_lauds(old_doc)
+
+            par = new_doc.add_paragraph(f"///стихири_на_хвалитних")
+            format_as_code(par)
             if paragraphs:
                 for i,p in enumerate(paragraphs):
-                    par = new_doc.add_paragraph(f"//утреня/хвалитні/стихири/{i+1}")
+                    par = new_doc.add_paragraph(f"////{i+1}")
                     format_as_code(par)
                     pdu.copy_paragraph(new_doc,p)
             elif day=="НД":
@@ -212,9 +254,13 @@ def build_sources(docx_files):
    
             #[Утреня] Стихири на стиховні
             paragraphs = get_matins_stichera_stkh(old_doc)
+
+            par = new_doc.add_paragraph(f"///стихири_на_стиховні")
+            format_as_code(par)
+
             if paragraphs:
                 for i,p in enumerate(paragraphs):
-                    par = new_doc.add_paragraph(f"//утреня/стиховня/стихири/{i+1}")
+                    par = new_doc.add_paragraph(f"////{i+1}")
                     format_as_code(par)
                     pdu.copy_paragraph(new_doc,p)
             #else:
@@ -238,18 +284,24 @@ def get_stichera_gv(doc):
             found_header = True
             continue
 
+        if found_header:
+            print(p.text)
+
         # Задаємо строки, які ігноруємо
-        if found_header and (p.text.startswith("Стих:") or p.text.startswith("Псалом")):
+        if found_header and (not p.text or p.text.startswith("Стих:") or p.text.startswith("Псалом") or p.text.startswith("Слава:") or p.text.startswith("Слава (")):
             continue
 
         # Обробляємо потрібні параграфи
-        if found_header and p.text:
+        if found_header and not p.text in ("Вхід","Світло тихе"):
             paragraphs_found.append(p)
             continue
 
         # Виходимо, коли закінчили опрацьовувати потрібний фрагмент
-        if found_header and (not p.text or p.text in ("Вхід","Світло тихе")):
+
+        if found_header and (p.text in ("Вхід","Світло тихе")):
             return paragraphs_found
+
+    return found_header
 
 def get_vespers_stichera_stkh(doc):
 
@@ -385,7 +437,8 @@ def get_prokimenon(doc):
         if found_header and (not p.text or p.text in ("Господеві помолімся")):
             return paragraphs_found
 
-kanon_ode_numbers = list(range(1,10))
+#kanon_ode_numbers = list(range(1,10))
+kanon_ode_numbers = [1,3,4,5,6,7,8,9]
 
 def get_kanon_ode(doc,no):
 
@@ -538,10 +591,10 @@ def get_matins_stichera_stkh(doc):
 
 
 if __name__ == "__main__":
+
     start_time = datetime.now()
-
-
-    target_dir = eg.diropenbox(title="Оберіть початкову директорію")
+    #target_dir = eg.diropenbox(title="Оберіть початкову директорію")
+    target_dir = "01-Октоїх"
     docx_files = find_docx_files(target_dir)
 
     templates_kanon_dic = get_octoechos_kanon_texts('05a_ОКТОЇХ_КАНОНИ.docx')
@@ -549,7 +602,7 @@ if __name__ == "__main__":
 
 
 
-    build_sources(docx_files)
+    build_sources(docx_files,echos_qty=1)
 
     print("Done!")
 

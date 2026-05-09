@@ -1,5 +1,5 @@
 import re, docx, csv, easygui, glob, os, calendar, shutil
-#from easygui_timerbox import timerbox
+from easygui_timerbox import timerbox
 from datetime import datetime
 import paschalia
 from docx.shared import RGBColor, Pt
@@ -21,7 +21,7 @@ mode_dic_reversed = {v:k for k,v in mode_dic.items()}
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-#month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
+month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
 
 month_dic= {'Січень':1,
               'Лютий':2,

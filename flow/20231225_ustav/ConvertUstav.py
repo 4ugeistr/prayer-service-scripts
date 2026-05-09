@@ -14,12 +14,12 @@ python ConvertUstav.py u Грудень Устав-Грудень.docx
 
 #MONTH = 'Січень'
 YEAR = 2026
-mode= 'g'
+mode= 'u'
 filehtm = f"temp_{YEAR}_{mode}.html"
 #filedoc = f'ustav-{YEAR}-{mode}.docx'
 #filedoc = 
 if mode == 'u':
-    filedoc = 'Календар з уставом 2026.docx'
+    filedoc = 'Календар з уставом 2026 (новоюліанський).docx'
 elif mode == 'g':
     filedoc = "Календар з уставом 2026 (григоріанський).docx"
 
@@ -211,7 +211,7 @@ with open(filedoc_new, "rb") as docx_file:
     content = mammoth.convert_to_html(docx_file, style_map=style_map).value
 
 #видаляємо тимчасовий docx файл
-os.remove(filedoc_new)
+#os.remove(filedoc_new)
 
 #прибираємо span із заголовків днів
 content = re.sub(f'<p><span>{day_list_string}</span></p>','<p>\g<1></p>',content)
