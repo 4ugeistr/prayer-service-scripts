@@ -948,8 +948,8 @@ def insert_menaion_stichera(path,date,template_type):
 
     stichos_dic_string ='('+'|'.join(stichos_dic.keys())+')'
     stichos_dic_string_old = '(' + '|'.join(stichos_dic_old.keys()) + ')'
-    print(date.day,stichos_dic_string)
-    print(date.day, stichos_dic_string_old)
+    #print(date.day,stichos_dic_string)
+    #print(date.day, stichos_dic_string_old)
 
     if not 'gv_stichera' in stichera_matrix[k] and stichera_gv_matrix[k][3]: 
 
@@ -1007,12 +1007,12 @@ def insert_menaion_stichera(path,date,template_type):
 
         re_result = re.search("^(Слава|І нині|Сла́ва|І ни́ні)",p.text)
         if re_result and look_for_slava:
-            print("Found Слава/І нині:", p.text[:40])
+            #print("Found Слава/І нині:", p.text[:40])
             if re.search('догмат',p.text):
                 dogmatikos = p
             else:
                 triodion_doxa = p
-                print("Hit triodion_doxa")
+                #print("Hit triodion_doxa")
             pdu.delete_paragraph(p)
 
         re_result = re.search("^(Вхід|Світло тихе)",p.text)

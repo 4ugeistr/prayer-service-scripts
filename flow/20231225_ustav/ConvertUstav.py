@@ -14,7 +14,7 @@ python ConvertUstav.py u Грудень Устав-Грудень.docx
 
 #MONTH = 'Січень'
 YEAR = 2026
-mode= 'u'
+mode= 'g'
 filehtm = f"temp_{YEAR}_{mode}.html"
 #filedoc = f'ustav-{YEAR}-{mode}.docx'
 #filedoc = 

@@ -272,36 +272,36 @@ month,date,day,custom troparia,1-trop1,1-trop2,1-kond,3-trop1,3-trop2,3-kond,6-t
 5,2026.05.29,5,y,,triodion,triodion,triodion,saint,saint,,triodion,triodion,triodion,saint,saint,Віддання Вознесіння
 5,2026.05.30,6,n,,,,,,,,,,,,,заупокійна
 5,2026.05.31,7,y,,triodion,triodion,,triodion,triodion,,triodion,triodion,,triodion,triodion,50-ця
-6,2026.06.01,1,n,resurrection,feast,feast,resurrection,triodion,triodion,resurrection,feast,feast,resurrection,triodion,triodion,
+6,2026.06.01,1,y,,triodion,triodion,,triodion,triodion,,triodion,triodion,,triodion,triodion,
 6,2026.06.02,2,y,,triodion,triodion,triodion,saint,saint,,triodion,triodion,triodion,saint,saint,
 6,2026.06.03,3,y,,triodion,triodion,triodion,saint,saint,,triodion,triodion,triodion,saint,saint,
 6,2026.06.04,4,y,,triodion,triodion,triodion,saint,saint,,triodion,triodion,triodion,saint,saint,
 6,2026.06.05,5,y,,triodion,triodion,triodion,saint,saint,,triodion,triodion,triodion,saint,saint,
-6,2026.06.06,6,y,,triodion,triodion,,triodion,triodion,,triodion,triodion,,triodion,triodion,
-6,2026.06.07,7,n,,,,,,,,,,,,,
-6,2026.06.08,1,n,,triodion,triodion,,triodion,triodion,,triodion,triodion,,triodion,triodion,
-6,2026.06.09,2,n,,triodion,triodion,,triodion,triodion,,triodion,triodion,,triodion,triodion,
-6,2026.06.10,3,y,,triodion,triodion,triodion,saint,saint,,triodion,triodion,triodion,saint,saint,
-6,2026.06.11,4,y,triodion,saint,triodion,triodion,saint,saint,triodion,saint,triodion,triodion,saint,saint,
-6,2026.06.12,5,y,,triodion,triodion,triodion,saint,saint,,triodion,triodion,triodion,saint,saint,
-6,2026.06.13,6,y,,triodion,triodion,triodion,saint,saint,,triodion,triodion,triodion,saint,saint,
-6,2026.06.14,7,y,,triodion,triodion,,triodion,triodion,,triodion,triodion,,triodion,triodion,
-6,2026.06.15,1,y,resurrection,triodion,triodion,resurrection,triodion,triodion,resurrection,triodion,triodion,resurrection,triodion,triodion,
+6,2026.06.06,6,y,,triodion,triodion,,triodion,triodion,,triodion,triodion,,triodion,triodion,Віддання 50-ці
+6,2026.06.07,7,y,resurrection,triodion,triodion,resurrection,triodion,triodion,resurrection,triodion,triodion,resurrection,triodion,triodion,Неділя 1-ша ПП
+6,2026.06.08,1,,,,,,,,,,,,,,
+6,2026.06.09,2,,,,,,,,,,,,,,
+6,2026.06.10,3,,,,,,,,,,,,,,
+6,2026.06.11,4,y,triodion,saint,triodion,triodion,saint,saint,triodion,saint,triodion,triodion,saint,saint,Євхаристії
+6,2026.06.12,5,,,,,,,,,,,,,,
+6,2026.06.13,6,,,,,,,,,,,,,,
+6,2026.06.14,7,y,resurrection,triodion,triodion,resurrection,triodion,triodion,resurrection,triodion,triodion,resurrection,triodion,triodion,
+6,2026.06.15,1,,,,,,,,,,,,,,
 6,2026.06.16,2,,,,,,,,,,,,,,
 6,2026.06.17,3,,,,,,,,,,,,,,
 6,2026.06.18,4,,,,,,,,,,,,,,
-6,2026.06.19,5,y,triodion,saint,triodion,triodion,saint,saint,triodion,saint,triodion,triodion,saint,saint,
-6,2026.06.20,6,,,,,,,,,,,,,,
-6,2026.06.21,7,,,,,,,,,,,,,,
-6,2026.06.22,1,y,resurrection,triodion,triodion,resurrection,triodion,triodion,resurrection,triodion,triodion,resurrection,triodion,triodion,
+6,2026.06.19,5,y,,saint,saint,,saint,saint,,saint,saint,,saint,saint,Христа Царя
+6,2026.06.20,6,,,,,,,,,,,,,,Сострадання
+6,2026.06.21,7,y,,resurrection,resurrection,resurrection,saint,saint,,resurrection,resurrection,resurrection,saint,saint,
+6,2026.06.22,1,,,,,,,,,,,,,,
 6,2026.06.23,2,,,,,,,,,,,,,,
-6,2026.06.24,3,y,,saint,saint,,saint,saint,,saint,saint,,saint,saint,
-6,2026.06.25,4,y,,,,,,,,,,,,,
-6,2026.06.26,5,y,,,,,,,,,,,,,
-6,2026.06.27,6,y,triodion,saint,triodion,triodion,saint,saint,triodion,saint,triodion,triodion,saint,saint,
-6,2026.06.28,7,y,,triodion,triodion,,triodion,triodion,,triodion,triodion,,triodion,triodion,
-6,2026.06.29,1,y,resurrection,saint,resurrection,resurrection,saint,saint,resurrection,saint,resurrection,resurrection,saint,saint,
-6,2026.06.30,2,y,,feast,feast,feast,saint,saint,,feast,feast,feast,saint,saint,
+6,2026.06.24,3,y,,saint,saint,,saint,saint,,saint,saint,,saint,saint,Предтечі
+6,2026.06.25,4,y,,feast,feast,feast,saint,saint,,feast,feast,feast,saint,saint,посвяття
+6,2026.06.26,5,,,,,,,,,,,,,,
+6,2026.06.27,6,y,,saint,saint,,saint,saint,,saint,saint,,saint,saint,Миколи Чарнецького
+6,2026.06.28,7,y,,resurrection,resurrection,resurrection,saint,saint,,resurrection,resurrection,resurrection,saint,saint,
+6,2026.06.29,1,y,,saint,saint,,saint,saint,,saint,saint,,saint,saint,Петра і Павла
+6,2026.06.30,2,y,feast,saint,feast,feast,saint,saint,feast,saint,feast,feast,saint,saint,12 апостолів
 7,2026.07.01,3,,,,,,,,,,,,,,
 7,2026.07.02,4,y,,saint,saint,,saint,saint,,saint,saint,,saint,saint,
 7,2026.07.03,5,,,,,,,,,,,,,,
