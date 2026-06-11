@@ -49,6 +49,7 @@ symbol_dict={
     }
 symbol_dict_w_space={v:k for v,k in symbol_dict.items()}
 symbol_dict_w_space[' ']='-'
+
 symbol_hierarchy={
     ' ':5,
     '🕀':0,
@@ -67,7 +68,7 @@ symbol_hierarchy_simple={
     '+':2,
     '@':3, #(red)
     '&':4} #(black)
-reverse_symbol_hierarchy_simple = {v:k for k,v in symbol_hierarchy_simpl77eu.items()}
+reverse_symbol_hierarchy_simple = {v:k for k,v in symbol_hierarchy_simple.items()}
 
 
 symbol_list=['🕀','🕁','🕂','🕃']
@@ -149,25 +150,40 @@ def get_lent_params(date,day_symbol,day_title,mode):
 
 
 
-
-
-
-
     paschalia_dates = paschalia.get_prev_next_pascha(date,mode)
 
+    holidays_that_allow_lent = [
+        datetime(date.year, 6, 24), #Різдво Предтечі
+        datetime(date.year, 6, 29), #Петра і Павла
+        datetime(date.year, 10, 1), #Покров
+        paschalia_dates[0]["pentecost"] + timedelta(days=7 + 4), #Євхаристії
+        paschalia_dates[0]["pentecost"] + timedelta(days=2*7 + 5), #Христа Царя
+    ]
 
-    is_holiday = True if day_symbol=="#" else False
+    is_holiday_w_no_lent = True if day_symbol == "#" and not date in holidays_that_allow_lent else False
+
 
     #Великі свята, в які піст
-    if re.search("всесвітнє .оздвиження",day_title.lower()) or re.search("всемірне .оздвиження",day_title.lower()) or re.search("усікновення чесної",day_title.lower()):
-        return (1, 1)
+    holidays_with_mandatory_lent = [
+        datetime(date.year, 8, 29),  #Усікновення
+        datetime(date.year, 9, 14),  #Воздвиження
+    ]
+    ''' obsolete approach
     
+    if (re.search("всесвітнє .оздвиження",day_title.lower())
+            or re.search("всемірне .оздвиження",day_title.lower())
+            or re.search("усікновення чесної",day_title.lower())):
+        return (1, 1)
+    '''
+    if date in holidays_with_mandatory_lent:
+        return (1, 1)
+
     #Навечір'я Різва, Богоявлення
     if (date == datetime(date.year,1,5) or date == datetime(date.year,12,24)) and date.weekday()+1 != 7:
         return (1, 1)
 
     #Великий піст
-    if (date>=paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) and date<paschalia_dates[1]["pascha"]) and date.weekday()+1 in workday_list and not is_holiday:
+    if (date>=paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) and date<paschalia_dates[1]["pascha"]) and date.weekday()+1 in workday_list and not is_holiday_w_no_lent:
         #Початок Вел. Посту, Велика П'ятниця
         if date==paschalia_dates[1]["cheesefare_sunday"]+timedelta(days=1) or date==paschalia_dates[1]["pascha"]-timedelta(days=2):
             return (2,2)
@@ -192,14 +208,14 @@ def get_lent_params(date,day_symbol,day_title,mode):
     #Пилипівка
     is_pylypivka = date> datetime(date.year,11,15) and date<datetime(date.year,12,24)
 
-    if (is_petrivka or is_spasivka or is_pylypivka) and is_workday and not is_holiday:
+    if (is_petrivka or is_spasivka or is_pylypivka) and is_workday and not is_holiday_w_no_lent:
         lent_color = 1
         lent_symbol = 1 if date.weekday()+1 in [3,5] else 0
         return (lent_color, lent_symbol)
     
-    #загальниця від Різдва до Богоявління (ПТ???)
+    #загальниця від Різдва до Богоявління (TODO ПТ???)
     is_rizdvo_zahalnytsja = (date >= datetime(date.year,12,26) and date<=datetime(date.year,12,31)) or (date >= datetime(date.year,1,1) and date<=datetime(date.year,1,4))
-    #загальниця між Неділею Блудного сина та Неділею Митаря та Фарисея. ПЕРЕВІРИТИ!
+    #загальниця між Неділею Блудного сина та Неділею Митаря та Фарисея. TODO ПЕРЕВІРИТИ!
     is_period_before_great_lent = (date >= paschalia_dates[1]['meatfare_sunday'] - timedelta(days=7*2-1) and date <= paschalia_dates[1]['meatfare_sunday'] - timedelta(days=7*1))
     #загальниця Світлого тижня
     is_pascha_week = (date >= paschalia_dates[0]['pascha']+timedelta(days=1) and date<=paschalia_dates[0]['pascha']+timedelta(days=6))
@@ -210,7 +226,7 @@ def get_lent_params(date,day_symbol,day_title,mode):
         return (3,0)
 
     #П'ятниця
-    if date.weekday()+1 in [5] and not is_holiday:
+    if date.weekday()+1 in [5] and not is_holiday_w_no_lent:
         return (1,1)
     #Якщо не вийшли з функції на одній з минулих перевірок, отже не піст
     return (0, 0)
@@ -461,8 +477,8 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     header = generate_calendar.prepare_header_for_html(date,mode)
     #OBSOLETE:
     #day_symbol= symbol_dict_w_space[find_highest_symbol(day_title)]
-    day_symbol= symbol_dict_w_space[find_highest_symbol_simple(header)]
-    
+    #day_symbol= symbol_dict_w_space[find_highest_symbol_simple(header)]
+    day_symbol = find_highest_symbol_simple(header)
     day_color = get_day_color(date,day_symbol)
 
 
@@ -492,23 +508,23 @@ def generate_row(cur_year,cur_month,cur_day,day_title,day_readings,glas):
     '''
     
     '''
-    print("BEFORE:",day_title)
-    for k,v in symbol_dict.items():
-        day_title=day_title.replace(k,v)
-    print("AFTER:",day_title)
-
-    print(symbol_dict.items())
-    raise Exception
-    '''
-    
-    '''
     Структура рядка
     v1 - Дата
     v2 - № та тип тижня
+        e.g. 04d - Тиждень 4-ий по 50-ці
     v3 - день тижня (1..7)
     v4 - тип свята [0,1,3]
-    5 - колір посту [0,1]
+        0 - звичайний день
+        1 - господське свято (червоний фон)
+        3 - богородичне свято (блакитний фон)
+    5 - колір посту [0,1,3]
+        0 - звичайний день
+        1 - піст
+        3 - загальниця
     6 - рибка [0,1,2]
+        0 - відсутня
+        1 - чорна (піст)
+        2 - червона (суворий піст)
     '''
     
     row=[f'{cur_year}{month:02}{cur_day:02}',

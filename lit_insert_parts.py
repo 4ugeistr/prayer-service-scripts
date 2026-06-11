@@ -2,16 +2,17 @@ import docx,re,csv, easygui,paschalia
 from glob import glob
 from docx.shared import RGBColor
 from datetime import datetime
+from easygui_timerbox import timerbox
+
 RGB_RED = RGBColor(0xff, 0x00, 0x00)
 
 #docx_filename='2023-07-Літургії-Гр.docx'
 #mode='g'
 #cur_month='Липень'
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
-year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
-
-#month_no=1
 #print("WARNING. Month_no OVERRIDE", month_no)
+
+month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
@@ -29,6 +30,12 @@ if mode == 'u':
     mode_suffix='Юл'
 elif mode == 'g':
     mode_suffix='Гр'
+
+year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
+
+#month_no=1
+
+
 
 csv_filename='matrices\\Читання'+mode_suffix+'.csv'
 dismissal_csv_filename='matrices\\Відпусти'+mode_suffix+'.csv'
