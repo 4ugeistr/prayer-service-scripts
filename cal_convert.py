@@ -157,7 +157,7 @@ def get_lent_params(date,day_symbol,day_title,mode):
         datetime(date.year, 6, 29), #Петра і Павла
         datetime(date.year, 10, 1), #Покров
         paschalia_dates[0]["pentecost"] + timedelta(days=7 + 4), #Євхаристії
-        paschalia_dates[0]["pentecost"] + timedelta(days=2*7 + 5), #Христа Царя
+        paschalia_dates[0]["pentecost"] + timedelta(days=2*7 + 5), #Христа Людинолюбця
     ]
 
     is_holiday_w_no_lent = True if day_symbol == "#" and not date in holidays_that_allow_lent else False

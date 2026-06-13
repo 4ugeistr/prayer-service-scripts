@@ -50,17 +50,6 @@ re_pattern={
         '\g<1><b>\g<5></b> \g<6>,\g<3>\n<hr>\g<4>'
         ]
     }
-'''
-"g":[
-    "(<p>)\s*?(<i>)?\s*?"\
-    "(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)"\
-    "\s*?(</i>)*?\s*?(</p>)?"\
-    "(\n<p>)(<b>)?(<i>)?(\d{1,2})\s*?(<i>)?\s*?(</i>)?",
-    '\g<1>'+MONTH+' <b>\g<9></b>, \g<3></p>\n<hr>\n<p>\g<7>\g<8>' 
-    ]
-'''
-    
-
 
 CLEANR = re.compile('<a id="_.*?</a>')
 
@@ -175,12 +164,13 @@ def move_footnotes(filehtm,content):
     for item in footnote_list:
         footnote_dict[RE_FOOTNOTE.search(item).group(1)]= RE_FOOTNOTE.search(item).group(2)
     print(footnote_dict)
+
     #стираємо футноути вкінці файлу
-    #content=re.sub('\n<p></p><ol>.*</ol>','',content,flags=re.DOTALL)
     content=re.sub('<ol>.*</ol>','',content,flags=re.DOTALL)
     content=re.sub('(<sup>)<a href="#footnote-(\d+).*?(</sup>)','\g<1><i>\g<2></i>\g<3>',content)
+
     #для кожного дня додаємо футноути в кінець та міняємо № на *
-    #NB: без 31 грудня. 
+    #NB: без 31 грудня TODO.
     days=re.findall('<p>'+day_list_string+'(.*?<sup>.*?)(?=<p>'+day_list_string+')',content,flags=re.DOTALL)
     print(len(days))
     for day in days:
@@ -201,29 +191,15 @@ def move_footnotes(filehtm,content):
     with open(filehtm, "w",encoding='utf-8') as html_file:
         html_file.write(content)
 
-'''
-поки виключаємо використання цієї функції, робить більше шкоди.
-треба змінити щоб було лиш для заголовків, і робило цю зміну не для документу а по ходу обробки
-'''
+
 
 #застосовуємо додатковий стиль
 filedoc_new = apply_red_text_style(filedoc)
-#filedoc_new = filedoc
 print(filedoc_new)
-#??? TODO чи це потрібно?
-#filedoc_new_name = str(filedoc_new)[:-5]+"_additional_styles.docx"
-
-
 
 # Конвертуємо док в тичасовий великий хтмл
 with open(filedoc_new, "rb") as docx_file:
     content = mammoth.convert_to_html(docx_file, style_map=style_map).value
-
-
-
-#прибираємо span із заголовків днів
-#content = re.sub(f'<p><span>{day_list_string}</span></p>','<p>\g<1></p>',content)
-
 
 
 with open(filehtm, "w",encoding='utf-8') as html_file:
@@ -261,13 +237,6 @@ with open(filehtm, 'w',encoding='utf-8') as f:
 with open(filehtm,'r',encoding='utf-8') as f:
     file_lines = f.readlines()
 
-''' OBSOLETE
-# Формування fallout.html з вийнятками
-fallout_no = get_fallout(filehtm,
-              word="(<p>)\s*?(<i>)?\s*?(Понеділок|Вівторок|Середа|Четвер|П’ятниця|П'ятниця|Субота|Неділя)",
-              pattern=re_pattern[mode][0])
-print(f'{fallout_no} значень не потрапило в regexp. Див fallout.html')
-'''
 
 # Чистимо найбільш часті криві послідовності тегів форматування
 # Наступний блок вичистить 95% фороматування для заголовків рубрик уставу ("Утреня:"...)
@@ -315,16 +284,6 @@ with open(filehtm, "w",encoding='utf-8') as html_file:
     html_file.write(content)
 
 
-
-''' OBSOLETE
-with open(filehtm,'r',encoding='utf-8') as f:
-    content=f.read()
-    for item in re.findall(re_pattern[mode][0],content):
-        logging.debug(item)
-    with open(filehtm+'_debug','w',encoding='utf-8') as f1:
-        f1.write(content)
-'''
-
 with open(filehtm,'w',encoding='utf-8') as f:
     # Переміщаємо дату зі строки 2 в строку 1
     if mode=='u' or mode=='g':
@@ -362,8 +321,6 @@ with open(filehtm,'w',encoding='utf-8') as f:
     content = re.sub('<p> ','<p>',content)
     content=re.subn("((\n.*?)(</p>)?(\n<hr>))","\g<2></p>\g<4>",content)[0]
 
-    
-
     f.write(content)
     print(f'Знайдено {sub_qty} випадків для переміщення дати. Деталі в dates.log')
 
@@ -377,25 +334,6 @@ content=re.subn("((\n<p>)(.*?, Неділя.*?)(</p>\n<hr>))","\g<2><span>\g<3><
 with open(filehtm,'w',encoding='utf-8') as f:
     f.write(content)
 
-
-# Розбиваємо тимчасовий файл по днях - 1 місяць
-'''
-with open(filehtm,'r',encoding='utf-8') as f:
-    file_lines = f.readlines()
-
-file = None
-file_index = 1
-for line in file_lines:
-    if line.startswith('<p>'+MONTH):
-        file_index = int(line.rsplit(" ")[1])
-        if file:
-            file.close() 
-        file = open('u{:02d}.html'.format(file_index), 'w',encoding='utf-8') 
-    if file:    
-        file.writelines(line)
-if file:
-    file.close()
-'''
 # Розбиваємо тимчасовий файл по днях - всі місяці
 try:
     mode_modifier = 'n' if mode == 'g' else ''
