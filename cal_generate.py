@@ -86,7 +86,7 @@ def get_sunday_header(date,mode):
 
 
 
-def get_special_day_strings(date):
+def get_special_day_strings(date, mode):
     day_name = du.day_dic_reversed[date.weekday()+1]
     #month_name = month_dic_reversed[month_no]
     #week_no=paschalia.get_week(date,"","")[:2]
@@ -124,12 +124,15 @@ def get_special_day_strings(date):
     #TODO: break into dynamic fucntions
     #Свято Матері Божої Неустанної Помочі
     if date == datetime(date.year,7,5):
+        res+=get_sunday_header(date,mode)
         res.append({'text':"🕁 Свято Матері Божої Неустанної Помочі",'format':'ir','arbitrary_symbol':'*'})
     #Собори в липні, Жовтні
+    sunday_header_text = get_sunday_header(date, mode)[0]["text"]
+    sunday_header_modified = sunday_header_text[:sunday_header_text.find("по Зісланні Святого Духа")-1]
     if date == datetime(date.year,7,19):
-        res.append({'text':"Неділя 7-та, святих отців шести Вселенських Соборів.",'format':'ir'})
+        res.append({'text':sunday_header_modified+", святих отців шести Вселенських Соборів.",'format':'ir'})
     if date == datetime(date.year,10,11):
-        res.append({'text':"Неділя 19-та, cвятих отців Сьомого Вселенського Собору.",'format':'ir'})
+        res.append({'text':sunday_header_modified+", cвятих отців Сьомого Вселенського Собору.",'format':'ir'})
     #if date == datetime(date.year,12,14):        
     #    res.append({'text':"Неділя 27-ма, святих Праотців",'format':'ir'})
         
@@ -189,7 +192,7 @@ def convert_db_entries_to_paragraphs(doc, lst, mode = ''):
 def compile_header(date,mode,short=True):
     lst = []
 
-    strings = get_special_day_strings(date)
+    strings = get_special_day_strings(date,mode)
     if strings:
         lst += strings
 
@@ -198,7 +201,11 @@ def compile_header(date,mode,short=True):
         lst += strings
     elif not lst and date.weekday()+1==7:
         lst += get_sunday_header(date,mode) 
-    
+
+
+
+
+
     lst += get_menaion_strings(date,short)
     lst += get_special_unimportant_day_strings(date)
 

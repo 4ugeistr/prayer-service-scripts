@@ -705,7 +705,7 @@ if __name__ == '__main__':
     mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
     if mode == 'u':
-        docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2026.docx'
+        docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2026 (новоюліанський).docx'
         csvfilename='..\\ps_drafts\\calendar\\calendar26.txt'
     elif mode == 'g':
         docx_filename='docx_resources\\Календар\\Календар УГКЦ з читаннями 2026 (григоріанський).docx'

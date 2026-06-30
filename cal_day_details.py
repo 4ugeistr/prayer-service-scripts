@@ -1,15 +1,15 @@
-import paschalia
+import paschalia, calendar
 import cal_generate, cal_convert
 from datetime import datetime
 
 
 def get_period(cur_date, mode):
-    day_datails = paschalia.get_day_details(cur_date, mode)
-    if day_datails[0]=="pascha":
+    day_details = paschalia.get_day_details(cur_date, mode)
+    if day_details[0]=="pascha":
         return "Від Пасхи до Зіслання"
-    elif day_datails[0]=="lent":
+    elif day_details[0]=="lent":
         return "Великий Піст"
-    elif day_datails[0]=="pentecost" and day_details[2]:
+    elif day_details[0]=="pentecost" and day_details[2]:
         return "Підготовчі тижні до Великого Посту"
     else:
         return "Звичайний період"
@@ -52,11 +52,11 @@ if __name__ == "__main__":
     if cal_convert.find_highest_symbol(header_list)!=" ":
         print("Ранг дня:",cal_convert.find_highest_symbol(header_html))
     day_lst = []
-    for d in range(1,calendar.monthrange(year_no, month_no)[1]+1):
+    for d in range(1,calendar.monthrange(year, month_no)[1]+1):
         
         cur_date = datetime(year,month_no,29)
 
-        day_lst.append({"date":f"{year}-{month_no%02}-{d%02}",
+        day_lst.append({"date":f"{year}-{month_no:02}-{d:02}",
                         "details":{
                             "число":d,
                             "день":d.weekday()+1,

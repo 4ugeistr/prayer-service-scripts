@@ -243,6 +243,10 @@ with open(filehtm,'r',encoding='utf-8') as f:
 # Лишаться випадки, коли за рубрикою одразу йдуть якісь вказівки курсивом (напр. про багряні ризи, поклони).
 with open(filehtm, "r",encoding='utf-8') as html_file:
     content=html_file.read()
+
+    # single character <strong> is a mistake
+    content = re.sub('<strong>(.)</strong>', '\g<1>', content)
+
     content=re.sub('<i> *</i>',' ',content)
     content=re.sub('<b> *</b>',' ',content)
     content=re.sub('<i>: *</i>',': ',content)
@@ -261,6 +265,9 @@ with open(filehtm, "r",encoding='utf-8') as html_file:
     # b + strong = strong
     content = re.sub(r'<b>(\s*)<strong>', r'\g<1><strong>', content)
     content = re.sub('</strong></b>', '</strong>', content)
+
+
+
 
     # додаємо <hr> перед "Вечірня:"
     content = re.sub('(<p><i>)(Вечірня|Літургія Передосвячених|Перед початком вечірні|У цей день|На вечірні)','<hr>\n\g<1>\g<2>',content)
@@ -376,11 +383,11 @@ for line in file_lines:
     if line.startswith('<hr>'):
         header_finished = True
 
-    re_result= re.search('^<p>(?:<b>|<span>)?(\d{1,2})',line)
+    re_result= re.search('^<p>(?:<b>|<span>|<strong>)?(\d{1,2})',line)
     if re_result and month:
         #print("Found day", line)
-        day = int(re.search('^<p>(?:<b>|<span>)?(\d{1,2})(.*)',line)[1])
-        header = re.sub(r'^(<p>)(<b>|<span>)?(\d{1,2}\s)(.*)',r'\g<1>\g<2>\g<4>',line)
+        day = int(re.search('^<p>(?:<b>|<span>|<strong>)?(\d{1,2})(.*)',line)[1])
+        header = re.sub(r'^(<p>)(<b>|<span>|<strong>)?(\d{1,2}\s?)(.*)',r'\g<1>\g<2>\g<4>',line)
         header = re.sub('<span></span>', '', header)
         if file:
             file.close()
