@@ -15,8 +15,8 @@ mode_dict={'u':'Юл',
 #select month
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
-#month_no=12
-#print("WARNING. Month_no OVERRIDE", month_no)
+month_no=9
+print("WARNING. Month_no OVERRIDE", month_no)
 
 month_dic = {'Січень':1,
               'Лютий':2,
@@ -180,11 +180,11 @@ def get_menaion_template_texts():
         re_result=re.search(f'^{month_dic_string} '+r'(\d+)',p.text)
         if re_result:
             cur_date = int(re_result.group(2))
-            template_dic[cur_date]=[]
-            template_found = True
         
         re_result=re.search(f'<ustav',p.text)
         if re_result:
+            template_dic[cur_date] = []
+            template_found = True
             starting_tag_found=True
             
         if template_found and starting_tag_found:
@@ -216,15 +216,15 @@ def get_triodion_template_texts(path):
             triodion_week = int(re_result.group(1))
             triodion_day = int(re_result.group(2))
             #cur_date = int(re_result.group(2))
-            template_dic[(triodion_week,triodion_day)]=[]
             template_found = True
             starting_tag_found = False
             continue
-        
+
         re_result=re.search(f'<ustav',p.text)
         if re_result:
+            template_dic[(triodion_week, triodion_day)] = []
             starting_tag_found=True
-            
+
         if template_found and starting_tag_found:
             template_dic[(triodion_week,triodion_day)].append(p)
 

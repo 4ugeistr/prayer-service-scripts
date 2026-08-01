@@ -30,7 +30,7 @@ month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
 
-month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
+month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1, month_no+1 ], time=5)
 
 '''
 month_no=1
@@ -1374,7 +1374,7 @@ def update_stubs(draft_dic):
         # вставити глас для Господи Воззвах
         insert_gv_echos(desc[1])
         # додати святого дня в Єктенію "Спаси Господи" перед каноном (свята, Піст)
-        update_ektenia_before_kanon(desc[1], datetime(year_no, month_no, d))
+        #update_ektenia_before_kanon(desc[1], datetime(year_no, month_no, d))
 
 
     print("Завершено оновлення чернеток УВ!")

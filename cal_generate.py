@@ -7,7 +7,7 @@ from ps_docx_utils import format_line
 
 #mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 #year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
-year_no = 2025
+year_no = 2027
 
 style_map = """
 i => i
@@ -299,7 +299,7 @@ if __name__ == "__main__":
 
     doc_filename = f"{year_no}_Календар_{mode}.docx"
 
-    print(paschalia.get_day_details(datetime(2024,3,3),mode))
+    print(paschalia.get_day_details(datetime(2027,1,1),mode))
 
     doc = docx.Document()
     doc.add_heading(f"{year_no}",0)
@@ -313,8 +313,6 @@ if __name__ == "__main__":
             
             
            #doc.add_paragraph(f"{d}")
-            
-            #GET MENAION DAY HEADING
             first_line = f"{d} "
             for line in get_menaion_strings(datetime(year_no,month_no,d)):
                 text = first_line+ line["text"]
@@ -322,15 +320,17 @@ if __name__ == "__main__":
                 if first_line:
                     first_line=""
                 format_line(p,line["format"])
-            
-            
+
+
             #GET SPECIAL DAY HEADING
             #GET TRIODION DAY HEADING
-            
+
             doc.add_paragraph()
             doc.add_paragraph()
 
-    doc_filename = f"drafts\\calendar\\{year_no}_Календар_{mode}.docx"
+            
+            #GET MENAION DAY HEADING
+    doc_filename = f"..\\ps_drafts\\calendar\\{year_no}_Календар_{mode}.docx"
     doc.save(doc_filename)
     print(f"Generated {doc_filename}")
 

@@ -9,10 +9,11 @@ RGB_RED = RGBColor(0xff, 0x00, 0x00)
 #docx_filename='2023-07-Літургії-Гр.docx'
 #mode='g'
 #cur_month='Липень'
+year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 month_no = datetime.now().month+1 if datetime.now().month!=12 else 1
 #print("WARNING. Month_no OVERRIDE", month_no)
 
-month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1], time=5)
+month_no = timerbox('Вибір місяця', 'Countdown', choices=[month_no, 12 if month_no-1==0 else month_no-1, month_no + 1], time=5)
 
 mode = easygui.choicebox('u - Юліанський, g - Григоріанський', 'Вибір календаря', ['u','g'])
 
@@ -31,9 +32,9 @@ if mode == 'u':
 elif mode == 'g':
     mode_suffix='Гр'
 
-year_no = datetime.now().year if datetime.now().month!=12 else datetime.now().year+1
 
-#month_no=1
+#month_no=9
+#print("WARNING. Month_no OVERRIDE", month_no)
 
 
 
