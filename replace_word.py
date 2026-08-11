@@ -5,7 +5,7 @@ import ps_docx_utils as pdu
 start_time = datetime.now()
 
 
-logging.basicConfig(filename=f'logs\\replace_word_{datetime.now().strftime("%H%M%S")}.log',filemode = 'w', level=logging.INFO)
+logging.basicConfig(filename=f'..\\ps_drafts\\logs\\replace_word_{datetime.now().strftime("%H%M%S")}.log',filemode = 'w', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def find_docx_files(folder_path):

@@ -441,21 +441,28 @@ def insert_prokimenon(path,day):
 
 def insert_boh_hospod_echos(path,date):
     doc = docx.Document(path)
+
+    echos = None
+    boh_hospod_found = None
+
+    for p in doc.paragraphs:
+        re_result = re.search("Бог Господь", p.text)
+        if re_result:
+            boh_hospod_found = True
+
+        re_result = re.search(r'\(г. (\d)', p.text)
+        if boh_hospod_found and re_result:
+            echos = re_result.group(1)
+            break
+
     for p in doc.paragraphs:
         re_result = re.search("Бог Господь",p.text)
         if re_result:
-            #print("found")
-            if date.weekday()+1==7:
-                echos = paschalia.get_echos(date,mode)
-            else:
-                #echos = int(re.search("(\d)",templates_menaion[date.day][0]['troparion'][0]).group(1))
-                echos = int(re.search(r"(\d)",troparia_menaion[date.day][0]['troparion'].text).group(1))
-
             for r in p.runs:
                 if '?' in r.text:
                     #print(r.text)
                     r.font.highlight_color=None
-                    r.text = re.sub(r'(\?+)',str(echos),r.text)
+                    r.text = re.sub(r'(\?+)',echos,r.text)
             break
     doc.save(path)
 
@@ -833,14 +840,14 @@ def insert_dismissal(path,date):
     doc = docx.Document(path)
     shoutout_found = None
     for p in doc.paragraphs:
-        re_result=re.search(r"\(3 р\.\)(\.)? Благослов(и|и́)\.",p.text)
+        re_result=re.search(r"\(3\sр\.\)(\.)? Благослов(и|и́)\.",p.text)
         if re_result:
             shoutout_found = True
             #print(date.day, "Благослови found!")
             continue
 
         if shoutout_found:
-            #print(date.day, "Відпуст inserting")
+            #print(date.day, "Відпуст inserting:", dismissal_matrix[date.day][9][:40])
             p_new=p.insert_paragraph_before(dismissal_matrix[date.day][9])
             p_new.paragraph_format.space_after = Pt(6)
             #print(date.day,p_new.text)
@@ -1043,11 +1050,14 @@ def insert_menaion_stichera(path,date,template_type):
 
 
             elif datetime(year_no,month_no,k).weekday()+1 in (3,5):
-                if  "gv_theotokion" in stichera_matrix[k] and len(stichera_matrix[k]["gv_theotokion"])==2:
+                if "gv_theotokion" in stichera_matrix[k] and len(stichera_matrix[k]["gv_theotokion"])==2:
                     #print(f"Inserted theo for {k}")
                     pdu.copy_paragraph_before(doc,p,stichera_matrix[k]["gv_theotokion"][1])
                 else:
                     p.insert_paragraph_before("ХРЕСТОБОГОРОДИЧНИЙ")
+            elif datetime(year_no, month_no, k).weekday() + 1 in (1, 2, 4):
+                pass
+                #TODO
             else:
                 #print(f"Inserted theo for {k}")
                 try:
@@ -1160,7 +1170,11 @@ def insert_resurrection_gospel_parts(path,date):
 
     doc.save(path)
 
-folder_name=f'..\\ps_drafts\\vu\\{year_no}-{month_no:02}-{mode}'
+folder_name=f'..\\ps_drafts\\vu\\{year_no}-{month_no:02}'
+if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
+
+folder_name=f'..\\ps_drafts\\vu\\{year_no}-{month_no:02}\\{year_no}-{month_no:02}-{mode}'
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
 
@@ -1336,8 +1350,12 @@ def update_stubs(draft_dic):
 
         if not(day_details[0]=='lent' and day_details[1]==7):
             insert_dismissal(desc[1],datetime(year_no, month_no, d))
-        
-        if desc[0] in ('неділя','октоїх','пасха','50-ця'):
+
+
+
+
+
+        if desc[0] in ('октоїх','пасха','50-ця', 'мінея'):
             #вставити тропарі вечірні, утрені
             if ordo_matrix[d][1]!='y':
                 #print(f"Inserting troparia for {datetime(year_no, month_no, d)}")
@@ -1345,13 +1363,11 @@ def update_stubs(draft_dic):
 
             #вставити глас для Бог Господь
             insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
-            
-            if datetime(year_no, month_no, d).weekday()+1==7:
-                #print("Inserting gospel for", datetime(year_no, month_no, d))
-                insert_resurrection_gospel_parts(desc[1],datetime(year_no, month_no, d))
 
-            #вставити тропарі вкінці утрені
-        if desc[0] in ('октоїх') and (datetime(year_no, month_no, d).weekday()+1)!=7:
+        if desc[0] == 'октоїх' and (datetime(year_no, month_no, d).weekday()+1)!=7:
+
+            # print("Inserting gospel for", datetime(year_no, month_no, d))
+            insert_resurrection_gospel_parts(desc[1], datetime(year_no, month_no, d))
             insert_kanon(desc[1],datetime(year_no, month_no, d))
 
         if desc[0]=='мінея':
@@ -1364,6 +1380,7 @@ def update_stubs(draft_dic):
 
         if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1==6:
             pass
+
         day_details = paschalia.get_day_details(datetime(year_no, month_no, d), mode)
         if desc[0]=='піст' and datetime(year_no, month_no, d).weekday()+1 in (1,2,3,4,5) and day_details[1] in (1,2,3,4,5,6):
             insert_trinity_troparia(desc[1],datetime(year_no, month_no, d))
