@@ -1170,6 +1170,11 @@ def insert_resurrection_gospel_parts(path,date):
 
     doc.save(path)
 
+def insert_paremia(path,date):
+    pass
+
+
+
 folder_name=f'..\\ps_drafts\\vu\\{year_no}-{month_no:02}'
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
@@ -1364,15 +1369,17 @@ def update_stubs(draft_dic):
             #вставити глас для Бог Господь
             insert_boh_hospod_echos(desc[1],datetime(year_no, month_no, d))
 
-        if desc[0] == 'октоїх' and (datetime(year_no, month_no, d).weekday()+1)!=7:
-
+        if (datetime(year_no, month_no, d).weekday()+1)==7:
             # print("Inserting gospel for", datetime(year_no, month_no, d))
             insert_resurrection_gospel_parts(desc[1], datetime(year_no, month_no, d))
+
+        if desc[0] == 'октоїх' and (datetime(year_no, month_no, d).weekday()+1)!=7:
             insert_kanon(desc[1],datetime(year_no, month_no, d))
 
         if desc[0]=='мінея':
             #Якщо мінейний шаблон - вставити прокімен
             insert_prokimenon(desc[1], datetime(year_no, month_no, d).weekday()+1)
+            insert_paremia(desc[1], datetime(year_no, month_no, d))
 
         elif stichera_gv_matrix[d][1].isnumeric() and stichera_gv_matrix[d][1]!='0':
             #Якщо шаблон не мінеї і вказані стихири в матриці - вставити стихири ГВ
@@ -1429,7 +1436,7 @@ filename_triodion_matrix = get_matrix_full("matrices/Місяцеслов-БД-�
 templates_octoechos_dic = get_octoechos_template_files(r'docx_resources\Вечірня-Утреня\01-Октоїх\*\*.docx')
 templates_menaion_dic = get_menaion_template_files()
 troparia_resurrection = get_resurrection_troparia_texts('docx_resources/воскресні_тропарі.docx')
-
+paremia_path = r'docx_resources\Вечірня-Утреня\Паремії\Паремії.docx'
 
 
 troparia_menaion_filename = f'{month_w_offset[month_no - 1]:02}-{month_dic_reversed[month_no].upper()}.docx'
